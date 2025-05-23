@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>בלאקיף - ויקיפדיה</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lunr/lunr.js"></script>
 </head>
 <body>
+    <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #c8ccd1;">
+        <input type="text" id="search-input" placeholder="חפש בבלקיף..." style="width: 300px; padding: 5px;">
+        <ul id="search-results" style="list-style: none; padding: 0;"></ul>
+    </div>
     <nav>
         <ul style="list-style: none; padding: 10px; background: #f8f9fa; border-bottom: 1px solid #c8ccd1;">
             <li style="display: inline; margin-left: 20px;"><a href="index.html">בלאקיף</a></li>
@@ -216,5 +221,50 @@
             </ol>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const documents = [
+                { id: 1, title: "בלאקיף", content: "בלאקיף היא סדרת סרטים קומית-דרמטית המורכבת מחמישה סרטים..." },
+                { id: 2, title: "החבר'ה הטובים", content: "קבוצת הוואטסאפ החבר'ה הטובים..." },
+                { id: 3, title: "אירוויזיון 2025", content: "אירוע מוזיקלי בינלאומי שהתקיים ב-2025..." },
+                { id: 4, title: "אירוויזיון 2026", content: "אירוע מוזיקלי בינלאומי עתידי בווינה..." }
+            ];
+
+            const idx = lunr(function() {
+                this.ref('id');
+                this.field('title');
+                this.field('content');
+                this.metadataWhitelist = ['position'];
+
+                documents.forEach(function(doc) {
+                    this.add(doc);
+                }, this);
+            });
+
+            function search(query) {
+                const results = idx.search(query);
+                return results.map(result => {
+                    const doc = documents.find(d => d.id == result.ref);
+                    return { title: doc.title, content: doc.content };
+                });
+            }
+
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value;
+                searchResults.innerHTML = '';
+                if (query.length < 2) return;
+
+                const results = search(query);
+                results.forEach(result => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="#${result.title}">${result.title}</a>: ${result.content.substring(0, 100)}...`;
+                    searchResults.appendChild(li);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
