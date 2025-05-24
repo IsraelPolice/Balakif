@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://s.ytimg.com https://www.google.com https://www.gstatic.com https://static.doubleclick.net; frame-src https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src https://www.youtube.com https://www.google.com; img-src 'self' https://i.ytimg.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://s.ytimg.com https://www.google.com https://www.gstatic.com https://static.doubleclick.net https://cdn.tailwindcss.com; frame-src https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src https://www.youtube.com https://www.google.com; img-src 'self' https://i.ytimg.com;">
   <title>בלאקיף</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
@@ -195,7 +195,7 @@
 
     const questions = [
       { question: "מהו שם הכלבה המיתולוגית של יוסף?", answers: ["תותי"] },
-      { question: "המי מהחברים בקבוצה מומחה בקולנוע?", answers: ["דביר", "בדר", "דביר אוחנה"] },
+      { question: "מי מהחברים בקבוצה מומחה בקולנוע?", answers: ["דביר", "בדר", "דביר אוחנה"] },
       { question: "מי היה המחנך של יב׳ 3?", answers: ["עוזי"] },
       { question: "מי אמר את המשפט ״חבורה של מסריחים, זרקתם עליי בוץ״?", answers: ["עומרי", "עומרי קרסנטי"] },
       { question: "עם מי חיים שוחח בשיחה המיתולוגית שלו ב-2015 (השיחה הוקלטה וחיים הביע התנגדות להמשך הפצתה)?", answers: ["איציק", "איציק מור יוסף"] },
@@ -293,18 +293,41 @@
     function AuthPopup({ onAuthSuccess }) {
       const [answer, setAnswer] = React.useState("");
       const [error, setError] = React.useState("");
+      const [attempts, setAttempts] = React.useState(0);
+      const [isLocked, setIsLocked] = React.useState(false);
       const [randomQuestion, setRandomQuestion] = React.useState(null);
 
       React.useEffect(() => {
+        const lockData = localStorage.getItem('balakifLock');
+        if (lockData) {
+          const { timestamp } = JSON.parse(lockData);
+          const now = Date.now();
+          const lockDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+          if (now - timestamp < lockDuration) {
+            setIsLocked(true);
+            return;
+          } else {
+            localStorage.removeItem('balakifLock');
+          }
+        }
         const randomIndex = Math.floor(Math.random() * questions.length);
         setRandomQuestion(questions[randomIndex]);
       }, []);
 
       const handleSubmit = () => {
+        if (isLocked) return;
+
         if (randomQuestion && randomQuestion.answers.includes(answer.trim())) {
+          localStorage.removeItem('balakifLock');
           onAuthSuccess();
         } else {
+          const newAttempts = attempts + 1;
+          setAttempts(newAttempts);
           setError("תשובה שגויה. נסה שוב.");
+          if (newAttempts >= 2) {
+            setIsLocked(true);
+            localStorage.setItem('balakifLock', JSON.stringify({ timestamp: Date.now() }));
+          }
         }
       };
 
@@ -313,6 +336,17 @@
           handleSubmit();
         }
       };
+
+      if (isLocked) {
+        return (
+          <div className="popup">
+            <div className="popup-content">
+              <h2 className="text-xl font-bold mb-4">האתר נעול</h2>
+              <p className="text-base">נסה מאוחר יותר</p>
+            </div>
+          </div>
+        );
+      }
 
       if (!randomQuestion) return null;
 
@@ -331,6 +365,7 @@
               className="text-right"
             />
             {error && <p className="error-message">{error}</p>}
+            <p className="text-sm mt-2">נותרו {2 - attempts} ניסיונות</p>
             <button onClick={handleSubmit}>שלח</button>
           </div>
         </div>
@@ -350,16 +385,16 @@
       };
 
       return (
-        <div>
+        <React.Fragment>
           {showPrivacyPopup && <PrivacyPopup onClose={handlePrivacyClose} />}
           {!showPrivacyPopup && !isAuthenticated && <AuthPopup onAuthSuccess={handleAuthSuccess} />}
           {isAuthenticated && (
-            <>
+            <React.Fragment>
               <Header />
               <FilmsSection />
-            </>
+            </React.Fragment>
           )}
-        </div>
+        </React.Fragment>
       );
     }
 
