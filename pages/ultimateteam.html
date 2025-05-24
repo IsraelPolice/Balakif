@@ -10,11 +10,11 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes dance {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(5deg); }
-      50% { transform: rotate(0deg); }
-      75% { transform: rotate(-5deg); }
-      100% { transform: rotate(0deg); }
+      0% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(10deg) scale(1.1); }
+      50% { transform: rotate(0deg) scale(1); }
+      75% { transform: rotate(-10deg) scale(1.1); }
+      100% { transform: rotate(0deg) scale(1); }
     }
     body { font-family: 'Arial', sans-serif; direction: rtl; background: linear-gradient(to bottom, #1a202c, #2d3748); color: white; }
     .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
@@ -22,16 +22,17 @@
     .star { color: #FFD700; }
     .popup { animation: fadeIn 0.5s ease-in-out; }
     .player-reveal { animation: slideIn 0.5s ease-in-out; }
-    .dance { animation: dance 0.5s infinite; }
+    .dance { animation: dance 0.8s infinite; }
     #error { display: none; color: #fc8181; }
     .player-card { background: linear-gradient(135deg, #4b5e7e, #2d3748); border: 2px solid #FFD700; }
+    .team-popup { background: linear-gradient(135deg, #1a202c, #4a5568); border: 4px solid #FFD700; }
   </style>
 </head>
 <body class="min-h-screen p-4">
   <div id="welcome-screen" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
     <div class="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full text-center popup">
       <h1 class="text-3xl font-bold mb-4">ברוכים הבאים להחבר'ה הטובים - Ultimate Team!</h1>
-      <p class="text-lg mb-6">בנו את קבוצת החלומות שלכם, ענו על שאלות טריוויה כדי להרוויח כסף, ונסו לנצח את כל הבוסים!</p>
+      <p class="text-lg mb-6">צרו את קבוצת החלומות, הרוויחו כסף בטריוויה, ושפרו את השחקנים כדי לנצח את הבוסים!</p>
       <button onclick="startGame()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">התחל משחק</button>
     </div>
   </div>
@@ -39,7 +40,15 @@
   <div id="team-selection-screen" class="hidden container mx-auto">
     <h1 class="text-4xl font-bold text-center mb-8">בחרו את קבוצת החלומות</h1>
     <button onclick="selectRandomTeam()" class="block mx-auto bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition">בחר קבוצה רנדומלית</button>
-    <div id="team-reveal" class="flex justify-center items-center mt-8"></div>
+    <div id="team-reveal" class="grid grid-cols-1 md:grid-cols-5 gap-4 mt-8"></div>
+  </div>
+
+  <div id="team-popup" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="team-popup p-8 rounded-xl shadow-2xl max-w-2xl w-full text-center popup">
+      <h1 class="text-3xl font-bold mb-4">החמישייה שלכם מוכנה!</h1>
+      <p class="text-lg mb-6">הרכבתם את קבוצת החלומות! השתמשו בטריוויה להרוויח כסף, שפרו שחקנים, וצאו לקרב נגד הבוסים!</p>
+      <button onclick="showMainScreen()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">המשך למשחק</button>
+    </div>
   </div>
 
   <div id="main-screen" class="hidden container mx-auto">
@@ -150,11 +159,12 @@
       return '★';
     }
 
-    function shootConfetti() {
+    function shootConfetti(isHighRating = false) {
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: isHighRating ? 200 : 100,
+        spread: isHighRating ? 90 : 70,
         origin: { y: 0.6 },
+        colors: isHighRating ? ['#FFD700', '#FF4500', '#00FF00'] : undefined,
       });
     }
 
@@ -202,6 +212,7 @@
       document.getElementById("team-selection-screen").classList.remove("hidden");
       document.getElementById("trivia-screen").classList.add("hidden");
       document.getElementById("transfers-screen").classList.add("hidden");
+      document.getElementById("team-popup").classList.add("hidden");
     }
 
     function showMainScreen() {
@@ -209,6 +220,7 @@
       document.getElementById("team-selection-screen").classList.add("hidden");
       document.getElementById("trivia-screen").classList.add("hidden");
       document.getElementById("transfers-screen").classList.add("hidden");
+      document.getElementById("team-popup").classList.add("hidden");
       updateUI();
     }
 
@@ -219,7 +231,6 @@
       teamRevealDiv.innerHTML = "";
       team.forEach((player, index) => {
         setTimeout(() => {
-          teamRevealDiv.innerHTML = "";
           const card = document.createElement("div");
           card.className = `player-card p-6 rounded-xl shadow-lg player-reveal ${player.rating >= 90 ? 'dance' : ''}`;
           card.innerHTML = `<div class="text-center"><span class="text-4xl">🇮🇱</span></div>`;
@@ -232,7 +243,7 @@
                 <p class="star text-2xl">${getStars(player.rating)}</p>
               </div>
             `;
-            if (player.rating >= 90) shootConfetti();
+            if (player.rating >= 90) shootConfetti(true);
           }, 1000);
           setTimeout(() => {
             card.innerHTML = `
@@ -247,8 +258,8 @@
             `;
             if (index === team.length - 1) {
               setTimeout(() => {
-                alert("זו החמישייה שלכם! בהצלחה! בהמשך תוכלו למכור ולקנות שחקנים, לענות על טריוויה כדי להרוויח כסף, ולנצח את הבוסים!");
-                showMainScreen();
+                document.getElementById("team-selection-screen").classList.add("hidden");
+                document.getElementById("team-popup").classList.remove("hidden");
               }, 1000);
             }
           }, 2000);
@@ -276,6 +287,7 @@
               <p>דירוג: ${player.rating}</p>
               <p class="star">${getStars(player.rating)}</p>
               <p>שווי: ${player.value.toLocaleString()} ₪</p>
+              <button onclick="upgradePlayer(${index})" class="mt-2 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition">תביא לו ביד</button>
               <button onclick="sellPlayer(${index})" class="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">מכור</button>
             </div>
           `;
@@ -283,6 +295,26 @@
         });
       } catch (e) {
         showError("שגיאה בעדכון ממשק: " + e.message);
+      }
+    }
+
+    function upgradePlayer(index) {
+      try {
+        const player = team[index];
+        if (player.name === "דביר ברקת") {
+          player.rating += 5;
+        } else if (player.name === "אריאל שרביט") {
+          player.rating -= 15;
+        } else {
+          player.rating += 1;
+        }
+        player.rating = Math.max(0, Math.min(99, player.rating));
+        localStorage.setItem("team", JSON.stringify(team));
+        alert(`שדרגת את ${player.name}! הדירוג החדש: ${player.rating}`);
+        if (player.rating >= 90) shootConfetti(true);
+        updateUI();
+      } catch (e) {
+        showError("שגיאה בשדרוג שחקן: " + e.message);
       }
     }
 
@@ -298,7 +330,7 @@
           money += 1000000;
           alert(`ניצחת את ${bosses[currentBoss].name}! הרווחת 1,000,000 ₪!`);
           currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
-          shootConfetti();
+          shootConfetti(true);
         } else {
           alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
           team = [];
@@ -340,7 +372,7 @@
         if (index === currentTrivia.correct) {
           money += 50000;
           alert("תשובה נכונה! הרווחת 50,000 ₪!");
-          shootConfetti();
+          shootConfetti(true);
         } else {
           alert("תשובה שגויה, נסה שוב!");
         }
@@ -407,7 +439,7 @@
           localStorage.setItem("team", JSON.stringify(team));
           localStorage.setItem("money", money);
           alert(`רכשת את ${player.name}!`);
-          if (player.rating >= 90) shootConfetti();
+          if (player.rating >= 90) shootConfetti(true);
           showTransfers();
           updateUI();
         } else {
