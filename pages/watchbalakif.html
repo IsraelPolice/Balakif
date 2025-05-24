@@ -62,7 +62,7 @@
       overflow: hidden;
       background-color: #181818;
       cursor: pointer;
-      width: 100/Key Takeaways
+      width: 100%;
     }
     .film-card:hover {
       transform: scale(1.03);
@@ -289,46 +289,37 @@
 
     function calculateViews(initialViews, dailyViews, startTime, currentTime) {
       const hoursPassed = Math.floor((currentTime - startTime) / (1000 * 60 * 60));
-      let totalViews = initialViews;
-
       if (hoursPassed <= 0) return initialViews;
 
-      // Before 400 total site visits
-      let siteVisits = 16; // Initial site visits
+      let totalViews = initialViews;
+      let siteVisits = 16;
+
+      // Calculate site visits to check if past 400
       for (let hour = 0; hour < hoursPassed; hour++) {
         const hourDate = new Date(startTime + hour * 1000 * 60 * 60);
-        const israelHour = hourDate.getUTCHours() + 3; // UTC+3 for Israel
+        const israelHour = (hourDate.getUTCHours() + 3) % 24; // UTC+3 for Israel
         siteVisits += 1; // Regular visit per hour
         if (israelHour >= 11 && israelHour < 15) {
-          siteVisits += 1; // Bonus visit between 11:00-15:00
-        }
-        if (siteVisits >= 400) {
-          // After 400 visits, switch to 1 visit every 2 hours
-          const hoursAfter400 = hour - (hour - hoursPassed);
-          siteVisits = 400 + Math.floor(hoursAfter400 / 2);
-          break;
+          siteVisits += 1; // Bonus visit
         }
       }
 
-      // Calculate views for each film
-      const daysPassed = Math.floor(hoursPassed / 24);
-      const remainingHours = hoursPassed % 24;
-      totalViews += daysPassed * dailyViews; // Full days
-
-      // Distribute remaining hours' views proportionally
-      for (let hour = 0; hour < remainingHours; hour++) {
-        const hourDate = new Date(startTime + (daysPassed * 24 + hour) * 1000 * 60 * 60);
-        const israelHour = hourDate.getUTCHours() + 3;
-        totalViews += dailyViews / 24; // Regular view
-        if (israelHour >= 11 && israelHour < 15) {
-          totalViews += dailyViews / 24; // Bonus view
+      if (siteVisits < 400) {
+        // Before 400 site visits
+        for (let hour = 0; hour < hoursPassed; hour++) {
+          const hourDate = new Date(startTime + hour * 1000 * 60 * 60);
+          const israelHour = (hourDate.getUTCHours() + 3) % 24;
+          totalViews += dailyViews / 24; // Regular view
+          if (israelHour >= 11 && israelHour < 15) {
+            totalViews += dailyViews / 24; // Bonus view
+          }
         }
-      }
-
-      // After 400 site visits, adjust to 12 views per day
-      if (siteVisits >= 400) {
-        const hoursAfter400 = hoursPassed - Math.floor((400 - 16) / 1.167); // Approximate hours to reach 400
-        totalViews = initialViews + (daysPassed * dailyViews) + Math.floor((hoursAfter400 / 2) * (dailyViews / 24));
+      } else {
+        // After 400 site visits, 12 views per day (1 every 2 hours)
+        const hoursUntil400 = Math.floor((400 - 16) / 1.167); // Approximate hours to 400
+        const hoursAfter400 = hoursPassed - hoursUntil400;
+        totalViews += (hoursUntil400 * (dailyViews / 24)); // Views before 400
+        totalViews += (hoursAfter400 / 2) * (dailyViews / 24); // Views after 400
       }
 
       return Math.floor(totalViews);
@@ -336,20 +327,19 @@
 
     function getSiteVisits(startTime, currentTime) {
       const hoursPassed = Math.floor((currentTime - startTime) / (1000 * 60 * 60));
+      if (hoursPassed <= 0) return 16;
+
       let siteVisits = 16;
-
-      if (hoursPassed <= 0) return siteVisits;
-
       for (let hour = 0; hour < hoursPassed; hour++) {
         const hourDate = new Date(startTime + hour * 1000 * 60 * 60);
-        const israelHour = hourDate.getUTCHours() + 3;
+        const israelHour = (hourDate.getUTCHours() + 3) % 24;
         siteVisits += 1;
         if (israelHour >= 11 && israelHour < 15) {
           siteVisits += 1;
         }
         if (siteVisits >= 400) {
-          const hoursAfter400 = hour - (hour - hoursPassed);
-          siteVisits = 400 + Math.floor(hoursAfter400 / 2);
+          const hoursAfter400 = hoursPassed - hour;
+          siteVisits += Math.floor(hoursAfter400 / 2);
           break;
         }
       }
@@ -360,11 +350,19 @@
     function Header() {
       const [siteVisits, setSiteVisits] = React.useState(16);
       React.useEffect(() => {
-        const startTime = localStorage.getItem('balakifStartTime') || Date.now();
-        localStorage.setItem('balakifStartTime', startTime);
+        let startTime = localStorage.getItem('balakifStartTime');
+        if (!startTime) {
+          // Set start time to May 24, 2025, 18:49 IDT (UTC+3)
+          const startDate = new Date('2025-05-24T18:49:00+03:00');
+          startTime = startDate.getTime();
+          localStorage.setItem('balakifStartTime', startTime);
+        }
         const updateVisits = () => {
           const currentTime = Date.now();
-          setSiteVisits(getSiteVisits(Number(startTime), currentTime));
+          const visits = getSiteVisits(Number(startTime), currentTime);
+          setSiteVisits(visits);
+          // Temporary log for debugging (remove in production)
+          console.log(`Site visits: ${visits}, Time: ${new Date(currentTime).toISOString()}`);
         };
         updateVisits();
         const interval = setInterval(updateVisits, 60000); // Update every minute
@@ -391,11 +389,18 @@
       const [views, setViews] = React.useState(film.initialViews);
 
       React.useEffect(() => {
-        const startTime = localStorage.getItem('balakifStartTime') || Date.now();
-        localStorage.setItem('balakifStartTime', startTime);
+        let startTime = localStorage.getItem('balakifStartTime');
+        if (!startTime) {
+          const startDate = new Date('2025-05-24T18:49:00+03:00');
+          startTime = startDate.getTime();
+          localStorage.setItem('balakifStartTime', startTime);
+        }
         const updateViews = () => {
           const currentTime = Date.now();
-          setViews(calculateViews(film.initialViews, film.dailyViews, Number(startTime), currentTime));
+          const newViews = calculateViews(film.initialViews, film.dailyViews, Number(startTime), currentTime);
+          setViews(newViews);
+          // Temporary log for debugging (remove in production)
+          console.log(`${film.title} views: ${newViews}, Time: ${new Date(currentTime).toISOString()}`);
         };
         updateViews();
         const interval = setInterval(updateViews, 60000); // Update every minute
@@ -513,7 +518,7 @@
       const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
           handleSubmit();
-        };
+        }
       };
 
       if (isLocked) {
