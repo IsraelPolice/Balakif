@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>החבר'ה הטובים - Ultimate Team</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.5/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Arial, sans-serif; direction: rtl; }
+    .card { transition: transform 0.2s; }
+    .card:hover { transform: scale(1.05); }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div id="root"></div>
+  <script type="text/babel">
+    const players = [
+      { name: "עמית לסרי", role: "מייסד הקבוצה", rating: 94, value: 19000000 },
+      { name: "דביר ברקת", role: "חבר", rating: 94, value: 19000000 },
+      { name: "ליאב בן יעקב", role: "חבר", rating: 86, value: 14148548.39 },
+      { name: "יוסף קחלר", role: "מנהל שותף", rating: 92, value: 17817419.35 },
+      { name: "אריאל עין גל", role: "חבר", rating: 66, value: 1914838.71 },
+      { name: "דביר אוחנה", role: "חבר", rating: 94, value: 19000000 },
+      { name: "איתי אוחנה", role: "חבר", rating: 92, value: 17817419.35 },
+      { name: "אור דהן", role: "חבר", rating: 81, value: 11090580.65 },
+      { name: "איציק מור יוסף", role: "חבר", rating: 86, value: 14148548.39 },
+      { name: "נתנאל יוסילביץ'", role: "חבר", rating: 84, value: 12925016.13 },
+      { name: "קורן נאגר", role: "חבר", rating: 77, value: 8643225.81 },
+      { name: "קורן בן משה", role: "חבר", rating: 89, value: 15982983.87 },
+      { name: "ג'ורדן בוחבוט", role: "חבר", rating: 89, value: 15982983.87 },
+      { name: "מיכה גורלובסקי", role: "חבר", rating: 90, value: 16594596.77 },
+      { name: "עומר יוסף", role: "חבר", rating: 83, value: 12313403.23 },
+      { name: "דור אביכזר", role: "חבר", rating: 79, value: 9866451.61 },
+      { name: "אלי יגורוב (קטלטה)", role: "חבר", rating: 80, value: 10478064.52 },
+      { name: "יעקב שוורץ", role: "חבר", rating: 88, value: 15371370.97 },
+      { name: "יוגב שבתאי", role: "חבר", rating: 89, value: 15982983.87 },
+      { name: "חיים מרקס", role: "חבר", rating: 85, value: 13536629.03 },
+      { name: "רפי אלגרבלי", role: "חבר", rating: 90, value: 16594596.77 },
+      { name: "אריאל שרביט", role: "חבר", rating: 63, value: 210000 },
+    ];
+
+    const bosses = Array.from({ length: 10 }, (_, i) => ({
+      name: `בוס ${i + 1}`,
+      requiredRating: 75 + i * 2 + (i === 9 ? 1 : 0),
+    }));
+
+    const triviaQuestions = [
+      { question: "מהי בירת ישראל?", answers: ["ירושלים", "תל אביב", "חיפה", "באר שבע"], correct: 0 },
+      { question: "מי היה ראש הממשלה הראשון של ישראל?", answers: ["דוד בן-גוריון", "משה שרת", "לוי אשכול", "גולדה מאיר"], correct: 0 },
+      { question: "מהו הים הגובל בישראל ממערב?", answers: ["הים התיכון", "הים האדום", "ים המלח", "הכנרת"], correct: 0 },
+    ];
+
+    function App() {
+      const [team, setTeam] = React.useState(() => {
+        const saved = localStorage.getItem("team");
+        return saved ? JSON.parse(saved) : getRandomTeam();
+      });
+      const [money, setMoney] = React.useState(() => {
+        const saved = localStorage.getItem("money");
+        return saved ? parseInt(saved) : 1000000;
+      });
+      const [currentBoss, setCurrentBoss] = React.useState(() => {
+        const saved = localStorage.getItem("currentBoss");
+        return saved ? parseInt(saved) : 0;
+      });
+      const [screen, setScreen] = React.useState("main");
+      const [trivia, setTrivia] = React.useState(null);
+
+      React.useEffect(() => {
+        localStorage.setItem("team", JSON.stringify(team));
+        localStorage.setItem("money", money);
+        localStorage.setItem("currentBoss", currentBoss);
+      }, [team, money, currentBoss]);
+
+      function getRandomTeam() {
+        const shuffled = [...players].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 5);
+      }
+
+      function calculateAverageRating() {
+        return team.reduce((sum, player) => sum + player.rating, 0) / team.length;
+      }
+
+      function startBattle() {
+        const avgRating = calculateAverageRating();
+        const required = bosses[currentBoss].requiredRating;
+        if (avgRating >= required) {
+          alert(`ניצחת את ${bosses[currentBoss].name}!`);
+          setCurrentBoss((prev) => Math.min(prev + 1, bosses.length - 1));
+        } else {
+          alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
+          setTeam(getRandomTeam());
+          setMoney(1000000);
+          setCurrentBoss(0);
+        }
+      }
+
+      function startTrivia() {
+        const question = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
+        setTrivia({ ...question, selected: null });
+        setScreen("trivia");
+      }
+
+      function handleTriviaAnswer(index) {
+        setTrivia({ ...trivia, selected: index });
+        if (index === trivia.correct) {
+          setMoney((prev) => prev + 10000);
+          alert("תשובה נכונה! הרווחת 10,000 אירו!");
+        } else {
+          alert("תשובה שגויה, נסה שוב!");
+        }
+        setScreen("main");
+      }
+
+      function buyPlayer(player) {
+        if (money >= player.value) {
+          setTeam((prev) => {
+            const newTeam = [...prev];
+            newTeam[Math.floor(Math.random() * newTeam.length)] = player;
+            return newTeam;
+          });
+          setMoney((prev) => prev - player.value);
+          alert(`רכשת את ${player.name}!`);
+        } else {
+          alert("אין מספיק כסף!");
+        }
+      }
+
+      function sellPlayer(index) {
+        setMoney((prev) => prev + team[index].value);
+        setTeam((prev) => {
+          const newTeam = [...prev];
+          newTeam[index] = players[Math.floor(Math.random() * players.length)];
+          return newTeam;
+        });
+        alert("שחקן נמכר!");
+      }
+
+      return (
+        <div className="container mx-auto p-4">
+          <h1 className="text-3xl font-bold text-center mb-6">החבר'ה הטובים - Ultimate Team</h1>
+          {screen === "main" && (
+            <div>
+              <div className="mb-4">
+                <p className="text-xl">כסף זמין: {money.toLocaleString()} אירו</p>
+                <p className="text-xl">בוס נוכחי: {bosses[currentBoss].name} (דירוג נדרש: {bosses[currentBoss].requiredRating})</p>
+                <p className="text-xl">דירוג ממוצע: {calculateAverageRating().toFixed(1)}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                {team.map((player, index) => (
+                  <div key={index} className="card bg-white p-4 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-bold">{player.name}</h2>
+                    <p>תפקיד: {player.role}</p>
+                    <p>דירוג: {player.rating}</p>
+                    <p>שווי: {player.value.toLocaleString()} אירו</p>
+                    <button
+                      onClick={() => sellPlayer(index)}
+                      className="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    >
+                      מכור
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={startBattle}
+                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600"
+                >
+                  התחל קרב
+                </button>
+                <button
+                  onClick={startTrivia}
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600"
+                >
+                  טריוויה
+                </button>
+                <button
+                  onClick={() => setScreen("transfers")}
+                  className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600"
+                >
+                  חלון העברות
+                </button>
+              </div>
+            </div>
+          )}
+          {screen === "trivia" && trivia && (
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">{trivia.question}</h2>
+              <div className="grid grid-cols-1 gap-2">
+                {trivia.answers.map((answer, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleTriviaAnswer(index)}
+                    className={`p-4 rounded-lg ${
+                      trivia.selected === index
+                        ? index === trivia.correct
+                          ? "bg-green-500 text-white"
+                          : "bg-red-500 text-white"
+                        : "bg-gray-200 hover:bg-gray-300"
+                    }`}
+                    disabled={trivia.selected !== null}
+                  >
+                    {answer}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setScreen("main")}
+                className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                חזור
+              </button>
+            </div>
+          )}
+          {screen === "transfers" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">חלון העברות</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {players.map((player, index) => (
+                  <div key={index} className="card bg-white p-4 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-bold">{player.name}</h2>
+                    <p>תפקיד: {player.role}</p>
+                    <p>דירוג: {player.rating}</p>
+                    <p>שווי: {player.value.toLocaleString()} אירו</p>
+                    <button
+                      onClick={() => buyPlayer(player)}
+                      className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                      disabled={team.some((p) => p.name === player.name)}
+                    >
+                      קנה
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setScreen("main")}
+                className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                חזור
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
