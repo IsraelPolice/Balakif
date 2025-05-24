@@ -4,19 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>החבר'ה הטובים - Ultimate Team</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.5/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: Arial, sans-serif; direction: rtl; }
+    body { font-family: Arial, sans-serif; direction: rtl; background-color: #f3f4f6; }
     .card { transition: transform 0.2s; }
     .card:hover { transform: scale(1.05); }
+    #error { display: none; color: red; }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <div id="root"></div>
-  <script type="text/babel">
+<body class="min-h-screen p-4">
+  <div class="container mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-6">החבר'ה הטובים - Ultimate Team</h1>
+    <div id="error" class="text-center mb-4"></div>
+    <div id="main-screen">
+      <div class="mb-4">
+        <p class="text-xl" id="money">כסף זמין: 1,000,000 אירו</p>
+        <p class="text-xl" id="current-boss">בוס נוכחי: בוס 1 (דירוג נדרש: 75)</p>
+        <p class="text-xl" id="avg-rating">דירוג ממוצע: 0</p>
+      </div>
+      <div id="team" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+      <div class="flex justify-center gap-4">
+        <button onclick="startBattle()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">התחל קרב</button>
+        <button onclick="startTrivia()" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600">טריוויה</button>
+        <button onclick="showTransfers()" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600">חלון העברות</button>
+      </div>
+    </div>
+    <div id="trivia-screen" class="hidden bg-white p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4" id="trivia-question"></h2>
+      <div id="trivia-answers" class="grid grid-cols-1 gap-2"></div>
+      <button onclick="backToMain()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">חזור</button>
+    </div>
+    <div id="transfers-screen" class="hidden">
+      <h2 class="text-2xl font-bold mb-4">חלון העברות</h2>
+      <div id="transfers" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+      <button onclick="backToMain()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">חזור</button>
+    </div>
+  </div>
+
+  <script>
     const players = [
       { name: "עמית לסרי", role: "מייסד הקבוצה", rating: 94, value: 19000000 },
       { name: "דביר ברקת", role: "חבר", rating: 94, value: 19000000 },
@@ -53,202 +78,191 @@
       { question: "מהו הים הגובל בישראל ממערב?", answers: ["הים התיכון", "הים האדום", "ים המלח", "הכנרת"], correct: 0 },
     ];
 
-    function App() {
-      const [team, setTeam] = React.useState(() => {
-        const saved = localStorage.getItem("team");
-        return saved ? JSON.parse(saved) : getRandomTeam();
-      });
-      const [money, setMoney] = React.useState(() => {
-        const saved = localStorage.getItem("money");
-        return saved ? parseInt(saved) : 1000000;
-      });
-      const [currentBoss, setCurrentBoss] = React.useState(() => {
-        const saved = localStorage.getItem("currentBoss");
-        return saved ? parseInt(saved) : 0;
-      });
-      const [screen, setScreen] = React.useState("main");
-      const [trivia, setTrivia] = React.useState(null);
+    let team = [];
+    let money = 1000000;
+    let currentBoss = 0;
+    let currentTrivia = null;
 
-      React.useEffect(() => {
-        localStorage.setItem("team", JSON.stringify(team));
-        localStorage.setItem("money", money);
-        localStorage.setItem("currentBoss", currentBoss);
-      }, [team, money, currentBoss]);
-
-      function getRandomTeam() {
-        const shuffled = [...players].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 5);
+    function init() {
+      try {
+        const savedTeam = localStorage.getItem("team");
+        const savedMoney = localStorage.getItem("money");
+        const savedBoss = localStorage.getItem("currentBoss");
+        team = savedTeam ? JSON.parse(savedTeam) : getRandomTeam();
+        money = savedMoney ? parseInt(savedMoney) : 1000000;
+        currentBoss = savedBoss ? parseInt(savedBoss) : 0;
+        updateUI();
+      } catch (e) {
+        showError("שגיאה בטעינת המשחק: " + e.message);
       }
+    }
 
-      function calculateAverageRating() {
-        return team.reduce((sum, player) => sum + player.rating, 0) / team.length;
+    function showError(message) {
+      document.getElementById("error").style.display = "block";
+      document.getElementById("error").innerText = message;
+    }
+
+    function getRandomTeam() {
+      const shuffled = [...players].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 5);
+    }
+
+    function calculateAverageRating() {
+      return team.reduce((sum, player) => sum + player.rating, 0) / team.length;
+    }
+
+    function updateUI() {
+      try {
+        document.getElementById("money").innerText = `כסף זמין: ${money.toLocaleString()} אירו`;
+        document.getElementById("current-boss").innerText = `בוס נוכחי: ${bosses[currentBoss].name} (דירוג נדרש: ${bosses[currentBoss].requiredRating})`;
+        document.getElementById("avg-rating").innerText = `דירוג ממוצע: ${calculateAverageRating().toFixed(1)}`;
+        
+        const teamDiv = document.getElementById("team");
+        teamDiv.innerHTML = "";
+        team.forEach((player, index) => {
+          const card = document.createElement("div");
+          card.className = "card bg-white p-4 rounded-lg shadow-lg";
+          card.innerHTML = `
+            <h2 class="text-lg font-bold">${player.name}</h2>
+            <p>תפקיד: ${player.role}</p>
+            <p>דירוג: ${player.rating}</p>
+            <p>שווי: ${player.value.toLocaleString()} אירו</p>
+            <button onclick="sellPlayer(${index})" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">מכור</button>
+          `;
+          teamDiv.appendChild(card);
+        });
+      } catch (e) {
+        showError("שגיאה בעדכון ממשק: " + e.message);
       }
+    }
 
-      function startBattle() {
+    function startBattle() {
+      try {
         const avgRating = calculateAverageRating();
         const required = bosses[currentBoss].requiredRating;
         if (avgRating >= required) {
           alert(`ניצחת את ${bosses[currentBoss].name}!`);
-          setCurrentBoss((prev) => Math.min(prev + 1, bosses.length - 1));
+          currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
         } else {
           alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
-          setTeam(getRandomTeam());
-          setMoney(1000000);
-          setCurrentBoss(0);
+          team = getRandomTeam();
+          money = 1000000;
+          currentBoss = 0;
         }
+        localStorage.setItem("team", JSON.stringify(team));
+        localStorage.setItem("money", money);
+        localStorage.setItem("currentBoss", currentBoss);
+        updateUI();
+      } catch (e) {
+        showError("שגיאה בקרב: " + e.message);
       }
+    }
 
-      function startTrivia() {
-        const question = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
-        setTrivia({ ...question, selected: null });
-        setScreen("trivia");
+    function startTrivia() {
+      try {
+        currentTrivia = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
+        document.getElementById("main-screen").classList.add("hidden");
+        document.getElementById("trivia-screen").classList.remove("hidden");
+        document.getElementById("trivia-question").innerText = currentTrivia.question;
+        const answersDiv = document.getElementById("trivia-answers");
+        answersDiv.innerHTML = "";
+        currentTrivia.answers.forEach((answer, index) => {
+          const button = document.createElement("button");
+          button.className = "p-4 rounded-lg bg-gray-200 hover:bg-gray-300";
+          button.innerText = answer;
+          button.onclick = () => handleTriviaAnswer(index);
+          answersDiv.appendChild(button);
+        });
+      } catch (e) {
+        showError("שגיאה בטעינת טריוויה: " + e.message);
       }
+    }
 
-      function handleTriviaAnswer(index) {
-        setTrivia({ ...trivia, selected: index });
-        if (index === trivia.correct) {
-          setMoney((prev) => prev + 10000);
+    function handleTriviaAnswer(index) {
+      try {
+        if (index === currentTrivia.correct) {
+          money += 10000;
           alert("תשובה נכונה! הרווחת 10,000 אירו!");
         } else {
           alert("תשובה שגויה, נסה שוב!");
         }
-        setScreen("main");
+        localStorage.setItem("money", money);
+        backToMain();
+      } catch (e) {
+        showError("שגיאה בטיפול בתשובת טריוויה: " + e.message);
       }
+    }
 
-      function buyPlayer(player) {
+    function showTransfers() {
+      try {
+        document.getElementById("main-screen").classList.add("hidden");
+        document.getElementById("transfers-screen").classList.remove("hidden");
+        const transfersDiv = document.getElementById("transfers");
+        transfersDiv.innerHTML = "";
+        players.forEach((player) => {
+          const card = document.createElement("div");
+          card.className = "card bg-white p-4 rounded-lg shadow-lg";
+          card.innerHTML = `
+            <h2 class="text-lg font-bold">${player.name}</h2>
+            <p>תפקיד: ${player.role}</p>
+            <p>דירוג: ${player.rating}</p>
+            <p>שווי: ${player.value.toLocaleString()} אירו</p>
+            <button onclick="buyPlayer('${player.name}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" ${
+              team.some((p) => p.name === player.name) ? "disabled" : ""
+            }>קנה</button>
+          `;
+          transfersDiv.appendChild(card);
+        });
+      } catch (e) {
+        showError("שגיאה בטעינת חלון העברות: " + e.message);
+      }
+    }
+
+    function buyPlayer(playerName) {
+      try {
+        const player = players.find((p) => p.name === playerName);
         if (money >= player.value) {
-          setTeam((prev) => {
-            const newTeam = [...prev];
-            newTeam[Math.floor(Math.random() * newTeam.length)] = player;
-            return newTeam;
-          });
-          setMoney((prev) => prev - player.value);
+          money -= player.value;
+          const randomIndex = Math.floor(Math.random() * team.length);
+          team[randomIndex] = player;
+          localStorage.setItem("team", JSON.stringify(team));
+          localStorage.setItem("money", money);
           alert(`רכשת את ${player.name}!`);
+          showTransfers();
+          updateUI();
         } else {
           alert("אין מספיק כסף!");
         }
+      } catch (e) {
+        showError("שגיאה ברכישת שחקן: " + e.message);
       }
-
-      function sellPlayer(index) {
-        setMoney((prev) => prev + team[index].value);
-        setTeam((prev) => {
-          const newTeam = [...prev];
-          newTeam[index] = players[Math.floor(Math.random() * players.length)];
-          return newTeam;
-        });
-        alert("שחקן נמכר!");
-      }
-
-      return (
-        <div className="container mx-auto p-4">
-          <h1 className="text-3xl font-bold text-center mb-6">החבר'ה הטובים - Ultimate Team</h1>
-          {screen === "main" && (
-            <div>
-              <div className="mb-4">
-                <p className="text-xl">כסף זמין: {money.toLocaleString()} אירו</p>
-                <p className="text-xl">בוס נוכחי: {bosses[currentBoss].name} (דירוג נדרש: {bosses[currentBoss].requiredRating})</p>
-                <p className="text-xl">דירוג ממוצע: {calculateAverageRating().toFixed(1)}</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                {team.map((player, index) => (
-                  <div key={index} className="card bg-white p-4 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-bold">{player.name}</h2>
-                    <p>תפקיד: {player.role}</p>
-                    <p>דירוג: {player.rating}</p>
-                    <p>שווי: {player.value.toLocaleString()} אירו</p>
-                    <button
-                      onClick={() => sellPlayer(index)}
-                      className="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                    >
-                      מכור
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={startBattle}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600"
-                >
-                  התחל קרב
-                </button>
-                <button
-                  onClick={startTrivia}
-                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600"
-                >
-                  טריוויה
-                </button>
-                <button
-                  onClick={() => setScreen("transfers")}
-                  className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600"
-                >
-                  חלון העברות
-                </button>
-              </div>
-            </div>
-          )}
-          {screen === "trivia" && trivia && (
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h2 className="text-2xl font-bold mb-4">{trivia.question}</h2>
-              <div className="grid grid-cols-1 gap-2">
-                {trivia.answers.map((answer, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleTriviaAnswer(index)}
-                    className={`p-4 rounded-lg ${
-                      trivia.selected === index
-                        ? index === trivia.correct
-                          ? "bg-green-500 text-white"
-                          : "bg-red-500 text-white"
-                        : "bg-gray-200 hover:bg-gray-300"
-                    }`}
-                    disabled={trivia.selected !== null}
-                  >
-                    {answer}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setScreen("main")}
-                className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                חזור
-              </button>
-            </div>
-          )}
-          {screen === "transfers" && (
-            <div>
-              <h2 className="text-2xl font-bold mb-4">חלון העברות</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {players.map((player, index) => (
-                  <div key={index} className="card bg-white p-4 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-bold">{player.name}</h2>
-                    <p>תפקיד: {player.role}</p>
-                    <p>דירוג: {player.rating}</p>
-                    <p>שווי: {player.value.toLocaleString()} אירו</p>
-                    <button
-                      onClick={() => buyPlayer(player)}
-                      className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                      disabled={team.some((p) => p.name === player.name)}
-                    >
-                      קנה
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setScreen("main")}
-                className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                חזור
-              </button>
-            </div>
-          )}
-        </div>
-      );
     }
 
-    ReactDOM.render(<App />, document.getElementById("root"));
+    function sellPlayer(index) {
+      try {
+        money += team[index].value;
+        team[index] = players[Math.floor(Math.random() * players.length)];
+        localStorage.setItem("team", JSON.stringify(team));
+        localStorage.setItem("money", money);
+        alert("שחקן נמכר!");
+        updateUI();
+      } catch (e) {
+        showError("שגיאה במכירת שחקן: " + e.message);
+      }
+    }
+
+    function backToMain() {
+      try {
+        document.getElementById("main-screen").classList.remove("hidden");
+        document.getElementById("trivia-screen").classList.add("hidden");
+        document.getElementById("transfers-screen").classList.add("hidden");
+        updateUI();
+      } catch (e) {
+        showError("שגיאה בחזרה למסך הראשי: " + e.message);
+      }
+    }
+
+    window.onload = init;
   </script>
 </body>
 </html>
