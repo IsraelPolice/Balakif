@@ -5,40 +5,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>החבר'ה הטובים - Ultimate Team</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; direction: rtl; background-color: #f3f4f6; }
-    .card { transition: transform 0.2s; }
-    .card:hover { transform: scale(1.05); }
-    #error { display: none; color: red; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes dance {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(-5deg); }
+      100% { transform: rotate(0deg); }
+    }
+    body { font-family: 'Arial', sans-serif; direction: rtl; background: linear-gradient(to bottom, #1a202c, #2d3748); color: white; }
+    .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+    .star { color: #FFD700; }
+    .popup { animation: fadeIn 0.5s ease-in-out; }
+    .player-reveal { animation: slideIn 0.5s ease-in-out; }
+    .dance { animation: dance 0.5s infinite; }
+    #error { display: none; color: #fc8181; }
+    .player-card { background: linear-gradient(135deg, #4b5e7e, #2d3748); border: 2px solid #FFD700; }
   </style>
 </head>
 <body class="min-h-screen p-4">
-  <div class="container mx-auto">
-    <h1 class="text-3xl font-bold text-center mb-6">החבר'ה הטובים - Ultimate Team</h1>
+  <div id="welcome-screen" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl max-w-md w-full text-center popup">
+      <h1 class="text-3xl font-bold mb-4">ברוכים הבאים להחבר'ה הטובים - Ultimate Team!</h1>
+      <p class="text-lg mb-6">בנו את קבוצת החלומות שלכם, ענו על שאלות טריוויה כדי להרוויח כסף, ונסו לנצח את כל הבוסים!</p>
+      <button onclick="startGame()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">התחל משחק</button>
+    </div>
+  </div>
+
+  <div id="team-selection-screen" class="hidden container mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8">בחרו את קבוצת החלומות</h1>
+    <button onclick="selectRandomTeam()" class="block mx-auto bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition">בחר קבוצה רנדומלית</button>
+    <div id="team-reveal" class="flex justify-center items-center mt-8"></div>
+  </div>
+
+  <div id="main-screen" class="hidden container mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8">החבר'ה הטובים - Ultimate Team</h1>
     <div id="error" class="text-center mb-4"></div>
-    <div id="main-screen">
-      <div class="mb-4">
-        <p class="text-xl" id="money">כסף זמין: 1,000,000 אירו</p>
-        <p class="text-xl" id="current-boss">בוס נוכחי: בוס 1 (דירוג נדרש: 75)</p>
-        <p class="text-xl" id="avg-rating">דירוג ממוצע: 0</p>
-      </div>
-      <div id="team" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
-      <div class="flex justify-center gap-4">
-        <button onclick="startBattle()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">התחל קרב</button>
-        <button onclick="startTrivia()" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600">טריוויה</button>
-        <button onclick="showTransfers()" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600">חלון העברות</button>
-      </div>
+    <div class="mb-6 bg-gray-800 p-4 rounded-lg">
+      <p class="text-xl" id="money">כסף זמין: 1,000,000 ₪</p>
+      <p class="text-xl" id="current-boss">בוס נוכחי: בוס 1 (דירוג נדרש: 75)</p>
+      <p class="text-xl" id="avg-rating">דירוג ממוצע: 0</p>
     </div>
-    <div id="trivia-screen" class="hidden bg-white p-6 rounded-lg shadow-lg">
-      <h2 class="text-2xl font-bold mb-4" id="trivia-question"></h2>
-      <div id="trivia-answers" class="grid grid-cols-1 gap-2"></div>
-      <button onclick="backToMain()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">חזור</button>
+    <div id="team" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6"></div>
+    <div class="flex justify-center gap-4">
+      <button onclick="startBattle()" id="battle-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">התחל קרב</button>
+      <button onclick="startTrivia()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">טריוויה</button>
+      <button onclick="showTransfers()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">חלון העברות</button>
     </div>
-    <div id="transfers-screen" class="hidden">
-      <h2 class="text-2xl font-bold mb-4">חלון העברות</h2>
-      <div id="transfers" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-      <button onclick="backToMain()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">חזור</button>
+  </div>
+
+  <div id="trivia-screen" class="hidden bg-gray-800 p-8 rounded-xl shadow-2xl">
+    <h2 class="text-2xl font-bold mb-6" id="trivia-question"></h2>
+    <div id="trivia-answers" class="grid grid-cols-1 gap-4"></div>
+    <div class="mt-6 flex justify-center gap-4">
+      <button onclick="nextTrivia()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">שאלה הבאה</button>
+      <button onclick="backToMain()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition">סגור</button>
     </div>
+  </div>
+
+  <div id="transfers-screen" class="hidden container mx-auto">
+    <h2 class="text-2xl font-bold mb-6">חלון העברות</h2>
+    <div id="transfers" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+    <button onclick="backToMain()" class="mt-6 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition">חזור</button>
   </div>
 
   <script>
@@ -73,9 +105,36 @@
     }));
 
     const triviaQuestions = [
-      { question: "מהי בירת ישראל?", answers: ["ירושלים", "תל אביב", "חיפה", "באר שבע"], correct: 0 },
-      { question: "מי היה ראש הממשלה הראשון של ישראל?", answers: ["דוד בן-גוריון", "משה שרת", "לוי אשכול", "גולדה מאיר"], correct: 0 },
-      { question: "מהו הים הגובל בישראל ממערב?", answers: ["הים התיכון", "הים האדום", "ים המלח", "הכנרת"], correct: 0 },
+      { question: "מתי נוסדה קבוצת הוואטסאפ הרשמית של החבר'ה הטובים?", answers: ["2009", "2010", "14 במאי 2013", "2015"], correct: 2 },
+      { question: "מי נחשב למייסד הקבוצה?", answers: ["דביר אוחנה", "עמית לסרי", "ג'ורדן בוחבוט", "קורן בן משה"], correct: 1 },
+      { question: "מי הוא 'כוכב הקבוצה'?", answers: ["יוסף קחלר", "דביר אוחנה", "ליאב בן יעקב", "אריאל עין גל"], correct: 1 },
+      { question: "כמה חברים מונה קבוצת הוואטסאפ הרשמית נכון למאי 2025?", answers: ["18", "20", "22", "24"], correct: 2 },
+      { question: "היכן מתגורר החבר היחיד שחי בחו\"ל?", answers: ["קנדה", "ארצות הברית", "אוסטרליה", "בריטניה"], correct: 1 },
+      { question: "מי מהחברים לא למד בבית הספר אורט מעלות?", answers: ["דביר ברקת", "נתנאל יוסילביץ'", "יוסף קחלר", "עמית לסרי"], correct: 1 },
+      { question: "מהו שם סדרת הסרטים היצירתית של הקבוצה?", answers: ["המקקים", "בלאקיף", "הג'ורדנים", "פסטיג'יינה"], correct: 1 },
+      { question: "מי היה החבר המבוגר ביותר בקבוצה נכון למאי 2025?", answers: ["עמית לסרי", "דביר אוחנה", "יוסף קחלר", "אריאל עין גל"], correct: 1 },
+      { question: "מהו האירוע המיתולוגי שהתרחש ב-2010 בבריכה?", answers: ["תקרית הפייסבוק", "אירועי האסיינדה", "חשיפת ישבן בהיכל התרבות", "תקרית הדרבוקה"], correct: 1 },
+      { question: "מי שפט את תחרות האסיינדה ב-2010?", answers: ["עמית לסרי", "דביר ברקת", "יוסף קחלר", "קורן בן משה"], correct: 1 },
+      { question: "מה היה שם השיר בסרטון התעמולה נגד יוסף קחלר ב-2010?", answers: ["אני ילד, ילד מטומטם", "מכה אפורה", "לך תזדיין, אני מרוקאי", "הוא זיין, הוא סיים"], correct: 0 },
+      { question: "מי הגיב במשפט 'לך תזדיין, אני בכלל מרוקאי' בתקרית הדרבוקה?", answers: ["פלג סבג", "שחר אלמקייס", "עמית לסרי", "דביר אוחנה"], correct: 1 },
+      { question: "מהו האירוע שהפך את החבר'ה הטובים לידועים ב-2009?", answers: ["תקרית הפייסבוק", "תקרית במדבר", "בר המצווה של דביר אוחנה", "תחרות כישרונות"], correct: 0 },
+      { question: "מי נפצע מפגיעת תפוח ב-2011?", answers: ["עמית לסרי", "אסף מרציאנו", "מיכה גורלובסקי", "נתנאל יוסילביץ'"], correct: 1 },
+      { question: "מה היה האירוע המביך ביותר בתולדות נתנאל יוסילביץ'?", answers: ["תקרית במצלמות", "סרטון האוננות", "זריקת אבנים על ליליה", "איום על עיתונאי"], correct: 0 },
+      { question: "באיזו שנה החלה מסורת 'בן זונה של השנה'?", answers: ["2017", "2018", "2019", "2020"], correct: 2 },
+      { question: "מי זכה בתואר 'בן זונה של השנה' ב-2019?", answers: ["עמית לסרי", "יוסף קחלר", "דביר אוחנה", "דביר ברקת"], correct: 1 },
+      { question: "מה היה האירוע המרכזי במסיבת ל\"ג בעומר 2 ב-2014?", answers: ["גניבת גנרטור", "שידור משחק של מכבי תל אביב", "תקרית אלימות", "מתיחת הצואה"], correct: 1 },
+      { question: "מי הציל את חיים מרקס מטביעה בנחל כזיב ב-2014?", answers: ["דביר אוחנה", "ג'ורדן בוחבוט", "עמית לסרי", "יוסף קחלר"], correct: 1 },
+      { question: "מהו שם המשחק שבו מיכה גורלובסקי הוריד את מכנסיו ב-2014?", answers: ["האח הגדול", "פרה עיוורת", "תחרות כישרונות", "מתיחת הצואה"], correct: 1 },
+      { question: "מי היו חברי 'משולש הרשע'?", answers: ["עמית לסרי, דביר אוחנה, יוסף קחלר", "דביר ברקת, יוסף קחלר, איציק מור יוסף", "ליאב בן יעקב, קורן נאגר, אריאל עין גל", "ג'ורדן בוחבוט, יעקב שוורץ, איתי אוחנה"], correct: 1 },
+      { question: "איזה חבר הפך לאב לראשונה ב-2024?", answers: ["עמית לסרי", "נתנאל יוסילביץ'", "יוסף קחלר", "דביר אוחנה"], correct: 1 },
+      { question: "באיזו עיר התקיימה מסיבת הרווקים של יעקב שוורץ ב-2025?", answers: ["ברלין", "אמסטרדם", "קפריסין", "בורגס"], correct: 2 },
+      { question: "מי יצר את סדרת הסרטים בלאקיף?", answers: ["עמית לסרי", "דביר ברקת", "איתי אוחנה", "ג'ורדן בוחבוט"], correct: 1 },
+      { question: "מהו אורכו של הסרט הארוך ביותר בסדרת בלאקיף?", answers: ["1:28 דקות", "2:39 דקות", "5:15 דקות", "6:45 דקות"], correct: 3 },
+      { question: "מי שיחק כחרדי מחסידות ויז'נץ בבלאקיף 5?", answers: ["דביר אוחנה", "ג'ורדן בוחבוט", "איתי אוחנה", "עמית לסרי"], correct: 1 },
+      { question: "מה היה תפקידו של איציק מור יוסף בבלאקיף 4?", answers: ["חקלאי", "לוחם חרדי", "איש בממלכה", "ראפר"], correct: 2 },
+      { question: "איזה אירוע משמעותי התרחש ב-7 באוקטובר 2023?", answers: ["חתונת עומר יוסף", "אריאל עין גל היה עד לטבח בחוף זיקים", "פיגוע ירי ביפו", "מסיבת הרווקים של יעקב שוורץ"], correct: 1 },
+      { question: "מהו הכינוי של נתנאל יוסילביץ' בקבוצה?", answers: ["הווטרן", "משולש הרשע", "כוכב הקבוצה", "המקקים"], correct: 0 },
+      { question: "איזו בדיחה חוזרת קשורה לשחר אלמקייס?", answers: ["הוא זיין, הוא סיים", "לך תזדיין, אני בכלל מרוקאי", "קעקועים של ואנס", "אני ילד, ילד מטומטם"], correct: 1 },
     ];
 
     let team = [];
@@ -83,14 +142,35 @@
     let currentBoss = 0;
     let currentTrivia = null;
 
+    function getStars(rating) {
+      if (rating >= 94) return '★★★★★';
+      if (rating >= 85) return '★★★★';
+      if (rating >= 76) return '★★★';
+      if (rating >= 64) return '★★';
+      return '★';
+    }
+
+    function shootConfetti() {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
+
     function init() {
       try {
         const savedTeam = localStorage.getItem("team");
         const savedMoney = localStorage.getItem("money");
         const savedBoss = localStorage.getItem("currentBoss");
-        team = savedTeam ? JSON.parse(savedTeam) : getRandomTeam();
+        team = savedTeam ? JSON.parse(savedTeam) : [];
         money = savedMoney ? parseInt(savedMoney) : 1000000;
         currentBoss = savedBoss ? parseInt(savedBoss) : 0;
+        if (team.length === 5) {
+          showMainScreen();
+        } else {
+          showTeamSelectionScreen();
+        }
         updateUI();
       } catch (e) {
         showError("שגיאה בטעינת המשחק: " + e.message);
@@ -108,26 +188,96 @@
     }
 
     function calculateAverageRating() {
+      if (team.length === 0) return 0;
       return team.reduce((sum, player) => sum + player.rating, 0) / team.length;
+    }
+
+    function startGame() {
+      document.getElementById("welcome-screen").classList.add("hidden");
+      document.getElementById("team-selection-screen").classList.remove("hidden");
+    }
+
+    function showTeamSelectionScreen() {
+      document.getElementById("main-screen").classList.add("hidden");
+      document.getElementById("team-selection-screen").classList.remove("hidden");
+      document.getElementById("trivia-screen").classList.add("hidden");
+      document.getElementById("transfers-screen").classList.add("hidden");
+    }
+
+    function showMainScreen() {
+      document.getElementById("main-screen").classList.remove("hidden");
+      document.getElementById("team-selection-screen").classList.add("hidden");
+      document.getElementById("trivia-screen").classList.add("hidden");
+      document.getElementById("transfers-screen").classList.add("hidden");
+      updateUI();
+    }
+
+    function selectRandomTeam() {
+      team = getRandomTeam();
+      localStorage.setItem("team", JSON.stringify(team));
+      const teamRevealDiv = document.getElementById("team-reveal");
+      teamRevealDiv.innerHTML = "";
+      team.forEach((player, index) => {
+        setTimeout(() => {
+          teamRevealDiv.innerHTML = "";
+          const card = document.createElement("div");
+          card.className = `player-card p-6 rounded-xl shadow-lg player-reveal ${player.rating >= 90 ? 'dance' : ''}`;
+          card.innerHTML = `<div class="text-center"><span class="text-4xl">🇮🇱</span></div>`;
+          teamRevealDiv.appendChild(card);
+          setTimeout(() => {
+            card.innerHTML = `
+              <div class="text-center">
+                <span class="text-4xl">🇮🇱</span>
+                <p class="text-2xl font-bold mt-4">${player.rating}</p>
+                <p class="star text-2xl">${getStars(player.rating)}</p>
+              </div>
+            `;
+            if (player.rating >= 90) shootConfetti();
+          }, 1000);
+          setTimeout(() => {
+            card.innerHTML = `
+              <div class="text-center">
+                <span class="text-4xl">🇮🇱</span>
+                <h2 class="text-xl font-bold mt-4">${player.name}</h2>
+                <p>תפקיד: ${player.role}</p>
+                <p>דירוג: ${player.rating}</p>
+                <p class="star">${getStars(player.rating)}</p>
+                <p>שווי: ${player.value.toLocaleString()} ₪</p>
+              </div>
+            `;
+            if (index === team.length - 1) {
+              setTimeout(() => {
+                alert("זו החמישייה שלכם! בהצלחה! בהמשך תוכלו למכור ולקנות שחקנים, לענות על טריוויה כדי להרוויח כסף, ולנצח את הבוסים!");
+                showMainScreen();
+              }, 1000);
+            }
+          }, 2000);
+        }, index * 3000);
+      });
     }
 
     function updateUI() {
       try {
-        document.getElementById("money").innerText = `כסף זמין: ${money.toLocaleString()} אירו`;
+        document.getElementById("money").innerText = `כסף זמין: ${money.toLocaleString()} ₪`;
         document.getElementById("current-boss").innerText = `בוס נוכחי: ${bosses[currentBoss].name} (דירוג נדרש: ${bosses[currentBoss].requiredRating})`;
         document.getElementById("avg-rating").innerText = `דירוג ממוצע: ${calculateAverageRating().toFixed(1)}`;
-        
+        document.getElementById("battle-btn").disabled = team.length !== 5;
+
         const teamDiv = document.getElementById("team");
         teamDiv.innerHTML = "";
         team.forEach((player, index) => {
           const card = document.createElement("div");
-          card.className = "card bg-white p-4 rounded-lg shadow-lg";
+          card.className = "card bg-gray-900 p-4 rounded-xl shadow-lg";
           card.innerHTML = `
-            <h2 class="text-lg font-bold">${player.name}</h2>
-            <p>תפקיד: ${player.role}</p>
-            <p>דירוג: ${player.rating}</p>
-            <p>שווי: ${player.value.toLocaleString()} אירו</p>
-            <button onclick="sellPlayer(${index})" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">מכור</button>
+            <div class="text-center">
+              <span class="text-2xl">🇮🇱</span>
+              <h2 class="text-xl font-bold mt-2">${player.name}</h2>
+              <p>תפקיד: ${player.role}</p>
+              <p>דירוג: ${player.rating}</p>
+              <p class="star">${getStars(player.rating)}</p>
+              <p>שווי: ${player.value.toLocaleString()} ₪</p>
+              <button onclick="sellPlayer(${index})" class="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">מכור</button>
+            </div>
           `;
           teamDiv.appendChild(card);
         });
@@ -138,16 +288,23 @@
 
     function startBattle() {
       try {
+        if (team.length !== 5) {
+          alert("חייבים 5 שחקנים כדי להילחם!");
+          return;
+        }
         const avgRating = calculateAverageRating();
         const required = bosses[currentBoss].requiredRating;
         if (avgRating >= required) {
-          alert(`ניצחת את ${bosses[currentBoss].name}!`);
+          money += 1000000;
+          alert(`ניצחת את ${bosses[currentBoss].name}! הרווחת 1,000,000 ₪!`);
           currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
+          shootConfetti();
         } else {
           alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
-          team = getRandomTeam();
+          team = [];
           money = 1000000;
           currentBoss = 0;
+          showTeamSelectionScreen();
         }
         localStorage.setItem("team", JSON.stringify(team));
         localStorage.setItem("money", money);
@@ -168,7 +325,7 @@
         answersDiv.innerHTML = "";
         currentTrivia.answers.forEach((answer, index) => {
           const button = document.createElement("button");
-          button.className = "p-4 rounded-lg bg-gray-200 hover:bg-gray-300";
+          button.className = "p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition";
           button.innerText = answer;
           button.onclick = () => handleTriviaAnswer(index);
           answersDiv.appendChild(button);
@@ -181,15 +338,34 @@
     function handleTriviaAnswer(index) {
       try {
         if (index === currentTrivia.correct) {
-          money += 10000;
-          alert("תשובה נכונה! הרווחת 10,000 אירו!");
+          money += 50000;
+          alert("תשובה נכונה! הרווחת 50,000 ₪!");
+          shootConfetti();
         } else {
           alert("תשובה שגויה, נסה שוב!");
         }
         localStorage.setItem("money", money);
-        backToMain();
+        nextTrivia();
       } catch (e) {
         showError("שגיאה בטיפול בתשובת טריוויה: " + e.message);
+      }
+    }
+
+    function nextTrivia() {
+      try {
+        currentTrivia = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
+        document.getElementById("trivia-question").innerText = currentTrivia.question;
+        const answersDiv = document.getElementById("trivia-answers");
+        answersDiv.innerHTML = "";
+        currentTrivia.answers.forEach((answer, index) => {
+          const button = document.createElement("button");
+          button.className = "p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition";
+          button.innerText = answer;
+          button.onclick = () => handleTriviaAnswer(index);
+          answersDiv.appendChild(button);
+        });
+      } catch (e) {
+        showError("שגיאה בטעינת שאלה חדשה: " + e.message);
       }
     }
 
@@ -201,15 +377,19 @@
         transfersDiv.innerHTML = "";
         players.forEach((player) => {
           const card = document.createElement("div");
-          card.className = "card bg-white p-4 rounded-lg shadow-lg";
+          card.className = "card bg-gray-900 p-4 rounded-xl shadow-lg";
           card.innerHTML = `
-            <h2 class="text-lg font-bold">${player.name}</h2>
-            <p>תפקיד: ${player.role}</p>
-            <p>דירוג: ${player.rating}</p>
-            <p>שווי: ${player.value.toLocaleString()} אירו</p>
-            <button onclick="buyPlayer('${player.name}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" ${
-              team.some((p) => p.name === player.name) ? "disabled" : ""
-            }>קנה</button>
+            <div class="text-center">
+              <span class="text-2xl">🇮🇱</span>
+              <h2 class="text-xl font-bold mt-2">${player.name}</h2>
+              <p>תפקיד: ${player.role}</p>
+              <p>דירוג: ${player.rating}</p>
+              <p class="star">${getStars(player.rating)}</p>
+              <p>שווי: ${player.value.toLocaleString()} ₪</p>
+              <button onclick="buyPlayer('${player.name}')" class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition" ${
+                team.some((p) => p.name === player.name) || team.length >= 5 ? "disabled" : ""
+              }>קנה</button>
+            </div>
           `;
           transfersDiv.appendChild(card);
         });
@@ -223,11 +403,11 @@
         const player = players.find((p) => p.name === playerName);
         if (money >= player.value) {
           money -= player.value;
-          const randomIndex = Math.floor(Math.random() * team.length);
-          team[randomIndex] = player;
+          team.push(player);
           localStorage.setItem("team", JSON.stringify(team));
           localStorage.setItem("money", money);
           alert(`רכשת את ${player.name}!`);
+          if (player.rating >= 90) shootConfetti();
           showTransfers();
           updateUI();
         } else {
@@ -241,7 +421,7 @@
     function sellPlayer(index) {
       try {
         money += team[index].value;
-        team[index] = players[Math.floor(Math.random() * players.length)];
+        team.splice(index, 1);
         localStorage.setItem("team", JSON.stringify(team));
         localStorage.setItem("money", money);
         alert("שחקן נמכר!");
@@ -253,10 +433,11 @@
 
     function backToMain() {
       try {
-        document.getElementById("main-screen").classList.remove("hidden");
-        document.getElementById("trivia-screen").classList.add("hidden");
-        document.getElementById("transfers-screen").classList.add("hidden");
-        updateUI();
+        if (team.length === 0) {
+          showTeamSelectionScreen();
+        } else {
+          showMainScreen();
+        }
       } catch (e) {
         showError("שגיאה בחזרה למסך הראשי: " + e.message);
       }
