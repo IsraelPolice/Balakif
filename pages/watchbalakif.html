@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://s.ytimg.com https://www.google.com https://www.gstatic.com https://static.doubleclick.net https://cdn.tailwindcss.com; frame-src https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src https://www.youtube.com https://www.google.com; img-src 'self' https://i.ytimg.com;">
-  <title>בלאקיף</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://s.ytimg.com https://www.google.com https://www.gstatic.com https://static.doubleclick.net https://cdn.tailwindcss.com; frame-src https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; connect-src https://www.youtube.com https://www.google.com; img-src 'self' https://i.ytimg.com;">
+  <title>Balakif</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standal
+one@6.26.0/babel.min.js"></script>
   <style>
     body {
       font-family: 'Rubik', sans-serif;
@@ -215,8 +217,8 @@
     function Header() {
       return (
         <header className="bg-black py-6 sticky top-0 z-10">
-          <div className="container mx-auto px-4">
-            <h1 className="text-4xl font-bold text-red-600">בלאקיף</h1>
+          <div className="container mx-auto px-4 text-left" dir="ltr">
+            <h1 className="text-5xl font-bold text-red-600 uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Balakif</h1>
           </div>
         </header>
       );
