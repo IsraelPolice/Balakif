@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>תחרות הבן זונה הגדול ביותר</title>
   <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
@@ -23,12 +24,12 @@
     console.log('Babel script loaded, attempting to render React app...');
 
     const Header = () => (
-      <header className="bg-gray-900 py-8 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-yellow-300">תחרות הבן זונה הגדול ביותר</h1>
-        <p className="mt-3 text-lg text-gray-400">
+      <header className="bg-gray-900 py-6 text-center sm:py-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-yellow-300">תחרות הבן זונה הגדול ביותר</h1>
+        <p className="mt-2 text-base sm:text-lg text-gray-400">
           התחרות השנתית המפוארת של החבר'ה הטובים, החל משנת 2019, מתקיימת בספטמבר/אוקטובר
         </p>
-        <p className="mt-2 text-md text-gray-500">
+        <p className="mt-1 text-sm sm:text-md text-gray-500">
           התואר מוענק למי שהתבלט בהיותו מניאק ועשה את הדברים הכי יוצאי דופן בשנה האחרונה
         </p>
       </header>
@@ -41,7 +42,7 @@
           winners: [
             { place: 1, name: "עמית לסרי", image: "https://i.ibb.co/YYgWt7f/Screenshot-2025-05-23-at-10-12-15.png" },
             { place: 2, name: "יוסף קחלר", image: "https://i.postimg.cc/c19xJLX7/Screenshot-2025-05-23-at-13-19-37.png" },
-            { place: 3, name: "דביר אוחנה", image: "https://i.ibb.co/TDvG3hb/Screenshot-2025-05-23-at-10-48-37.png" },
+            { place: 3, name: "דביר אוחנה", image: "https://i.postimg.cc/xdxCsgbt/Screenshot-2025-05-23-at-10-48-37.png" },
           ],
         },
         {
@@ -49,13 +50,13 @@
           winners: [
             { place: 1, name: "עמית לסרי", image: "https://i.ibb.co/YYgWt7f/Screenshot-2025-05-23-at-10-12-15.png" },
             { place: 2, name: "יוסף קחלר", image: "https://i.postimg.cc/c19xJLX7/Screenshot-2025-05-23-at-13-19-37.png" },
-            { place: 3, name: "דביר אוחנה", image: "https://i.ibb.co/TDvG3hb/Screenshot-2025-05-23-at-10-48-37.png" },
+            { place: 3, name: "דביר אוחנה", image: "https://i.postimg.cc/xdxCsgbt/Screenshot-2025-05-23-at-10-48-37.png" },
           ],
         },
         {
           year: 2022,
           winners: [
-            { place: 1, name: "דביר אוחנה", image: "https://i.ibb.co/TDvG3hb/Screenshot-2025-05-23-at-10-48-37.png" },
+            { place: 1, name: "דביר אוחנה", image: "https://i.postimg.cc/xdxCsgbt/Screenshot-2025-05-23-at-10-48-37.png" },
             { place: 2, name: "עמית לסרי", image: "https://i.ibb.co/YYgWt7f/Screenshot-2025-05-23-at-10-12-15.png" },
             { place: 3, name: "יוסף קחלר", image: "https://i.postimg.cc/c19xJLX7/Screenshot-2025-05-23-at-13-19-37.png" },
           ],
@@ -65,7 +66,7 @@
           winners: [
             { place: 1, name: "עמית לסרי", image: "https://i.ibb.co/YYgWt7f/Screenshot-2025-05-23-at-10-12-15.png" },
             { place: 2, name: "יוסף קחלר", image: "https://i.postimg.cc/c19xJLX7/Screenshot-2025-05-23-at-13-19-37.png" },
-            { place: 3, name: "דביר אוחנה", image: "https://i.ibb.co/TDvG3hb/Screenshot-2025-05-23-at-10-48-37.png" },
+            { place: 3, name: "דביר אוחנה", image: "https://i.postimg.cc/xdxCsgbt/Screenshot-2025-05-23-at-10-48-37.png" },
           ],
         },
         {
@@ -87,37 +88,37 @@
       ];
 
       return (
-        <section className="py-10">
-          <h2 className="text-4xl font-extrabold text-center text-yellow-300 mb-8">תוצאות התחרות</h2>
-          <div className="max-w-6xl mx-auto grid gap-10">
+        <section className="py-6 sm:py-10">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-yellow-300 mb-6 sm:mb-8">תוצאות התחרות</h2>
+          <div className="max-w-6xl mx-auto grid gap-6 sm:gap-10">
             {results.map(({ year, winners }) => (
               <div
                 key={year}
-                className={`p-8 rounded-lg shadow-xl ${
+                className={`p-4 sm:p-8 rounded-lg shadow-xl ${
                   year === 2024 ? 'bg-gray-700 scale-105 max-w-3xl mx-auto' : 'bg-gray-900'
                 }`}
               >
-                <h3 className={`text-3xl font-bold text-yellow-300 mb-6 text-center ${
-                  year === 2024 ? 'text-4xl' : ''
+                <h3 className={`text-2xl sm:text-3xl font-bold text-yellow-300 mb-4 sm:mb-6 text-center ${
+                  year === 2024 ? 'text-3xl sm:text-4xl' : ''
                 }`}>
                   שנת {year}
                 </h3>
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                   {winners.map(({ place, name, image }) => (
-                    <div key={place} className="text-center">
+                    <div key={place} className="text-center flex flex-col items-center">
                       <img
                         src={image}
                         alt={name}
-                        className="w-40 h-40 mx-auto rounded-full object-cover mb-4 border-2 border-yellow-300"
+                        className="w-24 h-24 sm:w-40 sm:h-40 rounded-full object-cover mb-2 sm:mb-4 border-2 border-yellow-300"
                         onError={(e) => {
                           console.log(`Failed to load image for ${name}: ${image}`);
                           e.target.src = 'https://via.placeholder.com/128';
                         }}
                       />
-                      <p className="text-xl font-bold text-gray-200">
+                      <p className="text-base sm:text-xl font-bold text-gray-200">
                         {place === 1 ? "🥇 מקום ראשון" : place === 2 ? "🥈 מקום שני" : "🥉 מקום שלישי"}
                       </p>
-                      <p className="text-lg text-gray-400">{name}</p>
+                      <p className="text-sm sm:text-lg text-gray-400">{name}</p>
                     </div>
                   ))}
                 </div>
@@ -137,25 +138,25 @@
       ];
 
       return (
-        <section className="py-10 bg-gray-900">
-          <h2 className="text-4xl font-extrabold text-center text-yellow-300 mb-8">ניתוח נתונים</h2>
+        <section className="py-6 sm:py-10 bg-gray-900">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-yellow-300 mb-6 sm:mb-8">ניתוח נתונים</h2>
           <div className="max-w-4xl mx-auto">
-            <table className="w-full text-right border-separate border-spacing-0">
+            <table className="w-full text-right border-separate border-spacing-0 text-sm sm:text-base">
               <thead>
                 <tr className="border-b border-gray-600">
-                  <th className="py-3 px-6 font-bold text-yellow-300">שם</th>
-                  <th className="py-3 px-6 font-bold text-yellow-300">זכיות (מקום 1)</th>
-                  <th className="py-3 px-6 font-bold text-yellow-300">סגנויות (מקום 2)</th>
-                  <th className="py-3 px-6 font-bold text-yellow-300">סה"כ טופ 3</th>
+                  <th className="py-2 sm:py-3 px-4 sm:px-6 font-bold text-yellow-300">שם</th>
+                  <th className="py-2 sm:py-3 px-4 sm:px-6 font-bold text-yellow-300">זכיות (מקום 1)</th>
+                  <th className="py-2 sm:py-3 px-4 sm:px-6 font-bold text-yellow-300">סגנויות (מקום 2)</th>
+                  <th className="py-2 sm:py-3 px-4 sm:px-6 font-bold text-yellow-300">סה"כ טופ 3</th>
                 </tr>
               </thead>
               <tbody>
                 {analysisData.map(({ name, wins, runnerUps, top3 }) => (
                   <tr key={name} className="border-b border-gray-700">
-                    <td className="py-3 px-6">{name}</td>
-                    <td className="py-3 px-6">{wins}</td>
-                    <td className="py-3 px-6">{runnerUps}</td>
-                    <td className="py-3 px-6">{top3}</td>
+                    <td className="py-2 sm:py-3 px-4 sm:px-6">{name}</td>
+                    <td className="py-2 sm:py-3 px-4 sm:px-6">{wins}</td>
+                    <td className="py-2 sm:py-3 px-4 sm:px-6">{runnerUps}</td>
+                    <td className="py-2 sm:py-3 px-4 sm:px-6">{top3}</td>
                   </tr>
                 ))}
               </tbody>
@@ -166,7 +167,7 @@
     };
 
     const Footer = () => (
-      <footer className="bg-gray-900 py-6 text-center text-gray-500">
+      <footer className="bg-gray-900 py-4 sm:py-6 text-center text-gray-500 text-sm sm:text-base">
         <p>תחרות הבן זונה הגדול ביותר © 2019-{new Date().getFullYear()}</p>
       </footer>
     );
@@ -187,7 +188,7 @@
       root.render(<App />);
     } catch (error) {
       console.error('Error rendering React app:', error);
-      document.getElementById('root').innerHTML = '<div id="error">שגיאה בטעינת האתר. אנא בדוק את הקונסולה לפרטים או נסה שוב מאוחר יותר.</div>';
+      document.getElementById('root').innerHTML = '<div id="error">שגיאה בטעינת האתר. אנא בדוק את הקונסולה ב-F12 לפרטים או נסה שוב מאוחר יותר.</div>';
     }
   </script>
 </body>
