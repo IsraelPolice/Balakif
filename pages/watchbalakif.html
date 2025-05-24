@@ -3,21 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com https://www.google.com https://www.gstatic.com https://static.doubleclick.net; frame-src https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src https://www.youtube.com https://www.google.com; img-src 'self' https://i.ytimg.com;">
-  <title>בלאקיף - חברת הפקות קולנוע</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.youtube.com https://s.ytimg.com https://www.google.com https://www.gstatic.com https://static.doubleclick.net; frame-src https://www.youtube.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src https://www.youtube.com https://www.google.com; img-src 'self' https://i.ytimg.com;">
+  <title>בלאקיף</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f4f4f9;
+      font-family: 'Rubik', sans-serif;
+      background-color: #141414; /* Netflix dark background */
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
     }
     .video-container {
       position: relative;
       padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
       height: 0;
       overflow: hidden;
-      max-width: 100%; /* מגביל את רוחב הסרטון */
-      margin: 0 auto; /* ממרכז את הסרטון */
+      max-width: 100%;
+      border-radius: 8px;
+      background-color: #000;
     }
     .video-container iframe {
       position: absolute;
@@ -27,87 +34,155 @@
       height: 100%;
       pointer-events: auto;
     }
+    .film-card {
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #181818;
+    }
+    .film-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    }
+    .thumbnail-overlay {
+      position: relative;
+      cursor: pointer;
+    }
+    .play-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      padding: 1rem;
+    }
+    .film-card:hover .play-button {
+      opacity: 1;
+    }
+    .title-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      padding: 1rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .film-card:hover .title-overlay {
+      opacity: 1;
+    }
   </style>
 </head>
-<body class="text-gray-800">
-  <!-- Header -->
-  <header class="bg-gray-900 text-white py-6">
-    <div class="container mx-auto px-4 text-center">
-      <h1 class="text-4xl font-bold">בלאקיף - הפקות קולנוע</h1>
-      <p class="mt-2 text-lg">יצירת סיפורים קולנועיים מרהיבים עם תשוקה וחדשנות</p>
-    </div>
-  </header>
+<body>
+  <div id="root"></div>
 
-  <!-- Films Section -->
-  <section class="container mx-auto px-4 py-12">
-    <h2 class="text-3xl font-bold text-center mb-8">סרטי בלאקיף</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Film 1 -->
-      <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-11/12 mx-auto">
-        <h3 class="text-2xl font-semibold mb-4">בלאקיף 1: ספר הבלאקיף</h3>
-        <p class="text-gray-600 mb-4">
-          תקציר: הסרט הראשון בטרילוגיה. צעיר מקבל שיקוי מחברו שמבטל לו את ההנאה מאלכוהול. הוא יוצא למסע לבטל את השיקוי – האם יצליח?
-        </p>
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/VGyg55LafHU?rel=0&controls=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-      <!-- Film 2 -->
-      <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-11/12 mx-auto">
-        <h3 class="text-2xl font-semibold mb-4">בלאקיף 2: ישראל 2025</h3>
-        <p class="text-gray-600 mb-4">
-          תקציר: עסקה עם חמאס יוצאת לדרך, מחבל מסוכן משתחרר, והעיירה בסכנה. אבל האם הוא באמת מסוכן, או שהסכנה הייתה מול עינינו כל הזמן?
-        </p>
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/Il0F9ps6dYw?rel=0&controls=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-      <!-- Film 3 -->
-      <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-11/12 mx-auto">
-        <h3 class="text-2xl font-semibold mb-4">בלאקיף 3: בוקרשט</h3>
-        <p class="text-gray-600 mb-4">
-          תקציר: שני בני דודים יוצאים למסע הוללות בבוקרשט, רומניה, אך אהבה צפה מעל פני השטח. מה ינצח?
-        </p>
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/PyoVs5F3La4?rel=0&controls=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-      <!-- Film 4 -->
-      <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-11/12 mx-auto">
-        <h3 class="text-2xl font-semibold mb-4">בלאקיף 4: חלום על ממלכה</h3>
-        <p class="text-gray-600 mb-4">
-          תקציר: חלום על ממלכה קסומה מוביל למשאלה שמובילה לאסון. האם הוא ימצא את דרכו הביתה?
-        </p>
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/NDXffmHkrL8?rel=0&controls=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-      <!-- Film 5 -->
-      <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-11/12 mx-auto">
-        <h3 class="text-2xl font-semibold mb-4">בלאקיף 5: להיט ויראלי</h3>
-        <p class="text-gray-600 mb-4">
-          תקציר: להיט ויראלי פורץ בטעות, מביא תהילה ותארים. אך נבל משבש הכל והופך את ההצלחה למשבר זהות. מסמך פסיכולוגי מרתק.
-        </p>
-        <div class="video-container">
-          <iframe src="https://www.youtube.com/embed/_0p4BReb0y0?rel=0&controls=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-    </div>
-  </section>
+  <script type="text/babel">
+    const films = [
+      {
+        title: "בלאקיף 1: ספר הבלאקיף",
+        description: "הסרט הראשון בטרילוגיה. צעיר מקבל שיקוי מחברו שמבטל לו את ההנאה מאלכוהול. הוא יוצא למסע לבטל את השיקוי – האם יצליח?",
+        videoId: "VGyg55LafHU",
+        thumbnail: "https://i.ytimg.com/vi/VGyg55LafHU/hqdefault.jpg"
+      },
+      {
+        title: "בלאקיף 2: ישראל 2025",
+        description: "עסקה עם חמאס יוצאת לדרך, מחבל מסוכן משתחרר, והעיירה בסכנה. אבל האם הוא באמת מסוכן, או שהסכנה הייתה מול עינינו כל הזמן?",
+        videoId: "Il0F9ps6dYw",
+        thumbnail: "https://i.ytimg.com/vi/Il0F9ps6dYw/hqdefault.jpg"
+      },
+      {
+        title: "בלאקיף 3: בוקרשט",
+        description: "שני בני דודים יוצאים למסע הוללות בבוקרשט, רומניה, אך אהבה צפה מעל פני השטח. מה ינצח?",
+        videoId: "PyoVs5F3La4",
+        thumbnail: "https://i.ytimg.com/vi/PyoVs5F3La4/hqdefault.jpg"
+      },
+      {
+        title: "בלאקיף 4: חלום על ממלכה",
+        description: "חלום על ממלכה קסומה מוביל למשאלה שמובילה לאסון. האם הוא ימצא את דרכו הביתה?",
+        videoId: "NDXffmHkrL8",
+        thumbnail: "https://i.ytimg.com/vi/NDXffmHkrL8/hqdefault.jpg"
+      },
+      {
+        title: "בלאקיף 5: להיט ויראלי",
+        description: "להיט ויראלי פורץ בטעות, מביא תהילה ותארים. אך נבל משבש הכל והופך את ההצלחה למשבר זהות. מסמך פסיכולוגי מרתק.",
+        videoId: "_0p4BReb0y0",
+        thumbnail: "https://i.ytimg.com/vi/_0p4BReb0y0/hqdefault.jpg"
+      }
+    ];
 
-  <!-- Footer -->
-  <footer class="bg-gray-900 text-white py-6">
-    <div class="container mx-auto px-4 text-center">
-      <p>© 2025 בלאקיף הפקות. כל הזכויות שמורות.</p>
-      <p>ליצירת קשר: info@balakif.com | 03-1234567</p>
-    </div>
-  </footer>
+    function Header() {
+      return (
+        <header className="bg-black py-6">
+          <div className="container mx-auto px-4">
+            <h1 className="text-4xl font-bold text-white">בלאקיף</h1>
+          </div>
+        </header>
+      );
+    }
 
-  <script>
-    // חסימת קליק ימני על ה-iframe
-    document.querySelectorAll('.video-container').forEach(element => {
-      element.addEventListener('contextmenu', e => e.preventDefault());
-    });
+    function FilmCard({ film }) {
+      const [showVideo, setShowVideo] = React.useState(false);
+
+      return (
+        <div className="film-card">
+          <div className="thumbnail-overlay">
+            <img
+              src={film.thumbnail}
+              alt={film.title}
+              className="w-full h-64 object-cover"
+            />
+            <div className="play-button">
+              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <div className="title-overlay">
+              <h3 className="text-lg font-semibold text-white">{film.title}</h3>
+            </div>
+            {showVideo && (
+              <div className="video-container">
+                <iframe
+                  src={`https://www.youtube.com/embed/${film.videoId}?rel=0&controls=1&autoplay=1`}
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function FilmsSection() {
+      return (
+        <section className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {films.map((film, index) => (
+              <div key={index} onClick={() => setShowVideo(true)}>
+                <FilmCard film={film} />
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    function App() {
+      return (
+        <div>
+          <Header />
+          <FilmsSection />
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
