@@ -90,12 +90,68 @@
     .film-card:hover .title-overlay {
       opacity: 1;
     }
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+    .popup-content {
+      background-color: #181818;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 90%;
+      width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+    .popup-content input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      border: 1px solid #4b4b4b;
+      border-radius: 4px;
+      background-color: #2c2c2c;
+      color: #ffffff;
+    }
+    .popup-content button {
+      background-color: #e50914; /* Netflix red */
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .popup-content button:hover {
+      background-color: #c10812;
+    }
+    .error-message {
+      color: #e50914;
+      margin-top: 0.5rem;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
     @media (max-width: 640px) {
       .film-card {
         margin-bottom: 1rem;
       }
       .play-button {
         opacity: 1; /* Always show play button on mobile */
+      }
+      .popup-content {
+        width: 90%;
+        padding: 1.5rem;
       }
     }
   </style>
@@ -135,6 +191,25 @@
         videoId: "_0p4BReb0y0",
         thumbnail: "https://i.ytimg.com/vi/_0p4BReb0y0/hqdefault.jpg"
       }
+    ];
+
+    const questions = [
+      { question: "מהו שם הכלבה המיתולוגית של יוסף?", answers: ["תותי"] },
+      { question: "המי מהחברים בקבוצה מומחה בקולנוע?", answers: ["דביר", "בדר", "דביר אוחנה"] },
+      { question: "מי היה המחנך של יב׳ 3?", answers: ["עוזי"] },
+      { question: "מי אמר את המשפט ״חבורה של מסריחים, זרקתם עליי בוץ״?", answers: ["עומרי", "עומרי קרסנטי"] },
+      { question: "עם מי חיים שוחח בשיחה המיתולוגית שלו ב-2015 (השיחה הוקלטה וחיים הביע התנגדות להמשך הפצתה)?", answers: ["איציק", "איציק מור יוסף"] },
+      { question: "איפה מתגורר יוגב שבתאי?", answers: ["אריאל"] },
+      { question: "מי מכונה: גורגול?", answers: ["יוגב שבתאי"] },
+      { question: "מי מכונה הווטרן (The veteran)?", answers: ["נתי", "נתנאל", "נתנאל יוסילביץ׳"] },
+      { question: "מי מבין חברי הקבוצה לא למד באורט מעלות?", answers: ["אריאל עין גל", "עין גל", "אריאל", "נתי", "נתנאל", "נתנאל יוסילביץ׳"] },
+      { question: "מי הבת היחידה בקבוצת הוואצפ?", answers: ["אריאל", "שרביט", "אריאל שרביט"] },
+      { question: "מי מנהל בקבוצת החברה הטובים חוץ מלסרי?", answers: ["יוסף", "קחלר", "יוסף קחלר"] },
+      { question: "מי המציא את המושג ״כהב״ז״?", answers: ["יוסף", "קחלר", "יוסף קחלר"] },
+      { question: "כמה חברים יש בחבר׳ה הטובים בוואצפ?", answers: ["22"] },
+      { question: "מהי המילה הראשונה הכתובה בתיאור הקבוצה?", answers: ["החברה", "״החברה״"] },
+      { question: "ציין חבר עבר אחד בקבוצת הוואצפ", answers: ["אסף מרציאנו", "אסף", "שניר", "שניר ביטון", "גאי", "גאי בוזגלו", "נדב גדג׳", "יקיר לגריסי", "יוליה מטייסת 117"] },
+      { question: "מי נחשב למפקח הבחירות השנתי?", answers: ["חיים", "חיים מרקס"] }
     ];
 
     function Header() {
@@ -197,11 +272,93 @@
       );
     }
 
+    function PrivacyPopup({ onClose }) {
+      React.useEffect(() => {
+        const timer = setTimeout(onClose, 3000);
+        return () => clearTimeout(timer);
+      }, [onClose]);
+
+      return (
+        <div className="popup">
+          <div className="popup-content">
+            <h2 className="text-xl font-bold mb-4">הודעה חשובה</h2>
+            <p className="text-base">
+              סרטי בלאקיף נועדו לחברי הקבוצה ״החברה הטובים״ בלבד, אסור להעביר לחבר מחוץ לחבר׳ה את הסרטון, נא תשמרו על זה פרטי!!!!!!!!!!!!!!
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function AuthPopup({ onAuthSuccess }) {
+      const [answer, setAnswer] = React.useState("");
+      const [error, setError] = React.useState("");
+      const [randomQuestion, setRandomQuestion] = React.useState(null);
+
+      React.useEffect(() => {
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        setRandomQuestion(questions[randomIndex]);
+      }, []);
+
+      const handleSubmit = () => {
+        if (randomQuestion && randomQuestion.answers.includes(answer.trim())) {
+          onAuthSuccess();
+        } else {
+          setError("תשובה שגויה. נסה שוב.");
+        }
+      };
+
+      const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+          handleSubmit();
+        }
+      };
+
+      if (!randomQuestion) return null;
+
+      return (
+        <div className="popup">
+          <div className="popup-content">
+            <h2 className="text-xl font-bold mb-4">למען הסר ספק</h2>
+            <p className="text-base mb-4">אתם נדרשים לענות על שאלה:</p>
+            <p className="text-lg font-semibold mb-4">{randomQuestion.question}</p>
+            <input
+              type="text"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="הזן את התשובה"
+              className="text-right"
+            />
+            {error && <p className="error-message">{error}</p>}
+            <button onClick={handleSubmit}>שלח</button>
+          </div>
+        </div>
+      );
+    }
+
     function App() {
+      const [showPrivacyPopup, setShowPrivacyPopup] = React.useState(true);
+      const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+
+      const handlePrivacyClose = () => {
+        setShowPrivacyPopup(false);
+      };
+
+      const handleAuthSuccess = () => {
+        setIsAuthenticated(true);
+      };
+
       return (
         <div>
-          <Header />
-          <FilmsSection />
+          {showPrivacyPopup && <PrivacyPopup onClose={handlePrivacyClose} />}
+          {!showPrivacyPopup && !isAuthenticated && <AuthPopup onAuthSuccess={handleAuthSuccess} />}
+          {isAuthenticated && (
+            <>
+              <Header />
+              <FilmsSection />
+            </>
+          )}
         </div>
       );
     }
