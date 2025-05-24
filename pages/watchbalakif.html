@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>בלאקיף - חברת הפקות קולנוע</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+    }
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      overflow: hidden;
+    }
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    /* חסימת קליק ימני על ה-iframe */
+    .video-container iframe {
+      pointer-events: auto;
+    }
+    .no-right-click {
+      position: relative;
+    }
+    .no-right-click::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="text-gray-800">
+  <!-- Header -->
+  <header class="bg-gray-900 text-white py-6">
+    <div class="container mx-auto px-4 text-center">
+      <h1 class="text-4xl font-bold">בלאקיף - הפקות קולנוע</h1>
+      <p class="mt-2 text-lg">יצירת סיפורים קולנועיים מרהיבים עם תשוקה וחדשנות</p>
+    </div>
+  </header>
+
+  <!-- Films Section -->
+  <section class="container mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold text-center mb-8">סרטי בלאקיף</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Film 1 -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-2xl font-semibold mb-4">בלאקיף 1: ספר הבלאקיף</h3>
+        <p class="text-gray-600 mb-4">
+          תקציר: הסרט הראשון בטרילוגיה. צעיר מקבל שיקוי מחברו שמבטל לו את ההנאה מאלכוהול. הוא יוצא למסע לבטל את השיקוי – האם יצליח?
+        </p>
+        <div class="video-container no-right-click">
+          <iframe src="https://www.youtube.com/embed?v=VGyg55LafHU?rel=0&showinfo=0&controls=1" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+      <!-- Film 2 -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-2xl font-semibold mb-4">בלאקיף 2: ישראל 2025</h3>
+        <p class="text-gray-600 mb-4">
+          תקציר: עסקה עם חמאס יוצאת לדרך, מחבל מסוכן משתחרר, והעיירה בסכנה. אבל האם הוא באמת מסוכן, או שהסכנה הייתה מול עינינו כל הזמן?
+        </p>
+        <div class="video-container no-right-click">
+          <iframe src="https://www.youtube.com/embed/XXXXXX2?rel=0&showinfo=0&controls=1" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+      <!-- Film 3 -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-2xl font-semibold mb-4">בלאקיף 3: בוקרשט</h3>
+        <p class="text-gray-600 mb-4">
+          תקציר: שני בני דודים יוצאים למסע הוללות בבוקרשט, רומניה, אך אהבה צפה מעל פני השטח. מה ינצח?
+        </p>
+        <div class="video-container no-right-click">
+          <iframe src="https://www.youtube.com/embed/XXXXXX3?rel=0&showinfo=0&controls=1" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+      <!-- Film 4 -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-2xl font-semibold mb-4">בלאקיף 4: חלום על ממלכה</h3>
+        <p class="text-gray-600 mb-4">
+          תקציר: חלום על ממלכה קסומה מוביל למשאלה שמובילה לאסון. האם הוא ימצא את דרכו הביתה?
+        </p>
+        <div class="video-container no-right-click">
+          <iframe src="https://www.youtube.com/embed/XXXXXX4?rel=0&showinfo=0&controls=1" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+      <!-- Film 5 -->
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-2xl font-semibold mb-4">בלאקיף 5: להיט ויראלי</h3>
+        <p class="text-gray-600 mb-4">
+          תקציר: להיט ויראלי פורץ בטעות, מביא תהילה ותארים. אך נבל משבש הכל והופך את ההצלחה למשבר זהות. מסמך פסיכולוגי מרתק.
+        </p>
+        <div class="video-container no-right-click">
+          <iframe src="https://www.youtube.com/embed/XXXXXX5?rel=0&showinfo=0&controls=1" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-6">
+    <div class="container mx-auto px-4 text-center">
+      <p>© 2025 בלאקיף הפקות. כל הזכויות שמורות.</p>
+      <p>ליצירת קשר: info@balakif.com | 03-1234567</p>
+    </div>
+  </footer>
+
+  <script>
+    // חסימת קליק ימני על ה-iframe
+    document.querySelectorAll('.no-right-click').forEach(element => {
+      element.addEventListener('contextmenu', e => e.preventDefault());
+    });
+  </script>
+</body>
+</html>
