@@ -62,6 +62,15 @@ button:last-child:hover {
   background-color: #c82333;
 }
 
+#start {
+  background-color: #007bff;
+  color: white;
+}
+
+#start:hover {
+  background-color: #0056b3;
+}
+
 #reset {
   background-color: #007bff;
 }
