@@ -70,6 +70,7 @@ function initGame() {
       document.getElementById('error').textContent = `שגיאה: ${error.message}`;
       document.getElementById('error').classList.remove('hidden');
       document.getElementById('game').classList.add('hidden');
+      document.getElementById('intro').classList.add('hidden');
     });
 }
 
@@ -83,7 +84,6 @@ function selectNextQuestion() {
     return;
   }
   if (askedQuestions.length >= 20) {
-    // נסה לנחש את הדמות עם ההתאמה הכי קרובה
     showGuess(getBestGuess());
     return;
   }
@@ -120,11 +120,10 @@ function selectNextQuestion() {
 }
 
 function getBestGuess() {
-  // אם יש יותר מדמות אחת, נחזיר את הדמות עם הכי הרבה תכונות תואמות לשאלות שנשאלו
   if (remainingCharacters.length === 0) {
     return 'לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.';
   }
-  return remainingCharacters[0].name; // מחזיר את הדמות הראשונה ברשימה כברירת מחדל
+  return remainingCharacters[0].name; // מחזיר את הדמות הראשונה כברירת מחדל
 }
 
 function answer(response) {
@@ -149,7 +148,7 @@ function showGuess(guess) {
 }
 
 function resetGame() {
-  remainingCharacters = [...characters];
+  remainingCharacters = [];
   askedQuestions = [];
   currentQuestion = null;
   document.getElementById('intro').classList.remove('hidden');
