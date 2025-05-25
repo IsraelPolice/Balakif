@@ -124,7 +124,19 @@
       height: 4px; 
       background-color: #E50914; 
     }
+    nav {
+      position: relative;
+      top: 0;
+      width: 100%;
+      z-index: 40;
+    }
     @media (max-width: 639px) {
+      nav {
+        position: fixed;
+      }
+      .content-container {
+        padding-top: 4rem; /* Adjust based on navbar height */
+      }
       .logo { 
         font-size: 1.25rem; 
         line-height: 1.2;
@@ -248,7 +260,7 @@
     );
 
     const Leadership = () => (
-      <section className="leadership-section">
+      <section className="leadership-section content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="leadership-title">הנהגת החבר׳ה הטובים</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -285,7 +297,7 @@
     );
 
     const Hero = () => (
-      <section className="bg-white py-12 sm:py-20">
+      <section className="bg-white py-12 sm:py-20 content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">ברוכים הבאים להחבר׳ה הטובים בגרסת ה-Web</h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">רשת חברתית ייחודית לחבר׳ה הטובים, המשלבת קהילה, תרבות וחדשנות.</p>
@@ -295,7 +307,7 @@
     );
 
     const Sections = () => (
-      <section id="sections" className="py-12 sm:py-20 bg-gray-50">
+      <section id="sections" className="py-12 sm:py-20 bg-gray-50 content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-3xl font-bold text-gray-800 text-center mb-12">המדורים שלנו</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -325,7 +337,7 @@
     );
 
     const Footer = () => (
-      <footer className="bg-gray-800 text-white py-10">
+      <footer className="bg-gray-800 text-white py-10 content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm">© 2025 The Hevre Hatovim Inc. כל הזכויות שמורות.</p>
           <div className="mt-4 space-x-4">
