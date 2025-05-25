@@ -597,7 +597,7 @@
     "wears_glasses": false,
     "colorful_clothes": false,
     "has_tattoos": false,
-    "is_tall": false,
+    "is_tall": true,
     "smokes": false,
     "is_fit": false,
     "loves_nature": false,
