@@ -40,8 +40,14 @@ let remainingCharacters = [];
 let askedQuestions = [];
 let currentQuestion = null;
 
+function startGame() {
+  // הסתר את מסך האינטרו והצג את מסך המשחק
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  initGame();
+}
+
 function initGame() {
-  // הצג הודעה זמנית עד שהמשחק נטען
   document.getElementById('question').textContent = 'טוען את המשחק...';
   
   fetch('characters.json')
@@ -55,6 +61,8 @@ function initGame() {
       }
       characters = data;
       remainingCharacters = [...characters];
+      askedQuestions = [];
+      currentQuestion = null;
       selectNextQuestion();
     })
     .catch(error => {
@@ -67,21 +75,22 @@ function initGame() {
 
 function selectNextQuestion() {
   if (remainingCharacters.length === 0) {
-    showGuess('לא הצלחתי לזהות את הדמות!');
+    showGuess('לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.');
     return;
   }
   if (remainingCharacters.length === 1) {
     showGuess(remainingCharacters[0].name);
     return;
   }
-  if (askedQuestions.length >= 30) {
-    showGuess('לא הצלחתי לזהות את הדמות! יותר מדי שאלות.');
+  if (askedQuestions.length >= 20) {
+    // נסה לנחש את הדמות עם ההתאמה הכי קרובה
+    showGuess(getBestGuess());
     return;
   }
 
   const unaskedQuestions = questions.filter(q => !askedQuestions.includes(q.id));
   if (unaskedQuestions.length === 0) {
-    showGuess('לא הצלחתי לזהות את הדמות! נגמרו השאלות.');
+    showGuess(getBestGuess());
     return;
   }
 
@@ -110,6 +119,14 @@ function selectNextQuestion() {
   }
 }
 
+function getBestGuess() {
+  // אם יש יותר מדמות אחת, נחזיר את הדמות עם הכי הרבה תכונות תואמות לשאלות שנשאלו
+  if (remainingCharacters.length === 0) {
+    return 'לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.';
+  }
+  return remainingCharacters[0].name; // מחזיר את הדמות הראשונה ברשימה כברירת מחדל
+}
+
 function answer(response) {
   if (!currentQuestion) {
     document.getElementById('error').textContent = 'שגיאה: אין שאלה נוכחית. אנא טען מחדש את הדף.';
@@ -135,10 +152,10 @@ function resetGame() {
   remainingCharacters = [...characters];
   askedQuestions = [];
   currentQuestion = null;
+  document.getElementById('intro').classList.remove('hidden');
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('guess').classList.add('hidden');
+  document.getElementById('reset').classList.add('hidden');
   document.getElementById('error').textContent = '';
   document.getElementById('error').classList.add('hidden');
-  selectNextQuestion();
 }
-
-// התחל את המשחק
-initGame();
