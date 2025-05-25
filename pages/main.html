@@ -79,8 +79,6 @@
       align-items: center; 
     }
     #auth-popup.hidden { 
-     assistants/ArtifactAssistantSystem/ArtifactAssistantSystem.py
-
       display: none; 
     }
     .leadership-section { 
@@ -154,6 +152,7 @@
       const [question, setQuestion] = React.useState(null);
       const [answer, setAnswer] = React.useState('');
       const [error, setError] = React.useState(false);
+
       const questions = [
         { question: 'כיצד נקראה הכלבה של יוסף קחלר?', answers: ['תותי'] },
         { question: 'מי המנהל השותף הנוסף חוץ מעמית לסרי?', answers: ['יוסף', 'קחלר', 'יוסף קחלר'] },
@@ -162,16 +161,45 @@
       ];
 
       React.useEffect(() => {
+        console.log('Selecting random question...');
         const randomIndex = Math.floor(Math.random() * questions.length);
         setQuestion(questions[randomIndex]);
       }, []);
 
       const handleSubmit = () => {
-        const isCorrect = question && question.answers.some(ans => ans.toLowerCase() === answer.trim().toLowerCase());
-        if (isCorrect) {
-          document.getElementById('auth-popup').classList.add('hidden');
-        } else {
+        console.log('handleSubmit triggered, answer:', answer);
+        if (!question || !answer.trim()) {
+          console.log('No question or empty answer');
           setError(true);
+          return;
+        }
+
+        const isCorrect = question.answers.some(ans => {
+          const normalizedAnswer = answer.trim().toLowerCase();
+          const normalizedCorrect = ans.toLowerCase();
+          console.log(`Comparing: user answer "${normalizedAnswer}" vs correct answer "${normalizedCorrect}"`);
+          return normalizedAnswer === normalizedCorrect;
+        });
+
+        if (isCorrect) {
+          console.log('Correct answer, hiding popup');
+          const popup = document.getElementById('auth-popup');
+          if (popup) {
+            popup.classList.add('hidden');
+          } else {
+            console.error('Popup element not found');
+          }
+          setError(false);
+        } else {
+          console.log('Incorrect answer');
+          setError(true);
+        }
+      };
+
+      const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+          console.log('Enter key pressed, triggering handleSubmit');
+          handleSubmit();
         }
       };
 
@@ -186,6 +214,7 @@
               type="text"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="w-full p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-600 text-base"
               placeholder="הזן תשובה"
             />
