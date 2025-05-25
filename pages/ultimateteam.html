@@ -194,7 +194,6 @@
         team = savedTeam ? JSON.parse(savedTeam) : [];
         money = savedMoney ? parseInt(savedMoney) : 1000000;
         currentBoss = savedBoss ? parseInt(savedBoss) : 0;
-        // Reset stageUpgradeCount for new stage
         team.forEach(player => player.stageUpgradeCount = 0);
         if (team.length === 5) {
           showMainScreen();
@@ -386,7 +385,7 @@
           return;
         }
         if (team.some(player => player.health <= 0)) {
-          alert("אחד או יותר מהשחקנים מתים! רפא אותם או החלף אותם.");
+          alert("אחד או יותר מהשחקנים פצועים קשה! רפא אותם או החלף אותם.");
           return;
         }
         document.getElementById("main-screen").classList.add("hidden");
@@ -407,47 +406,49 @@
       }
     }
 
-  function startBattle() {
-  try {
-    if (team.length !== 5) {
-      alert("חייבים 5 שחקנים כדי להילחם!");
-      return;
-    }
-    const avgRating = calculateAverageRating();
-    const required = bosses[currentBoss].requiredRating;
+    function startBattle() {
+      try {
+        if (team.length !== 5) {
+          alert("חייבים 5 שחקנים כדי להילחם!");
+          return;
+        }
+        const avgRating = calculateAverageRating();
+        const required = bosses[currentBoss].requiredRating;
 
-    // חישוב אובדן בריאות לפי הפרש דירוג
-    team.forEach(player => {
-      const ratingDiff = required - player.rating;
-      const healthLoss = Math.max(5, ratingDiff * 2); // מינימום 5, יותר אם הדירוג נמוך מהנדרש
-      player.health = Math.max(0, player.health - healthLoss);
-    });
+        // חישוב אובדן בריאות לפי הפרש דירוג
+        team.forEach(player => {
+          const ratingDiff = required - player.rating;
+          const healthLoss = Math.max(5, ratingDiff * 2);
+          player.health = Math.max(0, player.health - healthLoss);
+        });
 
-    if (avgRating >= required) {
-      money += 1000000;
-      alert(`ניצחת את ${bosses[currentBoss].name}! הרווחת 1,000,000 ₪!`);
-      currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
-      // איפוס מונה שדרוגי שלב לשלב הבא
-      team.forEach(player => player.stageUpgradeCount = 0);
-      shootConfetti(true);
-      document.getElementById("battle-popup").classList.add("hidden"); // הסתרת חלון הקרב
-      showMainScreen(); // חזרה לתפריט הראשי
-    } else {
-      alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
-      team = [];
-      money = 1000000;
-      currentBoss = 0;
-      document.getElementById("battle-popup").classList.add("hidden"); // הסתרת חלון הקרב
-      showTeamSelectionScreen();
+        if (avgRating >= required) {
+          money += 1000000;
+          let narrative = `ניצחתם את ${bosses[currentBoss].name}! החבר'ה הטובים הראו מי בעל הבית! הרווחתם 1,000,000 ₪!`;
+          if (currentBoss === bosses.length - 1) {
+            narrative += "\nהשלמתם את המסע! החבר'ה הטובים שלטו בכל הבוסים!";
+          } else {
+            narrative += `\nהתכוננו לאתגר הבא נגד ${bosses[currentBoss + 1].name}!`;
+          }
+          alert(narrative);
+          currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
+          team.forEach(player => player.stageUpgradeCount = 0);
+          shootConfetti(true);
+        } else {
+          let narrative = `הפסדתם ל-${bosses[currentBoss].name}! הדירוג הממוצע שלכם (${avgRating.toFixed(1)}) לא הספיק נגד הדרישה (${required}).\n`;
+          narrative += "השחקנים שלכם נפצעו! רפאו אותם ב-10,000 ₪ או החליפו אותם בחלון ההעברות כדי להמשיך.";
+          alert(narrative);
+          // Do not reset team, keep the injured players
+        }
+        localStorage.setItem("team", JSON.stringify(team));
+        localStorage.setItem("money", money);
+        localStorage.setItem("currentBoss", currentBoss);
+        showMainScreen();
+      } catch (e) {
+        showError("שגיאה בקרב: " + e.message);
+      }
     }
-    localStorage.setItem("team", JSON.stringify(team));
-    localStorage.setItem("money", money);
-    localStorage.setItem("currentBoss", currentBoss);
-    updateUI();
-  } catch (e) {
-    showError("שגיאה בקרב: " + e.message);
-  }
-}
+
     function startTrivia() {
       try {
         currentTrivia = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
@@ -467,6 +468,7 @@
         showError("שגיאה בטעינת טריוויה: " + e.message);
       }
     }
+
     function handleTriviaAnswer(index) {
       try {
         if (index === currentTrivia.correct) {
@@ -574,7 +576,6 @@
       }
     }
 
-    // Initialize the game
     init();
   </script>
 </body>
