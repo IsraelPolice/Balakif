@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>אקינטור החבר'ה הטובים</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>אקינטור החבר'ה הטובים</h1>
+    <div id="game">
+      <h2 id="question"></h2>
+      <div class="buttons">
+        <button onclick="answer(true)">כן</button>
+        <button onclick="answer(false)">לא</button>
+      </div>
+      <div id="guess" class="hidden"></div>
+      <button id="reset" class="hidden" onclick="resetGame()">התחל מחדש</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
