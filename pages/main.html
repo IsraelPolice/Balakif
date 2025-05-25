@@ -79,6 +79,8 @@
       align-items: center; 
     }
     #auth-popup.hidden { 
+     assistants/ArtifactAssistantSystem/ArtifactAssistantSystem.py
+
       display: none; 
     }
     .leadership-section { 
@@ -108,11 +110,12 @@
       font-family: 'Impact', sans-serif; 
       color: #000000; 
       font-weight: 700; 
-      font-size: 2.5rem; 
+      font-size: 1.75rem; 
       line-height: 1; 
       text-transform: uppercase; 
       position: relative; 
       letter-spacing: -0.05em;
+      white-space: nowrap;
     }
     .logo::after { 
       content: ''; 
@@ -122,6 +125,16 @@
       width: 50%; 
       height: 4px; 
       background-color: #E50914; 
+    }
+    @media (max-width: 639px) {
+      .logo { 
+        font-size: 1.25rem; 
+        line-height: 1.2;
+      }
+      .logo::after { 
+        height: 3px; 
+        width: 60%; 
+      }
     }
     @media (min-width: 640px) {
       .leadership-section { padding: 3rem 1.5rem; }
