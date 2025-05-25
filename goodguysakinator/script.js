@@ -40,27 +40,41 @@ let remainingCharacters = [];
 let askedQuestions = [];
 let currentQuestion = null;
 
-fetch('characters.json')
-  .then(response => response.json())
-  .then(data => {
-    characters = data;
-    remainingCharacters = [...characters];
-    selectNextQuestion();
-  });
+function initGame() {
+  fetch('characters.json')
+    .then(response => {
+      if (!response.ok) throw new Error('לא ניתן לטעון את קובץ הדמויות');
+      return response.json();
+    })
+    .then(data => {
+      characters = data;
+      remainingCharacters = [...characters];
+      selectNextQuestion();
+    })
+    .catch(error => {
+      document.getElementById('error').textContent = `שגיאה: ${error.message}`;
+      document.getElementById('error').classList.remove('hidden');
+      document.getElementById('game').classList.add('hidden');
+    });
+}
 
 function selectNextQuestion() {
+  if (remainingCharacters.length === 0) {
+    showGuess('לא הצלחתי לזהות את הדמות!');
+    return;
+  }
   if (remainingCharacters.length === 1) {
     showGuess(remainingCharacters[0].name);
     return;
   }
-  if (askedQuestions.length >= 30 || remainingCharacters.length === 0) {
-    showGuess('לא הצלחתי לזהות את הדמות!');
+  if (askedQuestions.length >= 30) {
+    showGuess('לא הצלחתי לזהות את הדמות! יותר מדי שאלות.');
     return;
   }
 
   const unaskedQuestions = questions.filter(q => !askedQuestions.includes(q.id));
   if (unaskedQuestions.length === 0) {
-    showGuess('לא הצלחתי לזהות את הדמות!');
+    showGuess('לא הצלחתי לזהות את הדמות! נגמרו השאלות.');
     return;
   }
 
@@ -78,13 +92,20 @@ function selectNextQuestion() {
   });
 
   currentQuestion = bestQuestion;
-  document.getElementById('question').textContent = bestQuestion.text;
+  document.getElementById('question').textContent = bestQuestion ? bestQuestion.text : '';
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('guess').classList.add('hidden');
   document.getElementById('reset').classList.add('hidden');
+  document.getElementById('error').classList.add('hidden');
 }
 
 function answer(response) {
+  if (!currentQuestion) {
+    document.getElementById('error').textContent = 'שגיאה: אין שאלה נוכחית';
+    document.getElementById('error').classList.remove('hidden');
+    return;
+  }
+
   askedQuestions.push(currentQuestion.id);
   remainingCharacters = remainingCharacters.filter(c => c[currentQuestion.id] === response);
   selectNextQuestion();
@@ -96,11 +117,17 @@ function showGuess(guess) {
   document.getElementById('guess').textContent = `הניחוש שלי: ${guess}`;
   document.getElementById('guess').classList.remove('hidden');
   document.getElementById('reset').classList.remove('hidden');
+  document.getElementById('error').classList.add('hidden');
 }
 
 function resetGame() {
   remainingCharacters = [...characters];
   askedQuestions = [];
   currentQuestion = null;
+  document.getElementById('error').textContent = '';
+  document.getElementById('error').classList.add('hidden');
   selectNextQuestion();
 }
+
+// התחל את המשחק
+initGame();
