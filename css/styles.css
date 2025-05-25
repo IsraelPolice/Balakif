@@ -1,52 +1,83 @@
-/* Collapsible sections */
-.mw-collapsible {
-    margin-bottom: 10px;
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    line-height: 1.6;
+    direction: rtl;
+    text-align: right;
 }
-
-.mw-collapsible-toggle {
-    cursor: pointer;
-    display: block;
-    position: relative;
-    padding-right: 20px; /* Space for arrow */
+.mw-parser-output {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #c8ccd1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden; /* Prevent text cutoff */
+}
+h1, h2, h3 {
     font-family: 'Linux Libertine', 'Georgia', serif;
+    border-bottom: 1px solid #a2a9b1;
+    padding-bottom: 3px;
+    margin-top: 20px;
 }
-
-.mw-collapsible-toggle::before {
-    content: '▶'; /* Right arrow for collapsed state */
-    position: absolute;
-    right: 5px;
-    font-size: 0.8em;
-    transition: transform 0.2s;
+h1 { font-size: 1.8em; font-weight: normal; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.2em; }
+.infobox {
+    float: left;
+    margin: 0 20px 20px 0;
+    width: 250px;
+    border: 1px solid #c8ccd1;
+    background: #f8f9fa;
+    padding: 10px;
+    font-size: 0.9em;
 }
-
-.mw-collapsible-toggle.mw-collapsible-toggle-expanded::before {
-    content: '▼'; /* Down arrow for expanded state */
-    transform: rotate(0deg);
+.infobox th, .infobox td {
+    padding: 5px;
+    vertical-align: top;
 }
-
-.mw-collapsible-content {
-    display: none; /* Hidden by default */
-    padding: 10px 15px;
+.infobox th {
+    font-weight: bold;
+    background: #eaecf0;
 }
-
-.mw-collapsible-content.mw-collapsible-content-expanded {
-    display: block; /* Show when expanded */
+.infobox caption {
+    font-weight: bold;
+    padding: 5px;
+    background: #eaecf0;
+    text-align: center;
 }
+ul {
+    margin: 0.3em 0 0 1.6em;
+    padding: 0;
+}
+li { margin-bottom: 0.5em; }
+p { 
+    margin: 0.5em 0;
+    word-wrap: break-word; /* Ensure long words don't overflow */
+}
+.mw-references {
+    font-size: 0.9em;
+    margin-top: 20px;
+}
+.mw-references li { margin-bottom: 0.5em; }
 
-/* Ensure mobile responsiveness */
+/* Responsive design for mobile */
 @media screen and (max-width: 600px) {
-    .mw-collapsible-toggle {
-        font-size: 1.2em; /* Slightly larger for touch */
-        padding: 10px 20px;
-        border-bottom: 1px solid #a2a9b1;
-    }
-
-    .mw-collapsible-content {
+    body {
         padding: 10px;
     }
-
-    /* Ensure infobox doesn't interfere with collapsible sections */
-    .infobox {
-        margin-bottom: 20px;
+    .mw-parser-output {
+        padding: 10px;
+        max-width: 100%;
     }
+    .infobox {
+        float: none; /* Stack infobox above content */
+        width: 100%;
+        margin: 0 0 20px 0;
+    }
+    h1 { font-size: 1.5em; }
+    h2 { font-size: 1.3em; }
+    h3 { font-size: 1.1em; }
 }
