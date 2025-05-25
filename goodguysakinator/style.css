@@ -76,6 +76,12 @@ button:last-child:hover {
   margin-top: 20px;
 }
 
+#error {
+  font-size: 1.2rem;
+  color: #dc3545;
+  margin-top: 20px;
+}
+
 .hidden {
   display: none;
 }
