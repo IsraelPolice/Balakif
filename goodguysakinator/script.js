@@ -41,17 +41,24 @@ let askedQuestions = [];
 let currentQuestion = null;
 
 function initGame() {
+  // הצג הודעה זמנית עד שהמשחק נטען
+  document.getElementById('question').textContent = 'טוען את המשחק...';
+  
   fetch('characters.json')
     .then(response => {
-      if (!response.ok) throw new Error('לא ניתן לטעון את קובץ הדמויות');
+      if (!response.ok) throw new Error('לא ניתן לטעון את קובץ הדמויות. ודא שקובץ characters.json קיים באותה תיקייה.');
       return response.json();
     })
     .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('קובץ הדמויות ריק או לא תקין.');
+      }
       characters = data;
       remainingCharacters = [...characters];
       selectNextQuestion();
     })
     .catch(error => {
+      console.error('שגיאה בטעינת המשחק:', error);
       document.getElementById('error').textContent = `שגיאה: ${error.message}`;
       document.getElementById('error').classList.remove('hidden');
       document.getElementById('game').classList.add('hidden');
@@ -82,7 +89,7 @@ function selectNextQuestion() {
   let bestScore = Infinity;
 
   unaskedQuestions.forEach(question => {
-    const trueCount = remainingCharacters.filter(c => c[question.id]).length;
+    const trueCount = remainingCharacters.filter(c => c[question.id] === true).length;
     const falseCount = remainingCharacters.length - trueCount;
     const score = Math.abs(trueCount - falseCount);
     if (score < bestScore) {
@@ -92,16 +99,20 @@ function selectNextQuestion() {
   });
 
   currentQuestion = bestQuestion;
-  document.getElementById('question').textContent = bestQuestion ? bestQuestion.text : '';
-  document.getElementById('game').classList.remove('hidden');
-  document.getElementById('guess').classList.add('hidden');
-  document.getElementById('reset').classList.add('hidden');
-  document.getElementById('error').classList.add('hidden');
+  if (bestQuestion) {
+    document.getElementById('question').textContent = bestQuestion.text;
+    document.getElementById('game').classList.remove('hidden');
+    document.getElementById('guess').classList.add('hidden');
+    document.getElementById('reset').classList.add('hidden');
+    document.getElementById('error').classList.add('hidden');
+  } else {
+    showGuess('שגיאה: לא נמצאה שאלה מתאימה.');
+  }
 }
 
 function answer(response) {
   if (!currentQuestion) {
-    document.getElementById('error').textContent = 'שגיאה: אין שאלה נוכחית';
+    document.getElementById('error').textContent = 'שגיאה: אין שאלה נוכחית. אנא טען מחדש את הדף.';
     document.getElementById('error').classList.remove('hidden');
     return;
   }
