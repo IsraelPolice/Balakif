@@ -67,7 +67,7 @@ function initGame() {
       characters = data;
       remainingCharacters = [...characters];
       askedQuestions = [];
-      answers = []; // אפס את מערך התשובות
+      answers = [];
       currentQuestion = null;
       console.log('Characters loaded:', remainingCharacters.length);
       selectNextQuestion();
@@ -90,10 +90,10 @@ function selectNextQuestion() {
     return;
   }
 
-  // דורש לפחות 10 שאלות לפני ניחוש, או פחות אם נשארה דמות אחת ויש התאמה גבוהה
-  if ((remainingCharacters.length === 1 && askedQuestions.length >= 10) || askedQuestions.length >= 20) {
-    console.log('Reached condition for guess:', remainingCharacters.length, 'characters,', askedQuestions.length, 'questions');
-    const bestGuess = getBestGuess();
+  // בדוק אם אפשר לנחש: לפחות 10 שאלות, ציון התאמה ≥ 80%, או 20 שאלות
+  const bestGuess = getBestGuess();
+  if ((askedQuestions.length >= 10 && bestGuess.score >= 80) || askedQuestions.length >= 20 || (remainingCharacters.length === 1 && bestGuess.score === 100)) {
+    console.log('Reached condition for guess:', remainingCharacters.length, 'characters,', askedQuestions.length, 'questions, score:', bestGuess.score);
     showGuess(bestGuess.name, bestGuess.score);
     return;
   }
@@ -103,45 +103,39 @@ function selectNextQuestion() {
   
   if (unaskedQuestions.length === 0) {
     console.log('No more questions');
-    const bestGuess = getBestGuess();
     showGuess(bestGuess.name, bestGuess.score);
     return;
   }
 
   let bestQuestion = null;
-  let bestScore = Infinity;
 
-  // עבור השאלה הראשונה, בחר שאלה אקראית מבין אלו עם סקור ≤ 10
+  // שאלה ראשונה: בחירה אקראית לחלוטין
   if (askedQuestions.length === 0) {
-    const goodStarterQuestions = unaskedQuestions.filter(q => {
-      const trueCount = remainingCharacters.filter(c => c[q.id] === true).length;
-      const falseCount = remainingCharacters.length - trueCount;
-      const score = Math.abs(trueCount - falseCount);
-      return score <= 10;
-    });
-    if (goodStarterQuestions.length > 0) {
-      bestQuestion = goodStarterQuestions[Math.floor(Math.random() * goodStarterQuestions.length)];
-      console.log('Random starter question:', bestQuestion.text);
-    }
-  }
-
-  // עבור שאלות נוספות, בחר את השאלה עם הסקור הנמוך ביותר
-  if (!bestQuestion) {
-    unaskedQuestions.forEach(question => {
+    bestQuestion = unaskedQuestions[Math.floor(Math.random() * unaskedQuestions.length)];
+    console.log('Random first question:', bestQuestion.text);
+  } else {
+    // שאלות נוספות: בחר אקראית מבין 5 השאלות עם הסקור הנמוך ביותר
+    const questionScores = unaskedQuestions.map(question => {
       const trueCount = remainingCharacters.filter(c => c[question.id] === true).length;
       const falseCount = remainingCharacters.length - trueCount;
       const score = Math.abs(trueCount - falseCount);
-      console.log(`Question: ${question.text}, True: ${trueCount}, False: ${falseCount}, Score: ${score}`);
-      if (score < bestScore) {
-        bestScore = score;
-        bestQuestion = question;
-      }
+      // הוסף משקל לשאלות שמסננות יותר דמויות
+      const impact = Math.min(trueCount, falseCount) / remainingCharacters.length;
+      return { question, score, impact };
     });
+
+    // מיין לפי סקור, ואם הסקור שווה, לפי אימפקט
+    questionScores.sort((a, b) => a.score - b.score || b.impact - a.impact);
+    
+    // בחר אקראית מבין 5 השאלות המובילות
+    const topQuestions = questionScores.slice(0, Math.min(5, questionScores.length));
+    bestQuestion = topQuestions[Math.floor(Math.random() * topQuestions.length)].question;
+    console.log('Selected question:', bestQuestion.text, 'from top', topQuestions.length);
   }
 
   currentQuestion = bestQuestion;
   if (bestQuestion) {
-    console.log('Selected question:', bestQuestion.text);
+    console.log('Displaying question:', bestQuestion.text);
     document.getElementById('question').textContent = bestQuestion.text;
     document.getElementById('game').classList.remove('hidden');
     document.getElementById('guess').classList.add('hidden');
@@ -159,20 +153,23 @@ function getBestGuess() {
     return { name: 'לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.', score: 0 };
   }
 
-  // חשב ציון התאמה לכל דמות
   let bestCharacter = null;
   let bestScore = -1;
 
   remainingCharacters.forEach(character => {
     let score = 0;
+    let totalValidAnswers = 0;
     answers.forEach(answer => {
-      if (character[answer.questionId] === answer.response) {
-        score++;
+      if (character[answer.questionId] !== undefined) {
+        totalValidAnswers++;
+        if (character[answer.questionId] === answer.response) {
+          score++;
+        }
       }
     });
-    // נרמל את הציון לאחוזים
-    const normalizedScore = (score / answers.length) * 100;
-    console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%`);
+    // נרמל את הציון לאחוזים, רק אם יש תשובות תקפות
+    const normalizedScore = totalValidAnswers > 0 ? (score / totalValidAnswers) * 100 : 0;
+    console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%, Matches: ${score}/${totalValidAnswers}`);
     if (normalizedScore > bestScore) {
       bestScore = normalizedScore;
       bestCharacter = character;
@@ -191,7 +188,6 @@ function answer(response) {
     return;
   }
 
-  // שמור את התשובה
   answers.push({ questionId: currentQuestion.id, response });
   askedQuestions.push(currentQuestion.id);
   const prevCount = remainingCharacters.length;
@@ -202,10 +198,14 @@ function answer(response) {
 
 function showGuess(guess, score) {
   console.log('showGuess called with guess:', guess, 'score:', score);
-  console.log('Updating guess div with text:', `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, התאמה: ${score.toFixed(2)}%)`);
+  let message = `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, בטחון: ${score.toFixed(2)}%)`;
+  if (score < 80) {
+    message += '\nאני לא לגמרי בטוח, אבל זה הניחוש הכי טוב שלי!';
+  }
+  console.log('Updating guess div with text:', message);
   document.getElementById('question').textContent = '';
   document.getElementById('game').classList.add('hidden');
-  document.getElementById('guess').textContent = `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, התאמה: ${score.toFixed(2)}%)`;
+  document.getElementById('guess').textContent = message;
   document.getElementById('guess').classList.remove('hidden');
   document.getElementById('reset').classList.remove('hidden');
   document.getElementById('error').classList.add('hidden');
