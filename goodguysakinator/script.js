@@ -90,9 +90,9 @@ function selectNextQuestion() {
     return;
   }
 
-  // בדוק אם אפשר לנחש: לפחות 10 שאלות, ציון התאמה ≥ 80%, או 20 שאלות
+  // בדוק אם אפשר לנחש: לפחות 10 שאלות וציון התאמה ≥ 85%, או 20 שאלות
   const bestGuess = getBestGuess();
-  if ((askedQuestions.length >= 10 && bestGuess.score >= 80) || askedQuestions.length >= 20 || (remainingCharacters.length === 1 && bestGuess.score === 100)) {
+  if (askedQuestions.length >= 10 && bestGuess.score >= 85 || askedQuestions.length >= 20) {
     console.log('Reached condition for guess:', remainingCharacters.length, 'characters,', askedQuestions.length, 'questions, score:', bestGuess.score);
     showGuess(bestGuess.name, bestGuess.score);
     return;
@@ -111,26 +111,28 @@ function selectNextQuestion() {
 
   // שאלה ראשונה: בחירה אקראית לחלוטין
   if (askedQuestions.length === 0) {
-    bestQuestion = unaskedQuestions[Math.floor(Math.random() * unaskedQuestions.length)];
-    console.log('Random first question:', bestQuestion.text);
+    const randomIndex = Math.floor(Math.random() * unaskedQuestions.length);
+    bestQuestion = unaskedQuestions[randomIndex];
+    console.log('Random first question selected:', bestQuestion.text, 'index:', randomIndex);
   } else {
-    // שאלות נוספות: בחר אקראית מבין 5 השאלות עם הסקור הנמוך ביותר
+    // שאלות נוספות: בחר אקראית מבין 10 השאלות עם הסקור הנמוך ביותר
     const questionScores = unaskedQuestions.map(question => {
       const trueCount = remainingCharacters.filter(c => c[question.id] === true).length;
       const falseCount = remainingCharacters.length - trueCount;
       const score = Math.abs(trueCount - falseCount);
-      // הוסף משקל לשאלות שמסננות יותר דמויות
+      // משקל אימפקט: כמה דמויות יוסרו במקרה הטוב ביותר
       const impact = Math.min(trueCount, falseCount) / remainingCharacters.length;
       return { question, score, impact };
     });
 
-    // מיין לפי סקור, ואם הסקור שווה, לפי אימפקט
+    // מיין לפי סקור (הפרש נמוך) ואחר כך לפי אימפקט (גבוה יותר)
     questionScores.sort((a, b) => a.score - b.score || b.impact - a.impact);
     
-    // בחר אקראית מבין 5 השאלות המובילות
-    const topQuestions = questionScores.slice(0, Math.min(5, questionScores.length));
-    bestQuestion = topQuestions[Math.floor(Math.random() * topQuestions.length)].question;
-    console.log('Selected question:', bestQuestion.text, 'from top', topQuestions.length);
+    // בחר אקראית מבין 10 השאלות המובילות (או פחות, אם אין 10)
+    const topQuestions = questionScores.slice(0, Math.min(10, questionScores.length));
+    const randomTopIndex = Math.floor(Math.random() * topQuestions.length);
+    bestQuestion = topQuestions[randomTopIndex].question;
+    console.log('Selected question:', bestQuestion.text, 'from top', topQuestions.length, 'index:', randomTopIndex);
   }
 
   currentQuestion = bestQuestion;
@@ -155,6 +157,7 @@ function getBestGuess() {
 
   let bestCharacter = null;
   let bestScore = -1;
+  let bestMatches = 0;
 
   remainingCharacters.forEach(character => {
     let score = 0;
@@ -167,14 +170,21 @@ function getBestGuess() {
         }
       }
     });
-    // נרמל את הציון לאחוזים, רק אם יש תשובות תקפות
-    const normalizedScore = totalValidAnswers > 0 ? (score / totalValidAnswers) * 100 : 0;
-    console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%, Matches: ${score}/${totalValidAnswers}`);
-    if (normalizedScore > bestScore) {
-      bestScore = normalizedScore;
-      bestCharacter = character;
+    // דרוש לפחות 3 התאמות
+    if (totalValidAnswers >= 3) {
+      const normalizedScore = totalValidAnswers > 0 ? (score / totalValidAnswers) * 100 : 0;
+      console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%, Matches: ${score}/${totalValidAnswers}`);
+      if (normalizedScore > bestScore || (normalizedScore === bestScore && score > bestMatches)) {
+        bestScore = normalizedScore;
+        bestMatches = score;
+        bestCharacter = character;
+      }
     }
   });
+
+  if (!bestCharacter) {
+    return { name: 'לא הצלחתי לזהות את הדמות! צריך עוד שאלות.', score: 0 };
+  }
 
   return { name: bestCharacter.name, score: bestScore };
 }
@@ -198,11 +208,11 @@ function answer(response) {
 
 function showGuess(guess, score) {
   console.log('showGuess called with guess:', guess, 'score:', score);
-  let message = `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, בטחון: ${score.toFixed(2)}%)`;
-  if (score < 80) {
-    message += '\nאני לא לגמרי בטוח, אבל זה הניחוש הכי טוב שלי!';
+  let message = `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, בטחון: ${score.toFixed(1)}%)`;
+  if (score < 85) {
+    message += '\nאני לא ממש בטוח, אבל זה הניחוש הכי טוב שלי!';
   }
-  console.log('Updating guess div with text:', message);
+  console.log('Guess:', message);
   document.getElementById('question').textContent = '';
   document.getElementById('game').classList.add('hidden');
   document.getElementById('guess').textContent = message;
@@ -210,9 +220,6 @@ function showGuess(guess, score) {
   document.getElementById('reset').classList.remove('hidden');
   document.getElementById('error').classList.add('hidden');
   document.getElementById('intro').classList.add('hidden');
-  console.log('Guess div visibility:', document.getElementById('guess').classList.contains('hidden') ? 'hidden' : 'visible');
-  console.log('Intro div visibility:', document.getElementById('intro').classList.contains('hidden') ? 'hidden' : 'visible');
-  console.log('Game div visibility:', document.getElementById('game').classList.contains('hidden') ? 'hidden' : 'visible');
 }
 
 function resetGame() {
@@ -227,5 +234,4 @@ function resetGame() {
   document.getElementById('reset').classList.add('hidden');
   document.getElementById('error').textContent = '';
   document.getElementById('error').classList.add('hidden');
-  console.log('After reset - Intro div visibility:', document.getElementById('intro').classList.contains('hidden') ? 'hidden' : 'visible');
 }
