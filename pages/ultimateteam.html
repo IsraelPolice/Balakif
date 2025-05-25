@@ -26,6 +26,8 @@
     #error { display: none; color: #fc8181; }
     .player-card { background: linear-gradient(135deg, #4b5e7e, #2d3748); border: 2px solid #FFD700; }
     .team-popup { background: linear-gradient(135deg, #1a202c, #4a5568); border: 4px solid #FFD700; }
+    .battle-popup { background: linear-gradient(135deg, #4a0000, #8b0000); border: 4px solid #FFD700; }
+    .dropdown-menu { background: #2d3748; }
   </style>
 </head>
 <body class="min-h-screen p-4">
@@ -51,6 +53,14 @@
     </div>
   </div>
 
+  <div id="battle-popup" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="battle-popup p-8 rounded-xl shadow-2xl max-w-2xl w-full text-center popup">
+      <h1 class="text-3xl font-bold mb-4" id="battle-title"></h1>
+      <p class="text-lg mb-6" id="battle-description"></p>
+      <button onclick="proceedToBattle()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">התחל קרב!</button>
+    </div>
+  </div>
+
   <div id="main-screen" class="hidden container mx-auto">
     <h1 class="text-4xl font-bold text-center mb-8">החבר'ה הטובים - Ultimate Team</h1>
     <div id="error" class="text-center mb-4"></div>
@@ -61,7 +71,7 @@
     </div>
     <div id="team" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6"></div>
     <div class="flex justify-center gap-4">
-      <button onclick="startBattle()" id="battle-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">התחל קרב</button>
+      <button onclick="showBattlePopup()" id="battle-btn" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">התחל קרב</button>
       <button onclick="startTrivia()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">טריוויה</button>
       <button onclick="showTransfers()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">חלון העברות</button>
     </div>
@@ -84,34 +94,42 @@
 
   <script>
     const players = [
-      { name: "עמית לסרי", role: "מייסד הקבוצה", rating: 94, value: 19000000 },
-      { name: "דביר ברקת", role: "חבר", rating: 94, value: 19000000 },
-      { name: "ליאב בן יעקב", role: "חבר", rating: 86, value: 14148548.39 },
-      { name: "יוסף קחלר", role: "מנהל שותף", rating: 92, value: 17817419.35 },
-      { name: "אריאל עין גל", role: "חבר", rating: 66, value: 1914838.71 },
-      { name: "דביר אוחנה", role: "חבר", rating: 94, value: 19000000 },
-      { name: "איתי אוחנה", role: "חבר", rating: 92, value: 17817419.35 },
-      { name: "אור דהן", role: "חבר", rating: 81, value: 11090580.65 },
-      { name: "איציק מור יוסף", role: "חבר", rating: 86, value: 14148548.39 },
-      { name: "נתנאל יוסילביץ'", role: "חבר", rating: 84, value: 12925016.13 },
-      { name: "קורן נאגר", role: "חבר", rating: 77, value: 8643225.81 },
-      { name: "קורן בן משה", role: "חבר", rating: 89, value: 15982983.87 },
-      { name: "ג'ורדן בוחבוט", role: "חבר", rating: 89, value: 15982983.87 },
-      { name: "מיכה גורלובסקי", role: "חבר", rating: 90, value: 16594596.77 },
-      { name: "עומר יוסף", role: "חבר", rating: 83, value: 12313403.23 },
-      { name: "דור אביכזר", role: "חבר", rating: 79, value: 9866451.61 },
-      { name: "אלי יגורוב (קטלטה)", role: "חבר", rating: 80, value: 10478064.52 },
-      { name: "יעקב שוורץ", role: "חבר", rating: 88, value: 15371370.97 },
-      { name: "יוגב שבתאי", role: "חבר", rating: 89, value: 15982983.87 },
-      { name: "חיים מרקס", role: "חבר", rating: 85, value: 13536629.03 },
-      { name: "רפי אלגרבלי", role: "חבר", rating: 90, value: 16594596.77 },
-      { name: "אריאל שרביט", role: "חבר", rating: 63, value: 210000 },
+      { name: "עמית לסרי", role: "מייסד הקבוצה", rating: 94, value: 19000000, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "דביר ברקת", role: "חבר", rating: 94, value: 19000000, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "ליאב בן יעקב", role: "חבר", rating: 86, value: 14148548.39, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "יוסף קחלר", role: "מנהל שותף", rating: 92, value: 17817419.35, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "אריאל עין גל", role: "חבר", rating: 66, value: 1914838.71, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "דביר אוחנה", role: "חבר", rating: 94, value: 19000000, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "איתי אוחנה", role: "חבר", rating: 92, value: 17817419.35, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "אור דהן", role: "חבר", rating: 81, value: 11090580.65, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "איציק מור יוסף", role: "חבר", rating: 86, value: 14148548.39, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "נתנאל יוסילביץ'", role: "חבר", rating: 84, value: 12925016.13, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "קורן נאגר", role: "חבר", rating: 77, value: 8643225.81, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "קורן בן משה", role: "חבר", rating: 89, value: 15982983.87, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "ג'ורדן בוחבוט", role: "חבר", rating: 89, value: 15982983.87, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "מיכה גורלובסקי", role: "חבר", rating: 90, value: 16594596.77, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "עומר יוסף", role: "חבר", rating: 83, value: 12313403.23, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "דור אביכזר", role: "חבר", rating: 79, value: 9866451.61, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "אלי יגורוב (קטלטה)", role: "חבר", rating: 80, value: 10478064.52, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "יעקב שוורץ", role: "חבר", rating: 88, value: 15371370.97, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "יוגב שבתאי", role: "חבר", rating: 89, value: 15982983.87, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "חיים מרקס", role: "חבר", rating: 85, value: 13536629.03, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "רפי אלגרבלי", role: "חבר", rating: 90, value: 16594596.77, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
+      { name: "אריאל שרביט", role: "חבר", rating: 63, value: 210000, health: 100, upgradeCount: 0, stageUpgradeCount: 0 },
     ];
 
-    const bosses = Array.from({ length: 10 }, (_, i) => ({
-      name: `בוס ${i + 1}`,
-      requiredRating: 75 + i * 2 + (i === 9 ? 1 : 0),
-    }));
+    const bosses = [
+      { name: "אוריאל זגורי", requiredRating: 75, description: "אתם באמצע הקרב של יוסף קחלר ואוריאל זגורי, עזרו לו להלחם ולהביס את אוריאל זגורי" },
+      { name: "טוביה וחדווה", requiredRating: 77, description: "טוביה וחדווה זועמים על הרעש שעשיתם להם, הבן אדם שלהם יצא להלחם יחד איתם, הלחמו בהם" },
+      { name: "ליטל אבוטבול", requiredRating: 79, description: "יוסף קחלר רב מכות עם ליטל, ליטל נפלה והביאה את כל הבחרות שלה תעזרו ליוסף" },
+      { name: "קרן פומרנץ", requiredRating: 81, description: "קרן פומרנץ מרביצה לעמית לסרי, לסרי לקראת התעלפות, תחזירו את הכבוד האבוד" },
+      { name: "דין כדורי", requiredRating: 83, description: "בן דוד של רפי רוצה להצטרף לחבר׳ה הטובים, תהרגו אותו" },
+      { name: "נטע בנג׳ו", requiredRating: 85, description: "נטע בנג׳ו שמעה את החבר׳ה הטובים צוחקים על יוסף אחרי שהם שכבו, היא כועסת, תהרגו אותה בתחת" },
+      { name: "חבורה מטבריה", requiredRating: 87, description: "חבורה מטבריה במסיבה ברמת ישי עם צינורות עצבניים על רפי ורבים מכות עם החבר׳ה, זו ההזדמנות להחזיר להם אחת ולתמיד" },
+      { name: "ורד עין גל", requiredRating: 89, description: "ורד מעוניינת לטוס לקוריאה שוב, תעשו טובה לעולם ותעצרו את זה" },
+      { name: "שחר אלמקייס", requiredRating: 91, description: "שחר מנגן על דרבוקה ומשחק אותה תימני, תעזרו לו להבין שהוא מרוקאי" },
+      { name: "עומרי קרסנטי", requiredRating: 93, description: "עומרי רוצה לנקום על כל ההתבריינות וההצקות והמתיחות, הוא חזק מאי פעם, נצחו אותו" },
+    ];
 
     const triviaQuestions = [
       { question: "מתי נוסדה קבוצת הוואטסאפ הרשמית של החבר'ה הטובים?", answers: ["2009", "2010", "14 במאי 2013", "2015"], correct: 2 },
@@ -176,6 +194,8 @@
         team = savedTeam ? JSON.parse(savedTeam) : [];
         money = savedMoney ? parseInt(savedMoney) : 1000000;
         currentBoss = savedBoss ? parseInt(savedBoss) : 0;
+        // Reset stageUpgradeCount for new stage
+        team.forEach(player => player.stageUpgradeCount = 0);
         if (team.length === 5) {
           showMainScreen();
         } else {
@@ -194,7 +214,12 @@
 
     function getRandomTeam() {
       const shuffled = [...players].sort(() => Math.random() - 0.5);
-      return shuffled.slice(0, 5);
+      return shuffled.slice(0, 5).map(player => ({
+        ...player,
+        health: 100,
+        upgradeCount: 0,
+        stageUpgradeCount: 0
+      }));
     }
 
     function calculateAverageRating() {
@@ -213,6 +238,7 @@
       document.getElementById("trivia-screen").classList.add("hidden");
       document.getElementById("transfers-screen").classList.add("hidden");
       document.getElementById("team-popup").classList.add("hidden");
+      document.getElementById("battle-popup").classList.add("hidden");
     }
 
     function showMainScreen() {
@@ -221,6 +247,7 @@
       document.getElementById("trivia-screen").classList.add("hidden");
       document.getElementById("transfers-screen").classList.add("hidden");
       document.getElementById("team-popup").classList.add("hidden");
+      document.getElementById("battle-popup").classList.add("hidden");
       updateUI();
     }
 
@@ -254,6 +281,7 @@
                 <p>דירוג: ${player.rating}</p>
                 <p class="star">${getStars(player.rating)}</p>
                 <p>שווי: ${player.value.toLocaleString()} ₪</p>
+                <p>בריאות: ${player.health.toFixed(1)}%</p>
               </div>
             `;
             if (index === team.length - 1) {
@@ -272,7 +300,7 @@
         document.getElementById("money").innerText = `כסף זמין: ${money.toLocaleString()} ₪`;
         document.getElementById("current-boss").innerText = `בוס נוכחי: ${bosses[currentBoss].name} (דירוג נדרש: ${bosses[currentBoss].requiredRating})`;
         document.getElementById("avg-rating").innerText = `דירוג ממוצע: ${calculateAverageRating().toFixed(1)}`;
-        document.getElementById("battle-btn").disabled = team.length !== 5;
+        document.getElementById("battle-btn").disabled = team.length !== 5 || team.some(player => player.health <= 0);
 
         const teamDiv = document.getElementById("team");
         teamDiv.innerHTML = "";
@@ -287,7 +315,14 @@
               <p>דירוג: ${player.rating}</p>
               <p class="star">${getStars(player.rating)}</p>
               <p>שווי: ${player.value.toLocaleString()} ₪</p>
-              <button onclick="upgradePlayer(${index})" class="mt-2 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition">תביא לו ביד</button>
+              <p>בריאות: ${player.health.toFixed(1)}%</p>
+              <div class="relative inline-block text-left mt-2">
+                <select onchange="handlePlayerAction(${index}, this.value)" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition">
+                  <option value="" disabled selected>שיפור/ריפוי שחקן</option>
+                  <option value="upgrade" ${player.upgradeCount >= 5 || player.stageUpgradeCount >= 2 ? 'disabled' : ''}>תביא לו ביד</option>
+                  <option value="heal" ${money < 10000 || player.health >= 100 ? 'disabled' : ''}>ריפוי לאחר קרב (10,000 ₪)</option>
+                </select>
+              </div>
               <button onclick="sellPlayer(${index})" class="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">מכור</button>
             </div>
           `;
@@ -298,23 +333,77 @@
       }
     }
 
-    function upgradePlayer(index) {
+    function handlePlayerAction(index, action) {
       try {
         const player = team[index];
-        if (player.name === "דביר ברקת") {
-          player.rating += 5;
-        } else if (player.name === "אריאל שרביט") {
-          player.rating -= 15;
-        } else {
-          player.rating += 1;
+        if (action === "upgrade") {
+          if (player.upgradeCount >= 5) {
+            alert("הגעת למגבלה של 5 שיפורים עבור שחקן זה!");
+            return;
+          }
+          if (player.stageUpgradeCount >= 2) {
+            alert("הגעת למגבלה של 2 שיפורים לשלב זה!");
+            return;
+          }
+          if (player.name === "דביר ברקת") {
+            player.rating += 5;
+          } else if (player.name === "אריאל שרביט") {
+            player.rating -= 15;
+          } else {
+            player.rating += 1;
+          }
+          player.rating = Math.max(0, Math.min(99, player.rating));
+          player.upgradeCount += 1;
+          player.stageUpgradeCount += 1;
+          localStorage.setItem("team", JSON.stringify(team));
+          alert(`שדרגת את ${player.name}! הדירוג החדש: ${player.rating}`);
+          if (player.rating >= 90) shootConfetti(true);
+        } else if (action === "heal") {
+          if (money < 10000) {
+            alert("אין מספיק כסף לריפוי!");
+            return;
+          }
+          if (player.health >= 100) {
+            alert("השחקן כבר בריא לגמרי!");
+            return;
+          }
+          player.health = Math.min(100, player.health + 10);
+          money -= 10000;
+          localStorage.setItem("money", money);
+          localStorage.setItem("team", JSON.stringify(team));
+          alert(`ריפאת את ${player.name}! בריאות חדשה: ${player.health.toFixed(1)}%`);
         }
-        player.rating = Math.max(0, Math.min(99, player.rating));
-        localStorage.setItem("team", JSON.stringify(team));
-        alert(`שדרגת את ${player.name}! הדירוג החדש: ${player.rating}`);
-        if (player.rating >= 90) shootConfetti(true);
         updateUI();
       } catch (e) {
-        showError("שגיאה בשדרוג שחקן: " + e.message);
+        showError("שגיאה בטיפול בפעולת שחקן: " + e.message);
+      }
+    }
+
+    function showBattlePopup() {
+      try {
+        if (team.length !== 5) {
+          alert("חייבים 5 שחקנים כדי להילחם!");
+          return;
+        }
+        if (team.some(player => player.health <= 0)) {
+          alert("אחד או יותר מהשחקנים מתים! רפא אותם או החלף אותם.");
+          return;
+        }
+        document.getElementById("main-screen").classList.add("hidden");
+        document.getElementById("battle-popup").classList.remove("hidden");
+        document.getElementById("battle-title").innerText = `הבוס: ${bosses[currentBoss].name}`;
+        document.getElementById("battle-description").innerText = bosses[currentBoss].description;
+      } catch (e) {
+        showError("שגיאה בהצגת פופ-אפ קרב: " + e.message);
+      }
+    }
+
+    function proceedToBattle() {
+      try {
+        document.getElementById("battle-popup").classList.add("hidden");
+        startBattle();
+      } catch (e) {
+        showError("שגיאה בהתחלת הקרב: " + e.message);
       }
     }
 
@@ -326,10 +415,20 @@
         }
         const avgRating = calculateAverageRating();
         const required = bosses[currentBoss].requiredRating;
+
+        // Calculate health loss based on rating difference
+        team.forEach(player => {
+          const ratingDiff = required - player.rating;
+          const healthLoss = Math.max(5, ratingDiff * 2); // Minimum 5, more if rating is lower than required
+          player.health = Math.max(0, player.health - healthLoss);
+        });
+
         if (avgRating >= required) {
           money += 1000000;
           alert(`ניצחת את ${bosses[currentBoss].name}! הרווחת 1,000,000 ₪!`);
           currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
+          // Reset stage upgrade count for next stage
+          team.forEach(player => player.stageUpgradeCount = 0);
           shootConfetti(true);
         } else {
           alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
@@ -366,17 +465,15 @@
         showError("שגיאה בטעינת טריוויה: " + e.message);
       }
     }
-
     function handleTriviaAnswer(index) {
       try {
         if (index === currentTrivia.correct) {
           money += 50000;
           alert("תשובה נכונה! הרווחת 50,000 ₪!");
-          shootConfetti(true);
+          shootConfetti();
         } else {
-          alert("תשובה שגויה, נסה שוב!");
+          alert("תשובה לא נכונה, נסה שוב!");
         }
-        localStorage.setItem("money", money);
         nextTrivia();
       } catch (e) {
         showError("שגיאה בטיפול בתשובת טריוויה: " + e.message);
@@ -397,8 +494,16 @@
           answersDiv.appendChild(button);
         });
       } catch (e) {
-        showError("שגיאה בטעינת שאלה חדשה: " + e.message);
+        showError("שגיאה בטעינת שאלת טריוויה חדשה: " + e.message);
       }
+    }
+
+    function backToMain() {
+      document.getElementById("main-screen").classList.remove("hidden");
+      document.getElementById("trivia-screen").classList.add("hidden");
+      document.getElementById("transfers-screen").classList.add("hidden");
+      document.getElementById("battle-popup").classList.add("hidden");
+      updateUI();
     }
 
     function showTransfers() {
@@ -407,75 +512,68 @@
         document.getElementById("transfers-screen").classList.remove("hidden");
         const transfersDiv = document.getElementById("transfers");
         transfersDiv.innerHTML = "";
-        players.forEach((player) => {
-          const card = document.createElement("div");
-          card.className = "card bg-gray-900 p-4 rounded-xl shadow-lg";
-          card.innerHTML = `
-            <div class="text-center">
-              <span class="text-2xl">🇮🇱</span>
-              <h2 class="text-xl font-bold mt-2">${player.name}</h2>
-              <p>תפקיד: ${player.role}</p>
-              <p>דירוג: ${player.rating}</p>
-              <p class="star">${getStars(player.rating)}</p>
-              <p>שווי: ${player.value.toLocaleString()} ₪</p>
-              <button onclick="buyPlayer('${player.name}')" class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition" ${
-                team.some((p) => p.name === player.name) || team.length >= 5 ? "disabled" : ""
-              }>קנה</button>
-            </div>
-          `;
-          transfersDiv.appendChild(card);
+        players.forEach((player, index) => {
+          if (!team.some(p => p.name === player.name)) {
+            const card = document.createElement("div");
+            card.className = "card bg-gray-900 p-4 rounded-xl shadow-lg";
+            card.innerHTML = `
+              <div class="text-center">
+                <span class="text-2xl">🇮🇱</span>
+                <h2 class="text-xl font-bold mt-2">${player.name}</h2>
+                <p>תפקיד: ${player.role}</p>
+                <p>דירוג: ${player.rating}</p>
+                <p class="star">${getStars(player.rating)}</p>
+                <p>שווי: ${player.value.toLocaleString()} ₪</p>
+                <button onclick="buyPlayer(${index})" class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition" ${money < player.value ? 'disabled' : ''}>קנה</button>
+              </div>
+            `;
+            transfersDiv.appendChild(card);
+          }
         });
       } catch (e) {
-        showError("שגיאה בטעינת חלון העברות: " + e.message);
-      }
-    }
-
-    function buyPlayer(playerName) {
-      try {
-        const player = players.find((p) => p.name === playerName);
-        if (money >= player.value) {
-          money -= player.value;
-          team.push(player);
-          localStorage.setItem("team", JSON.stringify(team));
-          localStorage.setItem("money", money);
-          alert(`רכשת את ${player.name}!`);
-          if (player.rating >= 90) shootConfetti(true);
-          showTransfers();
-          updateUI();
-        } else {
-          alert("אין מספיק כסף!");
-        }
-      } catch (e) {
-        showError("שגיאה ברכישת שחקן: " + e.message);
+        showError("שגיאה בהצגת חלון העברות: " + e.message);
       }
     }
 
     function sellPlayer(index) {
       try {
-        money += team[index].value;
+        const player = team[index];
+        money += player.value;
         team.splice(index, 1);
         localStorage.setItem("team", JSON.stringify(team));
         localStorage.setItem("money", money);
-        alert("שחקן נמכר!");
+        alert(`מכרת את ${player.name} תמורת ${player.value.toLocaleString()} ₪!`);
         updateUI();
       } catch (e) {
         showError("שגיאה במכירת שחקן: " + e.message);
       }
     }
 
-    function backToMain() {
+    function buyPlayer(index) {
       try {
-        if (team.length === 0) {
-          showTeamSelectionScreen();
-        } else {
-          showMainScreen();
+        const player = { ...players[index], health: 100, upgradeCount: 0, stageUpgradeCount: 0 };
+        if (money < player.value) {
+          alert("אין מספיק כסף לקניית השחקן!");
+          return;
         }
+        if (team.length >= 5) {
+          alert("הקבוצה מלאה! מכור שחקן קודם.");
+          return;
+        }
+        money -= player.value;
+        team.push(player);
+        localStorage.setItem("team", JSON.stringify(team));
+        localStorage.setItem("money", money);
+        alert(`קנית את ${player.name} תמורת ${player.value.toLocaleString()} ₪!`);
+        shootConfetti(player.rating >= 90);
+        backToMain();
       } catch (e) {
-        showError("שגיאה בחזרה למסך הראשי: " + e.message);
+        showError("שגיאה בקניית שחקן: " + e.message);
       }
     }
 
-    window.onload = init;
+    // Initialize the game
+    init();
   </script>
 </body>
 </html>
