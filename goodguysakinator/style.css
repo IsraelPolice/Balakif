@@ -73,6 +73,7 @@ button:last-child:hover {
 
 #reset {
   background-color: #007bff;
+  margin-top: 20px;
 }
 
 #reset:hover {
@@ -83,12 +84,13 @@ button:last-child:hover {
   font-size: 1.5rem;
   color: #333;
   margin-top: 20px;
-  padding: 15px;
-  background-color: #fff;
-  border: 2px solid #007bff;
-  border-radius: 5px;
-  min-height: 50px;
+  padding: 20px;
+  background-color: #e6f3ff;
+  border: 3px solid #007bff;
+  border-radius: 10px;
+  min-height: 60px;
   display: block;
+  font-weight: bold;
 }
 
 #error {
@@ -98,7 +100,7 @@ button:last-child:hover {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 600px) {
@@ -114,6 +116,6 @@ button:last-child:hover {
   }
   #guess {
     font-size: 1.2rem;
-    padding: 10px;
+    padding: 15px;
   }
 }
