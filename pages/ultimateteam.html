@@ -407,7 +407,7 @@
       }
     }
 
-   function startBattle() {
+  function startBattle() {
   try {
     if (team.length !== 5) {
       alert("חייבים 5 שחקנים כדי להילחם!");
@@ -430,12 +430,14 @@
       // איפוס מונה שדרוגי שלב לשלב הבא
       team.forEach(player => player.stageUpgradeCount = 0);
       shootConfetti(true);
-      showMainScreen(); // חזרה לתפריט הראשי לאחר ניצחון
+      document.getElementById("battle-popup").classList.add("hidden"); // הסתרת חלון הקרב
+      showMainScreen(); // חזרה לתפריט הראשי
     } else {
       alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
       team = [];
       money = 1000000;
       currentBoss = 0;
+      document.getElementById("battle-popup").classList.add("hidden"); // הסתרת חלון הקרב
       showTeamSelectionScreen();
     }
     localStorage.setItem("team", JSON.stringify(team));
