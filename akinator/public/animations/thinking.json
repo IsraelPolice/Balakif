@@ -1,0 +1,50 @@
+#!/bin/bash
+
+function msg {
+  printf "\e[1;32m$1\e[m %s\n"
+}
+
+function msg2 {
+  printf "\e[1;34m$1\e[m %s\n"
+}
+
+function msg3 {
+  printf "\e[1;36m>\e[m %s\n" "$1"
+}
+
+msg "Patching....."
+
+# x86_64
+sudo perl -pi -e 's|\xB8\x01\x00\x00\x00\x41\x87\x85\x50\x01\x00\x00|\xB8\x03\x00\x00\x00\x41\x87\x85\x50\x01\x00\x00|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+sudo perl -pi -e 's|\xB8\x02\x00\x00\x00\x41\x87\x84\x24\x50\x01\x00\x00|\xB8\x03\x00\x00\x00\x41\x87\x84\x24\x50\x01\x00\x00|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+sudo perl -pi -e 's|\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\xD8\x01\x00\x00\x49\x89\xFC\x80|\xB8\x4E\x6F\xA4\x85\xC3\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\xD8\x01\x00\x00\x49\x89\xFC\x80|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+sudo perl -pi -e 's|\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x48\x03\x00\x00\x49\x89\xF4\x49\x89\xFE|\xB8\x4E\x6F\xA4\x85\xC3\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x48\x03\x00\x00\x49\x89\xF4\x49\x89\xFE|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+sudo perl -pi -e 's|\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\xD8\x00\x00\x00\x41\x89\xD4\x48\x89\xF3|\xB8\x9A\x45\xFB\x3A\xC3\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\xD8\x00\x00\x00\x41\x89\xD4\x48\x89\xF3|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+# arm64
+sudo perl -pi -e 's|\x55\x48\x89\xE5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\xD8\x00\x00\x00\x41\x89\xD5|\xB8\x9A\x45\xFB\x3A\xC3\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\xD8\x00\x00\x00\x41\x89\xD5|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+# arm64
+sudo perl -pi -e 's|\x88\x42\x05\x91\x89\x00\x80\x52|\x88\x42\x05\x91\x69\x00\x80\x52|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+# arm64
+sudo perl -pi -e 's|\x49\x00\x80\x52\x09\xFD\x9F\x88\x80\x06\x40\xF9|\x69\x00\x80\x52\x09\xFD\x9F\x88\x80\x06\x40\xF9|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+# arm64
+sudo perl -pi -e 's|\x29\x00\x80\x52\x09\xFD\x9F\x88\x80\x06\x40\xF9|\x69\x00\x80\x52\x09\xFD\x9F\x88\x80\x06\x40\xF9|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+# arm64
+sudo perl -pi -e 's|\x88\x42\x05\x91\xE9\x00\x80\x52|\x88\x42\x05\x91\x69\x00\x80\x52|g' /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+# Remove Forks, Finder Information
+sudo xattr -cr /Library/Arturia/Acid\ V/Acid\ V.vst /Library/Arturia/Acid\ V/Acid\ V.vst3 /Library/Audio/Plug-Ins/Components/Acid\ V.component /Library/Audio/Plug-Ins/VST/Acid\ V.vst /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3
+sudo xattr -dr com.apple.quarantine /Library/Arturia/Acid\ V/Acid\ V.vst /Library/Arturia/Acid\ V/Acid\ V.vst3 /Library/Audio/Plug-Ins/Components/Acid\ V.component /Library/Audio/Plug-Ins/VST/Acid\ V.vst /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3
+
+# Code Signing
+sudo codesign --force --deep --sign - /Library/Arturia/Acid\ V/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Arturia/Acid\ V/Acid\ V.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/Components/Acid\ V.component/Contents/Resources/plugin.vst3/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST/Acid\ V.vst/Contents/MacOS/Acid\ V /Library/Audio/Plug-Ins/VST3/Acid\ V.vst3/Contents/MacOS/Acid\ V
+
+msg "Patching Done"
