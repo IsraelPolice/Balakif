@@ -44,8 +44,9 @@ function startGame() {
   console.log('startGame called');
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
-  document.getElementById('guess').classList.add('hidden'); // ודא שהניחוש מוסתר בתחילת המשחק
-  document.getElementById('reset').classList.add('hidden'); // ודא שכפתור ההתחל מחדש מוסתר
+  document.getElementById('guess').classList.add('hidden');
+  document.getElementById('reset').classList.add('hidden');
+  document.getElementById('error').classList.add('hidden');
   initGame();
 }
 
@@ -139,7 +140,7 @@ function getBestGuess() {
   if (remainingCharacters.length === 0) {
     return 'לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.';
   }
-  return remainingCharacters[0].name; // מחזיר את הדמות הראשונה כברירת מחדל
+  return remainingCharacters[0].name;
 }
 
 function answer(response) {
@@ -167,8 +168,10 @@ function showGuess(guess) {
   document.getElementById('guess').classList.remove('hidden');
   document.getElementById('reset').classList.remove('hidden');
   document.getElementById('error').classList.add('hidden');
+  document.getElementById('intro').classList.add('hidden'); // ודא שהאינטרו מוסתר
   console.log('Guess div visibility:', document.getElementById('guess').classList.contains('hidden') ? 'hidden' : 'visible');
   console.log('Intro div visibility:', document.getElementById('intro').classList.contains('hidden') ? 'hidden' : 'visible');
+  console.log('Game div visibility:', document.getElementById('game').classList.contains('hidden') ? 'hidden' : 'visible');
 }
 
 function resetGame() {
