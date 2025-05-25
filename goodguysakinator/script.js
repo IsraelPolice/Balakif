@@ -44,6 +44,8 @@ function startGame() {
   console.log('startGame called');
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
+  document.getElementById('guess').classList.add('hidden'); // ודא שהניחוש מוסתר בתחילת המשחק
+  document.getElementById('reset').classList.add('hidden'); // ודא שכפתור ההתחל מחדש מוסתר
   initGame();
 }
 
@@ -158,12 +160,15 @@ function answer(response) {
 
 function showGuess(guess) {
   console.log('showGuess called with guess:', guess);
+  console.log('Updating guess div with text:', `הניחוש שלי: ${guess}`);
   document.getElementById('question').textContent = '';
   document.getElementById('game').classList.add('hidden');
   document.getElementById('guess').textContent = `הניחוש שלי: ${guess}`;
   document.getElementById('guess').classList.remove('hidden');
   document.getElementById('reset').classList.remove('hidden');
   document.getElementById('error').classList.add('hidden');
+  console.log('Guess div visibility:', document.getElementById('guess').classList.contains('hidden') ? 'hidden' : 'visible');
+  console.log('Intro div visibility:', document.getElementById('intro').classList.contains('hidden') ? 'hidden' : 'visible');
 }
 
 function resetGame() {
@@ -177,4 +182,5 @@ function resetGame() {
   document.getElementById('reset').classList.add('hidden');
   document.getElementById('error').textContent = '';
   document.getElementById('error').classList.add('hidden');
+  console.log('After reset - Intro div visibility:', document.getElementById('intro').classList.contains('hidden') ? 'hidden' : 'visible');
 }
