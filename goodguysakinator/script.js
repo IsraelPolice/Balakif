@@ -1,0 +1,106 @@
+const questions = [
+  { id: 'has_long_hair', text: 'האם לדמות שלך יש שיער ארוך?' },
+  { id: 'wears_glasses', text: 'האם הדמות שלך מרכיבה משקפיים?' },
+  { id: 'colorful_clothes', text: 'האם הדמות שלך לובשת בגדים צבעוניים?' },
+  { id: 'has_tattoos', text: 'האם לדמות שלך יש קעקועים?' },
+  { id: 'is_tall', text: 'האם הדמות שלך גבוהה מעל 1.80 מטר?' },
+  { id: 'smokes', text: 'האם הדמות שלך מעשנת?' },
+  { id: 'is_fit', text: 'האם הדמות שלך חטובה?' },
+  { id: 'loves_nature', text: 'האם הדמות שלך אוהבת לטייל בטבע?' },
+  { id: 'plays_instrument', text: 'האם הדמות שלך מנגנת על כלי נגינה?' },
+  { id: 'lives_north', text: 'האם הדמות שלך מתגוררת באזור הצפון?' },
+  { id: 'lives_center', text: 'האם הדמות שלך מתגוררת באזור המרכז?' },
+  { id: 'license_revoked', text: 'האם נשלל רישיון הנהיגה של הדמות שלך בעבר?' },
+  { id: 'drug_investigation', text: 'האם הדמות שלך נחקרה בחשד לשימוש בסמים?' },
+  { id: 'no_license', text: 'האם לדמות שלך אין רישיון נהיגה?' },
+  { id: 'blue_eyes', text: 'האם לדמות שלך יש עיניים כחולות?' },
+  { id: 'studied_savionim', text: 'האם הדמות שלך למדה בסביונים?' },
+  { id: 'studied_rishonim', text: 'האם הדמות שלך למדה בראשונים?' },
+  { id: 'studied_yb3', text: 'האם הדמות שלך למדה ביב׳ 3?' },
+  { id: 'studied_yb4', text: 'האם הדמות שלך למדה ביב׳ 4?' },
+  { id: 'is_malicious', text: 'האם הדמות שלך נחשבת מרושעת?' },
+  { id: 'served_intelligence', text: 'האם הדמות שלך שירתה במודיעין?' },
+  { id: 'served_combat', text: 'האם הדמות שלך שירתה כלוחם בצבא?' },
+  { id: 'served_border_police', text: 'האם הדמות שלך שירתה במשמר הגבול?' },
+  { id: 'is_officer', text: 'האם הדמות שלך קצין בצבא?' },
+  { id: 'not_regular_class', text: 'האם הדמות שלך לא הייתה בכיתה רגילה?' },
+  { id: 'has_twin_sister', text: 'האם לדמות שלך יש אחות תאומה?' },
+  { id: 'is_parent', text: 'האם הדמות שלך הורה לילדה?' },
+  { id: 'lived_eilat', text: 'האם הדמות שלך התגוררה באילת?' },
+  { id: 'lifted_nir_dress', text: 'האם הדמות שלך הרימה לניר בן חיים את השמלה במועדון?' },
+  { id: 'has_allergies', text: 'האם לדמות שלך יש אלרגיות?' },
+  { id: 'fainted_omer', text: 'האם הדמות שלך התעלפה בבית של עומר יוסף?' },
+  { id: 'in_punk_rock', text: 'האם הדמות שלך הייתה בהצגה פאנק רוק?' },
+  { id: 'kissed_on_stage', text: 'האם הדמות שלך התנשקה על במת אשכול הפיס עם חבר אחר?' },
+  { id: 'lives_savionim', text: 'האם הדמות שלך מתגוררת בסביונים?' }
+];
+
+let characters = [];
+let remainingCharacters = [];
+let askedQuestions = [];
+let currentQuestion = null;
+
+fetch('characters.json')
+  .then(response => response.json())
+  .then(data => {
+    characters = data;
+    remainingCharacters = [...characters];
+    selectNextQuestion();
+  });
+
+function selectNextQuestion() {
+  if (remainingCharacters.length === 1) {
+    showGuess(remainingCharacters[0].name);
+    return;
+  }
+  if (askedQuestions.length >= 30 || remainingCharacters.length === 0) {
+    showGuess('לא הצלחתי לזהות את הדמות!');
+    return;
+  }
+
+  const unaskedQuestions = questions.filter(q => !askedQuestions.includes(q.id));
+  if (unaskedQuestions.length === 0) {
+    showGuess('לא הצלחתי לזהות את הדמות!');
+    return;
+  }
+
+  let bestQuestion = null;
+  let bestScore = Infinity;
+
+  unaskedQuestions.forEach(question => {
+    const trueCount = remainingCharacters.filter(c => c[question.id]).length;
+    const falseCount = remainingCharacters.length - trueCount;
+    const score = Math.abs(trueCount - falseCount);
+    if (score < bestScore) {
+      bestScore = score;
+      bestQuestion = question;
+    }
+  });
+
+  currentQuestion = bestQuestion;
+  document.getElementById('question').textContent = bestQuestion.text;
+  document.getElementById('game').classList.remove('hidden');
+  document.getElementById('guess').classList.add('hidden');
+  document.getElementById('reset').classList.add('hidden');
+}
+
+function answer(response) {
+  askedQuestions.push(currentQuestion.id);
+  remainingCharacters = remainingCharacters.filter(c => c[currentQuestion.id] === response);
+  selectNextQuestion();
+}
+
+function showGuess(guess) {
+  document.getElementById('question').textContent = '';
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('guess').textContent = `הניחוש שלי: ${guess}`;
+  document.getElementById('guess').classList.remove('hidden');
+  document.getElementById('reset').classList.remove('hidden');
+}
+
+function resetGame() {
+  remainingCharacters = [...characters];
+  askedQuestions = [];
+  currentQuestion = null;
+  selectNextQuestion();
+}
