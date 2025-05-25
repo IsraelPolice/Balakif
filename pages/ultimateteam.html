@@ -407,45 +407,45 @@
       }
     }
 
-    function startBattle() {
-      try {
-        if (team.length !== 5) {
-          alert("חייבים 5 שחקנים כדי להילחם!");
-          return;
-        }
-        const avgRating = calculateAverageRating();
-        const required = bosses[currentBoss].requiredRating;
-
-        // Calculate health loss based on rating difference
-        team.forEach(player => {
-          const ratingDiff = required - player.rating;
-          const healthLoss = Math.max(5, ratingDiff * 2); // Minimum 5, more if rating is lower than required
-          player.health = Math.max(0, player.health - healthLoss);
-        });
-
-        if (avgRating >= required) {
-          money += 1000000;
-          alert(`ניצחת את ${bosses[currentBoss].name}! הרווחת 1,000,000 ₪!`);
-          currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
-          // Reset stage upgrade count for next stage
-          team.forEach(player => player.stageUpgradeCount = 0);
-          shootConfetti(true);
-        } else {
-          alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
-          team = [];
-          money = 1000000;
-          currentBoss = 0;
-          showTeamSelectionScreen();
-        }
-        localStorage.setItem("team", JSON.stringify(team));
-        localStorage.setItem("money", money);
-        localStorage.setItem("currentBoss", currentBoss);
-        updateUI();
-      } catch (e) {
-        showError("שגיאה בקרב: " + e.message);
-      }
+   function startBattle() {
+  try {
+    if (team.length !== 5) {
+      alert("חייבים 5 שחקנים כדי להילחם!");
+      return;
     }
+    const avgRating = calculateAverageRating();
+    const required = bosses[currentBoss].requiredRating;
 
+    // חישוב אובדן בריאות לפי הפרש דירוג
+    team.forEach(player => {
+      const ratingDiff = required - player.rating;
+      const healthLoss = Math.max(5, ratingDiff * 2); // מינימום 5, יותר אם הדירוג נמוך מהנדרש
+      player.health = Math.max(0, player.health - healthLoss);
+    });
+
+    if (avgRating >= required) {
+      money += 1000000;
+      alert(`ניצחת את ${bosses[currentBoss].name}! הרווחת 1,000,000 ₪!`);
+      currentBoss = Math.min(currentBoss + 1, bosses.length - 1);
+      // איפוס מונה שדרוגי שלב לשלב הבא
+      team.forEach(player => player.stageUpgradeCount = 0);
+      shootConfetti(true);
+      showMainScreen(); // חזרה לתפריט הראשי לאחר ניצחון
+    } else {
+      alert(`הפסדת! הדירוג הממוצע שלך (${avgRating.toFixed(1)}) נמוך מדרישת הבוס (${required}).`);
+      team = [];
+      money = 1000000;
+      currentBoss = 0;
+      showTeamSelectionScreen();
+    }
+    localStorage.setItem("team", JSON.stringify(team));
+    localStorage.setItem("money", money);
+    localStorage.setItem("currentBoss", currentBoss);
+    updateUI();
+  } catch (e) {
+    showError("שגיאה בקרב: " + e.message);
+  }
+}
     function startTrivia() {
       try {
         currentTrivia = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
