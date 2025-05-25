@@ -41,18 +41,19 @@ let askedQuestions = [];
 let currentQuestion = null;
 
 function startGame() {
-  // הסתר את מסך האינטרו והצג את מסך המשחק
+  console.log('startGame called');
   document.getElementById('intro').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   initGame();
 }
 
 function initGame() {
+  console.log('initGame called');
   document.getElementById('question').textContent = 'טוען את המשחק...';
   
   fetch('characters.json')
     .then(response => {
-      if (!response.ok) throw new Error('לא ניתן לטעון את קובץ הדמויות. ודא שקובץ characters.json קיים באותה תיקייה.');
+      if (!response.ok) throw new Error('לא ניתן לטעון את קובץ הדמויות.');
       return response.json();
     })
     .then(data => {
@@ -63,6 +64,7 @@ function initGame() {
       remainingCharacters = [...characters];
       askedQuestions = [];
       currentQuestion = null;
+      console.log('Characters loaded:', remainingCharacters.length);
       selectNextQuestion();
     })
     .catch(error => {
@@ -75,21 +77,29 @@ function initGame() {
 }
 
 function selectNextQuestion() {
+  console.log('selectNextQuestion called, remaining characters:', remainingCharacters.length, 'asked questions:', askedQuestions.length);
+  
   if (remainingCharacters.length === 0) {
+    console.log('No remaining characters');
     showGuess('לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.');
     return;
   }
   if (remainingCharacters.length === 1) {
+    console.log('One character remaining:', remainingCharacters[0].name);
     showGuess(remainingCharacters[0].name);
     return;
   }
   if (askedQuestions.length >= 20) {
+    console.log('Reached 20 questions');
     showGuess(getBestGuess());
     return;
   }
 
   const unaskedQuestions = questions.filter(q => !askedQuestions.includes(q.id));
+  console.log('Unasked questions:', unaskedQuestions.length);
+  
   if (unaskedQuestions.length === 0) {
+    console.log('No more questions');
     showGuess(getBestGuess());
     return;
   }
@@ -101,6 +111,7 @@ function selectNextQuestion() {
     const trueCount = remainingCharacters.filter(c => c[question.id] === true).length;
     const falseCount = remainingCharacters.length - trueCount;
     const score = Math.abs(trueCount - falseCount);
+    console.log(`Question: ${question.text}, True: ${trueCount}, False: ${falseCount}, Score: ${score}`);
     if (score < bestScore) {
       bestScore = score;
       bestQuestion = question;
@@ -109,17 +120,20 @@ function selectNextQuestion() {
 
   currentQuestion = bestQuestion;
   if (bestQuestion) {
+    console.log('Selected question:', bestQuestion.text);
     document.getElementById('question').textContent = bestQuestion.text;
     document.getElementById('game').classList.remove('hidden');
     document.getElementById('guess').classList.add('hidden');
     document.getElementById('reset').classList.add('hidden');
     document.getElementById('error').classList.add('hidden');
   } else {
+    console.log('No suitable question found');
     showGuess('שגיאה: לא נמצאה שאלה מתאימה.');
   }
 }
 
 function getBestGuess() {
+  console.log('getBestGuess called, remaining characters:', remainingCharacters.length);
   if (remainingCharacters.length === 0) {
     return 'לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.';
   }
@@ -127,18 +141,23 @@ function getBestGuess() {
 }
 
 function answer(response) {
+  console.log('answer called with response:', response, 'current question:', currentQuestion?.text);
   if (!currentQuestion) {
+    console.error('No current question');
     document.getElementById('error').textContent = 'שגיאה: אין שאלה נוכחית. אנא טען מחדש את הדף.';
     document.getElementById('error').classList.remove('hidden');
     return;
   }
 
   askedQuestions.push(currentQuestion.id);
+  const prevCount = remainingCharacters.length;
   remainingCharacters = remainingCharacters.filter(c => c[currentQuestion.id] === response);
+  console.log(`After answering ${currentQuestion.text} with ${response}: ${prevCount} -> ${remainingCharacters.length} characters`);
   selectNextQuestion();
 }
 
 function showGuess(guess) {
+  console.log('showGuess called with guess:', guess);
   document.getElementById('question').textContent = '';
   document.getElementById('game').classList.add('hidden');
   document.getElementById('guess').textContent = `הניחוש שלי: ${guess}`;
@@ -148,6 +167,7 @@ function showGuess(guess) {
 }
 
 function resetGame() {
+  console.log('resetGame called');
   remainingCharacters = [];
   askedQuestions = [];
   currentQuestion = null;
