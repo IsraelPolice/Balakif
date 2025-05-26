@@ -17,7 +17,7 @@ const questions = [
   { id: 'studied_savionim', text: 'האם הדמות שלך למדה בסביונים?' },
   { id: 'studied_rishonim', text: 'האם הדמות שלך למדה בראשונים?' },
   { id: 'studied_yb3', text: 'האם הדמות שלך למדה ביב׳ 3?' },
-  { id: 'studied_yb4', text: 'האם הדמות שלך למדה ביב׳ 4?' },
+  { id: 'studied_yb4', text: 'האם הדמות שלך למ�מדה ביב׳ 4?' },
   { id: 'is_malicious', text: 'האם הדמות שלך נחשבת מרושעת?' },
   { id: 'served_intelligence', text: 'האם הדמות שלך שירתה במודיעין?' },
   { id: 'served_combat', text: 'האם הדמות שלך שירתה כלוחם בצבא?' },
@@ -39,7 +39,7 @@ let characters = [];
 let remainingCharacters = [];
 let askedQuestions = [];
 let currentQuestion = null;
-let answers = []; // מערך לשמירת התשובות שניתנו
+let answers = [];
 
 function startGame() {
   console.log('startGame called');
@@ -48,6 +48,7 @@ function startGame() {
   document.getElementById('guess').classList.add('hidden');
   document.getElementById('reset').classList.add('hidden');
   document.getElementById('error').classList.add('hidden');
+  document.getElementById('progress').classList.remove('hidden');
   initGame();
 }
 
@@ -70,6 +71,7 @@ function initGame() {
       answers = [];
       currentQuestion = null;
       console.log('Characters loaded:', remainingCharacters.length);
+      updateProgress();
       selectNextQuestion();
     })
     .catch(error => {
@@ -78,7 +80,13 @@ function initGame() {
       document.getElementById('error').classList.remove('hidden');
       document.getElementById('game').classList.add('hidden');
       document.getElementById('intro').classList.add('hidden');
+      document.getElementById('progress').classList.add('hidden');
     });
+}
+
+function updateProgress() {
+  const progressText = `שאלה ${askedQuestions.length + 1} מתוך ${questions.length}`;
+  document.getElementById('progress').textContent = progressText;
 }
 
 function selectNextQuestion() {
@@ -90,9 +98,9 @@ function selectNextQuestion() {
     return;
   }
 
-  // בדוק אם אפשר לנחש: לפחות 10 שאלות וציון התאמה ≥ 85%, או 20 שאלות
+  // בדוק אם אפשר לנחש: לפחות 5 שאלות וציון התאמה ≥ 50%, או 15 שאלות
   const bestGuess = getBestGuess();
-  if (askedQuestions.length >= 10 && bestGuess.score >= 85 || askedQuestions.length >= 20) {
+  if (askedQuestions.length >= 5 && bestGuess.score >= 50 || askedQuestions.length >= 15) {
     console.log('Reached condition for guess:', remainingCharacters.length, 'characters,', askedQuestions.length, 'questions, score:', bestGuess.score);
     showGuess(bestGuess.name, bestGuess.score);
     return;
@@ -120,15 +128,12 @@ function selectNextQuestion() {
       const trueCount = remainingCharacters.filter(c => c[question.id] === true).length;
       const falseCount = remainingCharacters.length - trueCount;
       const score = Math.abs(trueCount - falseCount);
-      // משקל אימפקט: כמה דמויות יוסרו במקרה הטוב ביותר
       const impact = Math.min(trueCount, falseCount) / remainingCharacters.length;
       return { question, score, impact };
     });
 
-    // מיין לפי סקור (הפרש נמוך) ואחר כך לפי אימפקט (גבוה יותר)
     questionScores.sort((a, b) => a.score - b.score || b.impact - a.impact);
     
-    // בחר אקראית מבין 10 השאלות המובילות (או פחות, אם אין 10)
     const topQuestions = questionScores.slice(0, Math.min(10, questionScores.length));
     const randomTopIndex = Math.floor(Math.random() * topQuestions.length);
     bestQuestion = topQuestions[randomTopIndex].question;
@@ -139,6 +144,7 @@ function selectNextQuestion() {
   if (bestQuestion) {
     console.log('Displaying question:', bestQuestion.text);
     document.getElementById('question').textContent = bestQuestion.text;
+    updateProgress();
     document.getElementById('game').classList.remove('hidden');
     document.getElementById('guess').classList.add('hidden');
     document.getElementById('reset').classList.add('hidden');
@@ -170,7 +176,6 @@ function getBestGuess() {
         }
       }
     });
-    // דרוש לפחות 3 התאמות
     if (totalValidAnswers >= 3) {
       const normalizedScore = totalValidAnswers > 0 ? (score / totalValidAnswers) * 100 : 0;
       console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%, Matches: ${score}/${totalValidAnswers}`);
@@ -209,8 +214,10 @@ function answer(response) {
 function showGuess(guess, score) {
   console.log('showGuess called with guess:', guess, 'score:', score);
   let message = `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, בטחון: ${score.toFixed(1)}%)`;
-  if (score < 85) {
-    message += '\nאני לא ממש בטוח, אבל זה הניחוש הכי טוב שלי!';
+  if (score < 50) {
+    message += '\nזה הניחוש הכי טוב שלי, אבל אני לא ממש בטוח. אולי נסה שוב?';
+  } else if (score < 80) {
+    message += '\nאני די בטוח, אבל ייתכן שכדאי לענות על עוד כמה שאלות!';
   }
   console.log('Guess:', message);
   document.getElementById('question').textContent = '';
@@ -220,6 +227,7 @@ function showGuess(guess, score) {
   document.getElementById('reset').classList.remove('hidden');
   document.getElementById('error').classList.add('hidden');
   document.getElementById('intro').classList.add('hidden');
+  document.getElementById('progress').classList.add('hidden');
 }
 
 function resetGame() {
@@ -234,4 +242,5 @@ function resetGame() {
   document.getElementById('reset').classList.add('hidden');
   document.getElementById('error').textContent = '';
   document.getElementById('error').classList.add('hidden');
+  document.getElementById('progress').classList.add('hidden');
 }
