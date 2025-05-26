@@ -17,7 +17,7 @@ const questions = [
   { id: 'studied_savionim', text: 'האם הדמות שלך למדה בסביונים?' },
   { id: 'studied_rishonim', text: 'האם הדמות שלך למדה בראשונים?' },
   { id: 'studied_yb3', text: 'האם הדמות שלך למדה ביב׳ 3?' },
-  { id: 'studied_yb4', text: 'האם הדמות שלך למ�מדה ביב׳ 4?' },
+  { id: 'studied_yb4', text: 'האם הדמות שלך למדה ביב׳ 4?' },
   { id: 'is_malicious', text: 'האם הדמות שלך נחשבת מרושעת?' },
   { id: 'served_intelligence', text: 'האם הדמות שלך שירתה במודיעין?' },
   { id: 'served_combat', text: 'האם הדמות שלך שירתה כלוחם בצבא?' },
@@ -93,8 +93,9 @@ function selectNextQuestion() {
   console.log('selectNextQuestion called, remaining characters:', remainingCharacters.length, 'asked questions:', askedQuestions.length);
   
   if (remainingCharacters.length === 0) {
-    console.log('No remaining characters');
-    showGuess('לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.', 0);
+    console.log('No remaining characters, falling back to best guess');
+    const bestGuess = getBestGuess();
+    showGuess(bestGuess.name, bestGuess.score);
     return;
   }
 
@@ -110,7 +111,7 @@ function selectNextQuestion() {
   console.log('Unasked questions:', unaskedQuestions.length);
   
   if (unaskedQuestions.length === 0) {
-    console.log('No more questions');
+    console.log('No more questions, making best guess');
     showGuess(bestGuess.name, bestGuess.score);
     return;
   }
@@ -157,15 +158,19 @@ function selectNextQuestion() {
 
 function getBestGuess() {
   console.log('getBestGuess called, remaining characters:', remainingCharacters.length);
-  if (remainingCharacters.length === 0) {
-    return { name: 'לא הצלחתי לזהות את הדמות! אין דמויות מתאימות.', score: 0 };
+  
+  // Use remainingCharacters if available, otherwise fall back to full characters list
+  const characterPool = remainingCharacters.length > 0 ? remainingCharacters : characters;
+  
+  if (characterPool.length === 0 || answers.length === 0) {
+    return { name: 'לא הצלחתי לזהות את הדמות! אנא נסה שוב.', score: 0 };
   }
 
   let bestCharacter = null;
   let bestScore = -1;
   let bestMatches = 0;
 
-  remainingCharacters.forEach(character => {
+  characterPool.forEach(character => {
     let score = 0;
     let totalValidAnswers = 0;
     answers.forEach(answer => {
@@ -176,19 +181,17 @@ function getBestGuess() {
         }
       }
     });
-    if (totalValidAnswers >= 3) {
-      const normalizedScore = totalValidAnswers > 0 ? (score / totalValidAnswers) * 100 : 0;
-      console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%, Matches: ${score}/${totalValidAnswers}`);
-      if (normalizedScore > bestScore || (normalizedScore === bestScore && score > bestMatches)) {
-        bestScore = normalizedScore;
-        bestMatches = score;
-        bestCharacter = character;
-      }
+    const normalizedScore = totalValidAnswers > 0 ? (score / totalValidAnswers) * 100 : 0;
+    console.log(`Character: ${character.name}, Match score: ${normalizedScore.toFixed(2)}%, Matches: ${score}/${totalValidAnswers}`);
+    if (normalizedScore > bestScore || (normalizedScore === bestScore && score > bestMatches)) {
+      bestScore = normalizedScore;
+      bestMatches = score;
+      bestCharacter = character;
     }
   });
 
   if (!bestCharacter) {
-    return { name: 'לא הצלחתי לזהות את הדמות! צריך עוד שאלות.', score: 0 };
+    return { name: 'לא הצלחתי לזהות את הדמות! אנא נסה שוב.', score: 0 };
   }
 
   return { name: bestCharacter.name, score: bestScore };
@@ -215,9 +218,11 @@ function showGuess(guess, score) {
   console.log('showGuess called with guess:', guess, 'score:', score);
   let message = `הניחוש שלי: ${guess} (${askedQuestions.length} שאלות, בטחון: ${score.toFixed(1)}%)`;
   if (score < 50) {
-    message += '\nזה הניחוש הכי טוב שלי, אבל אני לא ממש בטוח. אולי נסה שוב?';
+    message += '\nהבטחון שלי נמוך, אבל זה הניחוש הכי טוב שלי כרגע!';
   } else if (score < 80) {
-    message += '\nאני די בטוח, אבל ייתכן שכדאי לענות על עוד כמה שאלות!';
+    message += '\nאני די בטוח, אבל אולי כדאי לענות על עוד כמה שאלות!';
+  } else {
+    message += '\nאני די בטוח בניחוש הזה!';
   }
   console.log('Guess:', message);
   document.getElementById('question').textContent = '';
