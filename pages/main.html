@@ -66,6 +66,39 @@
       -webkit-box-orient: vertical; 
       text-align: center;
     }
+    .game-card {
+      background: linear-gradient(135deg, #1877F2 0%, #34D399 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      height: 20rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .game-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+    }
+    .game-card-title {
+      font-family: 'Impact', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 0.75rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .game-image {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 0.75rem;
+    }
     #auth-popup { 
       display: flex; 
       position: fixed; 
@@ -135,7 +168,7 @@
         position: fixed;
       }
       .content-container {
-        padding-top: 4rem; /* Adjust based on navbar height */
+        padding-top: 4rem;
       }
       .logo { 
         font-size: 1.25rem; 
@@ -144,6 +177,16 @@
       .logo::after { 
         height: 3px; 
         width: 60%; 
+      }
+      .game-card {
+        height: 18rem;
+      }
+      .game-card-title {
+        font-size: 1.5rem;
+      }
+      .game-image {
+        width: 80px;
+        height: 80px;
       }
     }
     @media (min-width: 640px) {
@@ -310,7 +353,7 @@
       <section id="sections" className="py-12 sm:py-20 bg-gray-50 content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-3xl font-bold text-gray-800 text-center mb-12">המדורים שלנו</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             <div className="card">
               <h4 className="card-title">ויקיחברה</h4>
               <p className="text-base text-gray-600 mb-4 flex-grow">מאגר מידע מקיף על החברה שלנו, ההיסטוריה וההישגים שלה.</p>
@@ -326,10 +369,30 @@
               <p className="text-base text-gray-600 mb-4 flex-grow">גישה לטרילוגיית סרטי בלאקיף, הזמינים לצפייה ישירה.</p>
               <a href="https://israelpolice.github.io/Balakif/pages/watchbalakif.html" className="custom-button inline-block px-6 py-2 font-bold text-base">צפה עכשיו</a>
             </div>
-            <div className="card">
-              <h4 className="card-title">אקינטור החבר׳ה</h4>
-              <p className="text-base text-gray-600 mb-4 flex-grow">נסו לנצח את האקינטור, תחשבו על דמות מהחבר׳ה.</p>
-              <a href="https://israelpolice.github.io/Balakif/goodguysakinator/index.html" className="custom-button inline-block px-6 py-2 font-bold text-base">למידע נוסף</a>
+          </div>
+          <h3 className="text-3xl font-bold text-gray-800 text-center mb-8">משחקי החבר׳ה</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="game-card">
+              <img
+                src="https://download.logo.wine/logo/Akinator/Akinator-Logo.wine.png"
+                alt="אקינטור החבר׳ה"
+                className="game-image"
+                onError={(e) => { console.log('Failed to load Akinator image'); e.target.src = 'https://via.placeholder.com/100'; }}
+              />
+              <h4 className="game-card-title">אקינטור החבר׳ה</h4>
+              <p className="text-base text-white mb-4 flex-grow">נסו לנצח את האקינטור, תחשבו על דמות מהחבר׳ה.</p>
+              <a href="https://israelpolice.github.io/Balakif/goodguysakinator/index.html" className="custom-button inline-block px-6 py-2 font-bold text-base bg-white text-blue-600 hover:bg-gray-100">שחק עכשיו</a>
+            </div>
+            <div className="game-card">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/FIFA_Ultimate_Team_logo_FIFA_18_to_FIFA_20.png/640px-FIFA_Ultimate_Team_logo_FIFA_18_to_FIFA_20.png"
+                alt="החבר׳ה הטובים Ultimate Team"
+                className="game-image"
+                onError={(e) => { console.log('Failed to load Ultimate Team image'); e.target.src = 'https://via.placeholder.com/100'; }}
+              />
+              <h4 className="game-card-title">החבר׳ה הטובים Ultimate Team</h4>
+              <p className="text-base text-white mb-4 flex-grow">בנו את קבוצת החלומות של החבר׳ה הטובים והתחרו!</p>
+              <a href="https://israelpolice.github.io/Balakif/pages/ultimateteam.html" className="custom-button inline-block px-6 py-2 font-bold text-base bg-white text-blue-600 hover:bg-gray-100">שחק עכשיו</a>
             </div>
           </div>
         </div>
