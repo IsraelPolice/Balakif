@@ -137,6 +137,31 @@ export function GameProvider({ children }) {
     dispatch({ type: 'CLEAR_SQUAD' })
   }
 
+  const getRarityColor = (rarity) => {
+    switch (rarity) {
+      case 'legendary':
+        return 'from-yellow-400 via-yellow-500 to-yellow-600'
+      case 'epic':
+        return 'from-purple-400 via-purple-500 to-purple-600'
+      case 'rare':
+        return 'from-blue-400 via-blue-500 to-blue-600'
+      case 'common':
+        return 'from-green-400 via-green-500 to-green-600'
+      case 'basic':
+        return 'from-gray-400 via-gray-500 to-gray-600'
+      default:
+        return 'from-gray-400 via-gray-500 to-gray-600'
+    }
+  }
+
+  const getStars = (rating) => {
+    if (rating >= 93) return 5
+    if (rating >= 89) return 4
+    if (rating >= 86) return 3
+    if (rating >= 80) return 2
+    return 1
+  }
+
   const getSquadRating = () => {
     if (state.squad.length === 0) return 0
     return Math.round(state.squad.reduce((sum, player) => sum + player.rating, 0) / state.squad.length)
@@ -158,6 +183,8 @@ export function GameProvider({ children }) {
     clearSquad,
     getSquadRating,
     getSquadValue,
+    getRarityColor,
+    getStars,
     playersData
   }
 
