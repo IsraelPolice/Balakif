@@ -1,0 +1,437 @@
+export const playersData = [
+  {
+    id: 1,
+    name: "דביר ברקת",
+    nameEn: "Dvir Barkat",
+    rating: 94,
+    value: 45000000,
+    rarity: "legendary",
+    position: "יוצר",
+    attributes: {
+      creativity: 99,
+      leadership: 88,
+      controversy: 95,
+      influence: 92
+    }
+  },
+  {
+    id: 2,
+    name: "יוסף קחלר",
+    nameEn: "Yosef Kahler",
+    rating: 93,
+    value: 40000000,
+    rarity: "legendary",
+    position: "מנהל שותף",
+    attributes: {
+      management: 90,
+      humor: 95,
+      controversy: 98,
+      loyalty: 85
+    }
+  },
+  {
+    id: 3,
+    name: "דביר אוחנה",
+    nameEn: "Dvir Ohana",
+    rating: 93,
+    value: 42000000,
+    rarity: "legendary",
+    position: "כוכב",
+    attributes: {
+      charisma: 96,
+      acting: 94,
+      entertainment: 98,
+      popularity: 95
+    }
+  },
+  {
+    id: 4,
+    name: "עמית לסרי",
+    nameEn: "Amit Lasri",
+    rating: 93,
+    value: 40000000,
+    rarity: "legendary",
+    position: "מנהיג",
+    attributes: {
+      leadership: 99,
+      authority: 95,
+      strategy: 90,
+      dominance: 92
+    }
+  },
+  {
+    id: 5,
+    name: "איתי אוחנה",
+    nameEn: "Itai Ohana",
+    rating: 92,
+    value: 35000000,
+    rarity: "epic",
+    position: "מוזיקאי",
+    attributes: {
+      creativity: 88,
+      music: 92,
+      acting: 85,
+      versatility: 90
+    }
+  },
+  {
+    id: 6,
+    name: "רפאל אלגרבלי",
+    nameEn: "Rafael Algrabli",
+    rating: 90,
+    value: 30000000,
+    rarity: "epic",
+    position: "שחקן",
+    attributes: {
+      humor: 88,
+      football: 92,
+      loyalty: 85,
+      entertainment: 87
+    }
+  },
+  {
+    id: 7,
+    name: "מיכה גורלובסקי",
+    nameEn: "Micha Gorlovski",
+    rating: 89,
+    value: 29000000,
+    rarity: "epic",
+    position: "לוחם",
+    attributes: {
+      strength: 95,
+      endurance: 90,
+      courage: 88,
+      reliability: 85
+    }
+  },
+  {
+    id: 8,
+    name: "קורן בן משה",
+    nameEn: "Koren Ben Moshe",
+    rating: 88,
+    value: 26000000,
+    rarity: "rare",
+    position: "קצין",
+    attributes: {
+      leadership: 85,
+      discipline: 90,
+      sports: 88,
+      loyalty: 92
+    }
+  },
+  {
+    id: 9,
+    name: "ליאב בן יעקב",
+    nameEn: "Liav Ben Yaakov",
+    rating: 88,
+    value: 25000000,
+    rarity: "rare",
+    position: "מפיק",
+    attributes: {
+      creativity: 85,
+      technical: 88,
+      humor: 82,
+      reliability: 90
+    }
+  },
+  {
+    id: 10,
+    name: "יוגב שבתאי",
+    nameEn: "Yogev Shabtai",
+    rating: 87,
+    value: 23000000,
+    rarity: "rare",
+    position: "שחקן",
+    attributes: {
+      acting: 88,
+      fitness: 85,
+      humor: 80,
+      dedication: 87
+    }
+  },
+  {
+    id: 11,
+    name: "ג'ורדן בוחבוט",
+    nameEn: "Jordan Bohbot",
+    rating: 86,
+    value: 21000000,
+    rarity: "rare",
+    position: "שחקן",
+    attributes: {
+      acting: 90,
+      versatility: 88,
+      international: 95,
+      charisma: 82
+    }
+  },
+  {
+    id: 12,
+    name: "חיים מרקס",
+    nameEn: "Haim Marks",
+    rating: 85,
+    value: 21000000,
+    rarity: "common",
+    position: "מפקח",
+    attributes: {
+      intelligence: 95,
+      fairness: 90,
+      science: 92,
+      authority: 80
+    }
+  },
+  {
+    id: 13,
+    name: "איציק מור יוסף",
+    nameEn: "Itzik Mor Yosef",
+    rating: 84,
+    value: 18000000,
+    rarity: "common",
+    position: "אמן",
+    attributes: {
+      creativity: 88,
+      controversy: 85,
+      technical: 82,
+      unpredictability: 90
+    }
+  },
+  {
+    id: 14,
+    name: "אריאל עין גל",
+    nameEn: "Ariel Ein Gal",
+    rating: 84,
+    value: 15000000,
+    rarity: "common",
+    position: "דובר",
+    attributes: {
+      communication: 90,
+      international: 88,
+      courage: 92,
+      influence: 80
+    }
+  },
+  {
+    id: 15,
+    name: "עומר יוסף",
+    nameEn: "Omer Yosef",
+    rating: 83,
+    value: 12500000,
+    rarity: "common",
+    position: "לוחם",
+    attributes: {
+      combat: 88,
+      discipline: 85,
+      loyalty: 90,
+      strength: 82
+    }
+  },
+  {
+    id: 16,
+    name: "אור דהן",
+    nameEn: "Or Dahan",
+    rating: 82,
+    value: 14000000,
+    rarity: "common",
+    position: "אמרגן",
+    attributes: {
+      networking: 85,
+      stability: 90,
+      support: 88,
+      reliability: 85
+    }
+  },
+  {
+    id: 17,
+    name: "נתנאל יוסילביץ'",
+    nameEn: "Natanel Yosilevitz",
+    rating: 82,
+    value: 14000000,
+    rarity: "common",
+    position: "הווטרן",
+    attributes: {
+      endurance: 95,
+      experience: 88,
+      family: 90,
+      technical: 80
+    }
+  },
+  {
+    id: 18,
+    name: "קורן נאגר",
+    nameEn: "Koren Nagar",
+    rating: 81,
+    value: 12000000,
+    rarity: "common",
+    position: "עורך דין",
+    attributes: {
+      intelligence: 88,
+      passion: 92,
+      legal: 85,
+      intensity: 90
+    }
+  },
+  {
+    id: 19,
+    name: "דור אביכזר",
+    nameEn: "Dor Abichzer",
+    rating: 80,
+    value: 11000000,
+    rarity: "common",
+    position: "לוחם",
+    attributes: {
+      combat: 85,
+      discipline: 88,
+      loyalty: 90,
+      reliability: 82
+    }
+  },
+  {
+    id: 20,
+    name: "אלי יגורוב",
+    nameEn: "Eli Yagurov",
+    rating: 80,
+    value: 12000000,
+    rarity: "common",
+    position: "מודיעין",
+    attributes: {
+      intelligence: 90,
+      stealth: 85,
+      analysis: 88,
+      precision: 82
+    }
+  },
+  {
+    id: 21,
+    name: "אריאל שרביט",
+    nameEn: "Ariel Sharvit",
+    rating: 61,
+    value: 230000,
+    rarity: "basic",
+    position: "שף",
+    attributes: {
+      cooking: 85,
+      support: 80,
+      uniqueness: 95,
+      dedication: 75
+    }
+  }
+]
+
+export function GameProvider({ children }) {
+  const [state, dispatch] = useReducer(gameReducer, initialState)
+
+  useEffect(() => {
+    // Load saved state
+    const savedState = localStorage.getItem('hevre-ultimate-team-game-state')
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState)
+        dispatch({ type: 'LOAD_GAME', payload: parsed })
+      } catch (error) {
+        console.error('Failed to load game state:', error)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    // Save state
+    localStorage.setItem('hevre-ultimate-team-game-state', JSON.stringify(state))
+  }, [state])
+
+  const addToSquad = (player) => {
+    if (state.squad.length >= 5) return false
+    if (state.squad.find(p => p.id === player.id)) return false
+    dispatch({ type: 'ADD_TO_SQUAD', payload: player })
+    return true
+  }
+
+  const removeFromSquad = (index) => {
+    dispatch({ type: 'REMOVE_FROM_SQUAD', payload: index })
+  }
+
+  const replaceSquadPlayer = (index, player) => {
+    dispatch({ type: 'REPLACE_SQUAD_PLAYER', payload: { index, player } })
+  }
+
+  const spendCoins = (amount) => {
+    if (state.coins >= amount) {
+      dispatch({ type: 'SPEND_COINS', payload: amount })
+      return true
+    }
+    return false
+  }
+
+  const earnCoins = (amount) => {
+    dispatch({ type: 'EARN_COINS', payload: amount })
+  }
+
+  const addToCollection = (players) => {
+    dispatch({ type: 'ADD_TO_COLLECTION', payload: players })
+  }
+
+  const updateStats = (stats) => {
+    dispatch({ type: 'UPDATE_STATS', payload: stats })
+  }
+
+  const clearSquad = () => {
+    dispatch({ type: 'CLEAR_SQUAD' })
+  }
+
+  const getSquadRating = () => {
+    if (state.squad.length === 0) return 0
+    return Math.round(state.squad.reduce((sum, player) => sum + player.rating, 0) / state.squad.length)
+  }
+
+  const getSquadValue = () => {
+    return state.squad.reduce((sum, player) => sum + player.value, 0)
+  }
+
+  const getRarityColor = (rarity) => {
+    const colors = {
+      legendary: 'from-yellow-400 to-yellow-600',
+      epic: 'from-purple-400 to-purple-600',
+      rare: 'from-blue-400 to-blue-600',
+      common: 'from-green-400 to-green-600',
+      basic: 'from-gray-400 to-gray-600'
+    }
+    return colors[rarity] || colors.basic
+  }
+
+  const getStars = (rating) => {
+    if (rating >= 93) return 5
+    if (rating >= 89) return 4
+    if (rating >= 85) return 3
+    if (rating >= 80) return 2
+    return 1
+  }
+
+  const value = {
+    ...state,
+    addToSquad,
+    removeFromSquad,
+    replaceSquadPlayer,
+    spendCoins,
+    earnCoins,
+    addToCollection,
+    updateStats,
+    clearSquad,
+    getSquadRating,
+    getSquadValue,
+    getRarityColor,
+    getStars,
+    playersData
+  }
+
+  return (
+    <GameContext.Provider value={value}>
+      {children}
+    </GameContext.Provider>
+  )
+}
+
+export function useGame() {
+  const context = useContext(GameContext)
+  if (!context) {
+    throw new Error('useGame must be used within a GameProvider')
+  }
+  return context
+}
