@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Shuffle, Trash2, Share2, Filter } from 'lucide-react'
+import { ArrowRight, Shuffle, Trash2, Share2, Filter, Plus } from 'lucide-react'
 import { useGame } from '../context/GameContext'
 import PlayerCard from './PlayerCard'
 import BottomNavigation from './BottomNavigation'
