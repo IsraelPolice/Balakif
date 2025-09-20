@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, Trophy, Target, CheckCircle, Clock, Coins, Users } from 'lucide-react'
+import { ArrowRight, Trophy, Package, Target, Star, TrendingUp, Users } from 'lucide-react'
 import { useGame } from '../context/GameContext'
 import BottomNavigation from './BottomNavigation'
 import { hapticFeedback } from '../utils/device'
