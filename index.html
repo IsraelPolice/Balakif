@@ -26,8 +26,18 @@
       }
     </style>
   </head>
-  <body class="bg-primary text-white">
+  <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="text/babel" data-presets="env,react">
+      // Add React CDN scripts and inline the main app logic here
+      console.log('GitHub Pages version loading...');
+      
+      // Since GitHub Pages can't serve JSX files directly, we need to either:
+      // 1. Build the project and serve the dist files, or
+      // 2. Use the existing HTML structure from pages/main.html
+      
+      // For now, redirect to the working main.html page
+      window.location.href = './pages/main.html';
+    </script>
   </body>
 </html>
