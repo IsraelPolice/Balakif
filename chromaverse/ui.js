@@ -35,6 +35,9 @@ export class UI {
             militaryPanel: document.getElementById('military-panel'),
             economyPanel: document.getElementById('economy-panel'),
             eventsList: document.getElementById('events-list'),
+            buildingPanel: document.getElementById('building-panel'),
+            marketPanel: document.getElementById('market-panel'),
+            budgetPanel: document.getElementById('budget-panel'),
             modalContainer: document.getElementById('modal-container'),
             modalContent: document.getElementById('modal-content'),
             notificationArea: document.getElementById('notification-area')
@@ -358,6 +361,9 @@ export class UI {
         this.renderMilitary(state);
         this.renderEconomy(state);
         this.renderEvents(state.events);
+        this.renderBuilding(state);
+        this.renderMarket(state);
+        this.renderBudget(state);
 
         // הצגת אירועים חדשים במודל
         this.checkForNewEvents(state);
@@ -1053,5 +1059,332 @@ export class UI {
             notification.style.animation = 'slideIn 0.3s ease reverse';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+
+    // מערכת בנייה - ערים ותעשיות
+    renderBuilding(state) {
+        if (!this.elements.buildingPanel) return;
+
+        const available = this.engine.cityBuildingSystem.getAvailableBuildings(state.selectedNation);
+        const current = this.engine.cityBuildingSystem.getBuildingsForNation(state.selectedNation);
+
+        let html = `
+            <!-- בניינים קיימים -->
+            <div class="building-card" style="border: 2px solid #00d9ff; margin-bottom: 1.5rem;">
+                <h4 style="color: #00d9ff;">🏙️ בניינים פעילים</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                    <div>ערים: <strong>${current.filter(b => b.type === 'city').length}</strong></div>
+                    <div>תעשיות: <strong>${current.filter(b => b.type === 'industry').length}</strong></div>
+                </div>
+            </div>
+
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #ffd700;">🏗️ בניית ערים</h4>
+        `;
+
+        available.cities.forEach(city => {
+            const canBuild = city.available;
+            html += `
+                <div class="building-card" style="border-right: 4px solid ${canBuild ? '#00ff88' : '#666'}; opacity: ${canBuild ? '1' : '0.6'};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 1.5rem;">${city.emoji} <strong>${city.name}</strong></div>
+                            <div style="font-size: 0.85rem; color: #aaa;">דרגה ${city.tier}</div>
+                        </div>
+                        <div style="text-align: left; font-size: 0.9rem;">
+                            <div>💵 $${(city.cost.treasury / 1000000000).toFixed(1)}B</div>
+                            <div>👥 ${(city.cost.population / 1000).toFixed(0)}K</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(0,100,200,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.9rem; line-height: 1.8;">
+                            ${city.benefits.gdp ? `📈 +${(city.benefits.gdp * 100).toFixed(0)}% תמ"ג<br>` : ''}
+                            ${city.benefits.joy ? `😊 +${(city.benefits.joy * 100).toFixed(0)}% שמחה<br>` : ''}
+                            ${city.benefits.innovation ? `💡 +${(city.benefits.innovation * 100).toFixed(0)}% חדשנות` : ''}
+                        </div>
+                    </div>
+
+                    ${canBuild ?
+                        `<button class="btn-primary" style="width: 100%;" onclick="window.game.ui.buildCity('${city.id}')">בנה עכשיו</button>` :
+                        `<div style="color: #ff8800; text-align: center; padding: 0.5rem;">⚠️ ${city.reason}</div>`
+                    }
+                </div>
+            `;
+        });
+
+        html += `<h4 style="margin: 1.5rem 0 1rem 0; color: #ffd700;">🏭 בניית תעשיות</h4>`;
+
+        available.industries.forEach(industry => {
+            const canBuild = industry.available;
+            html += `
+                <div class="building-card" style="border-right: 4px solid ${canBuild ? '#00ff88' : '#666'}; opacity: ${canBuild ? '1' : '0.6'};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 1.5rem;">${industry.emoji} <strong>${industry.name}</strong></div>
+                        </div>
+                        <div style="text-align: left; font-size: 0.9rem;">
+                            <div>💵 $${(industry.cost.treasury / 1000000000).toFixed(1)}B</div>
+                            <div style="color: #ff8800;">⚙️ $${(industry.maintenance / 1000000).toFixed(0)}M/חודש</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(0,100,200,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.9rem; line-height: 1.8;">
+                            ${Object.entries(industry.benefits).map(([key, val]) => {
+                                if (key === 'exports') return `💰 +$${(val / 1000000000).toFixed(1)}B ייצוא`;
+                                return `⚡ +${(val * 100).toFixed(0)}% ${key}`;
+                            }).join('<br>')}
+                        </div>
+                    </div>
+
+                    ${canBuild ?
+                        `<button class="btn-primary" style="width: 100%;" onclick="window.game.ui.buildIndustry('${industry.id}')">בנה עכשיו</button>` :
+                        `<div style="color: #ff8800; text-align: center; padding: 0.5rem;">⚠️ ${industry.reason}</div>`
+                    }
+                </div>
+            `;
+        });
+
+        this.elements.buildingPanel.innerHTML = html;
+    }
+
+    buildCity(cityType) {
+        const result = this.engine.cityBuildingSystem.buildCity(
+            this.engine.state.selectedNation,
+            cityType,
+            { x: 100, y: 100 }
+        );
+
+        if (result.success) {
+            this.showNotification(result.message, 'success');
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
+    }
+
+    buildIndustry(industryType) {
+        const result = this.engine.cityBuildingSystem.buildIndustry(
+            this.engine.state.selectedNation,
+            industryType,
+            { x: 150, y: 150 }
+        );
+
+        if (result.success) {
+            this.showNotification(result.message, 'success');
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
+    }
+
+    // מערכת שוק ומסחר
+    renderMarket(state) {
+        if (!this.elements.marketPanel) return;
+
+        const market = this.engine.economySystem.getMarketReport();
+
+        let html = `
+            <!-- מחירי שוק נוכחיים -->
+            <div class="building-card" style="border: 2px solid #ffd700;">
+                <h4 style="color: #ffd700;">📊 מחירי שוק עולמיים</h4>
+                <div style="margin-top: 1rem; line-height: 2;">
+                    ${Object.entries(market.prices).map(([commodity, data]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <span>${commodity}</span>
+                            <span style="color: #00ff88;">$${data.price.toFixed(0)} ${market.trends[commodity] || ''}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- הזדמנויות מסחר -->
+            ${market.opportunities.length > 0 ? `
+                <div class="building-card" style="border: 2px solid #00d9ff; margin-top: 1rem;">
+                    <h4 style="color: #00d9ff;">💎 הזדמנויות</h4>
+                    ${market.opportunities.map(opp => `
+                        <div style="padding: 0.75rem; margin-top: 0.5rem; background: rgba(0,100,200,0.1); border-radius: 6px;">
+                            <div style="font-weight: bold;">${opp.commodity}</div>
+                            <div style="font-size: 0.9rem; color: #aaa;">${opp.reason}</div>
+                            <div style="color: #00ff88; margin-top: 0.25rem;">${opp.potential_profit}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #ff0055;">💰 מכור משאבים</h4>
+        `;
+
+        ['oil', 'steel', 'technology', 'weapons'].forEach(resource => {
+            html += `
+                <div class="building-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${resource}</strong>
+                            <div style="font-size: 0.85rem; color: #aaa;">מחיר: $${market.prices[resource].price.toFixed(0)}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-primary" onclick="window.game.ui.sellResource('${resource}', 100)">מכור 100</button>
+                            <button class="btn-primary" onclick="window.game.ui.sellResource('${resource}', 1000)">מכור 1000</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #ff8800;">🏭 הפרטה</h4>
+            <div class="building-card">
+                <div style="margin-bottom: 1rem;">
+                    <strong>תעשיות ממשלתיות</strong>
+                    <p style="font-size: 0.9rem; color: #aaa; margin-top: 0.5rem;">הפרט תעשיות למזומן מהיר, אבל תאבד שליטה לטווח ארוך</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <button class="btn-primary" onclick="window.game.ui.privatizeAsset('industry')">הפרט תעשייה (~$${(state.resources.gdp * 0.05 / 1000000000).toFixed(1)}B)</button>
+                    <button class="btn-primary" onclick="window.game.ui.privatizeAsset('port')">הפרט נמל (~$${(state.resources.gdp * 0.08 / 1000000000).toFixed(1)}B)</button>
+                </div>
+            </div>
+        `;
+
+        this.elements.marketPanel.innerHTML = html;
+    }
+
+    sellResource(resource, quantity) {
+        const result = this.engine.economySystem.sellAsset(resource, quantity, this.engine.state.selectedNation);
+
+        if (result.success) {
+            this.showNotification(`✅ ${result.message} | רווח: $${(result.revenue / 1000000000).toFixed(2)}B`, 'success');
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
+    }
+
+    privatizeAsset(assetType) {
+        const result = this.engine.economySystem.sellAsset(assetType, 1, this.engine.state.selectedNation);
+
+        if (result.success) {
+            this.showNotification(`${result.message} | רווח: $${(result.revenue / 1000000000).toFixed(2)}B`, 'success');
+            if (result.warning) {
+                setTimeout(() => this.showNotification(result.warning, 'warning'), 1500);
+            }
+        } else {
+            this.showNotification(result.message, 'danger');
+        }
+    }
+
+    // מערכת תקציב ורווחה
+    renderBudget(state) {
+        if (!this.elements.budgetPanel) return;
+
+        const budgets = this.engine.economySystem.budgetAllocations;
+        const welfare = this.engine.economySystem.calculateCitizenWelfareIndex();
+
+        let html = `
+            <!-- מדד רווחת אזרחים -->
+            <div class="building-card" style="border: 2px solid ${welfare.status.color};">
+                <h4 style="color: ${welfare.status.color};">${welfare.status.emoji} מדד רווחת אזרחים</h4>
+                <div style="font-size: 2.5rem; font-weight: bold; text-align: center; margin: 1rem 0; color: ${welfare.status.color};">
+                    ${welfare.index.toFixed(1)}
+                </div>
+                <div style="text-align: center; font-size: 1.2rem; color: ${welfare.status.color};">
+                    ${welfare.status.level}
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(0,100,200,0.1); border-radius: 6px; font-size: 0.9rem;">
+                    ${Object.entries(welfare.factors).map(([key, value]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 0.25rem;">
+                            <span>${key}</span>
+                            <strong>${value.toFixed(1)}</strong>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #00d9ff;">💵 חלוקת תקציב</h4>
+            <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 1rem;">התאם את התקציב לפי סדר העדיפויות שלך</p>
+        `;
+
+        Object.entries(budgets).forEach(([category, budget]) => {
+            html += `
+                <div class="building-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong>${category}</strong>
+                        <span style="font-size: 1.2rem; color: #00ff88;">${budget.allocation}%</span>
+                    </div>
+
+                    <input type="range" min="0" max="30" value="${budget.allocation}"
+                           style="width: 100%; margin: 0.5rem 0;"
+                           onchange="window.game.ui.updateBudget('${category}', this.value)">
+
+                    <div style="font-size: 0.85rem; color: #aaa; line-height: 1.6;">
+                        השפעות: ${Object.keys(budget.effects).join(', ')}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #ffd700;">🔮 סימולטור פיסקלי</h4>
+            <div class="building-card" style="border: 2px solid #ffd700;">
+                <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 1rem;">צפה 5 תורות קדימה לפני שאתה מבצע שינויים</p>
+                <button class="btn-primary" style="width: 100%;" onclick="window.game.ui.showFiscalSimulator()">
+                    הרץ סימולציה
+                </button>
+            </div>
+        `;
+
+        this.elements.budgetPanel.innerHTML = html;
+    }
+
+    updateBudget(category, newValue) {
+        const result = this.engine.economySystem.setBudgetAllocation(category, parseFloat(newValue));
+
+        if (result.success) {
+            this.showNotification(result.message, 'success');
+            if (result.warning && result.warning.length > 0) {
+                result.warning.forEach(w => {
+                    setTimeout(() => this.showNotification(w, 'warning'), 1000);
+                });
+            }
+        } else {
+            this.showNotification(result.message, 'danger');
+        }
+    }
+
+    showFiscalSimulator() {
+        const currentBudgets = {};
+        Object.entries(this.engine.economySystem.budgetAllocations).forEach(([cat, bud]) => {
+            currentBudgets[cat] = bud.allocation;
+        });
+
+        const prediction = this.engine.economySystem.fiscalSimulator(currentBudgets);
+
+        let html = `
+            <div style="text-align: center;">
+                <h2 style="color: #ffd700;">🔮 סימולטור פיסקלי - תחזית 5 תורות</h2>
+
+                <div style="margin: 2rem 0;">
+                    ${prediction.predictions.map(p => `
+                        <div style="padding: 1rem; margin: 0.5rem 0; background: rgba(0,100,200,0.2); border-radius: 8px;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #00d9ff;">תור ${p.turn}</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; font-size: 0.9rem;">
+                                <div>תמ"ג: <strong>$${(p.gdp / 1000000000000).toFixed(2)}T</strong></div>
+                                <div>שמחה: <strong>${p.joy.toFixed(0)}%</strong></div>
+                                <div>חדשנות: <strong>${p.innovation.toFixed(0)}</strong></div>
+                                <div>רווחה: <strong>${p.welfare.toFixed(0)}</strong></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="padding: 1.5rem; background: ${prediction.riskLevel === 'גבוה' ? 'rgba(255,0,85,0.2)' : 'rgba(0,217,255,0.2)'}; border-radius: 12px; margin: 1rem 0;">
+                    <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">רמת סיכון: <strong>${prediction.riskLevel}</strong></div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">${prediction.recommendation}</div>
+                </div>
+
+                <button class="btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;" onclick="window.game.ui.hideModal()">
+                    סגור
+                </button>
+            </div>
+        `;
+
+        this.showModal(html);
     }
 }
