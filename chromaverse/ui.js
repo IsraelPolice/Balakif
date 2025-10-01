@@ -1,5 +1,6 @@
 import { NATIONS, BLOCS } from './nations.js';
 import { WorldMap } from './worldMap.js';
+import { LeaderCard } from './leaderCard.js';
 
 export class UI {
     constructor(gameEngine, database) {
