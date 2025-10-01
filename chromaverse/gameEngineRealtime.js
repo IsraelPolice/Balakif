@@ -1,6 +1,8 @@
 import { NATIONS, BLOCS } from './nations.js';
 import { EventsSystem } from './eventsSystem.js';
 import { BattleSystem } from './battleSystem.js';
+import { CityBuildingSystem } from './cityBuildingSystem.js';
+import { AdvancedEconomySystem } from './advancedEconomySystem.js';
 
 export class GameEngine {
     constructor() {
@@ -9,6 +11,8 @@ export class GameEngine {
         this.timers = {};
         this.eventsSystem = new EventsSystem(this);
         this.battleSystem = new BattleSystem(this);
+        this.cityBuildingSystem = new CityBuildingSystem(this);
+        this.economySystem = new AdvancedEconomySystem(this);
         this.startRealTime();
     }
 
@@ -98,6 +102,28 @@ export class GameEngine {
         if (this.eventsSystem) {
             this.eventsSystem.startEventLoop();
         }
+
+        // סימולציית צמיחת ערים - כל 10 שניות
+        this.timers.cityGrowth = setInterval(() => {
+            if (this.state.selectedNation && this.cityBuildingSystem) {
+                this.cityBuildingSystem.simulateCityGrowth();
+            }
+        }, 10000);
+
+        // עדכון שווקים - כל 15 שניות
+        this.timers.marketUpdate = setInterval(() => {
+            if (this.state.selectedNation && this.economySystem) {
+                this.economySystem.updateMarket();
+            }
+        }, 15000);
+
+        // חישוב מדד רווחה - כל 20 שניות
+        this.timers.welfareUpdate = setInterval(() => {
+            if (this.state.selectedNation && this.economySystem) {
+                const welfare = this.economySystem.calculateCitizenWelfareIndex();
+                this.state.internal.welfareIndex = welfare.index;
+            }
+        }, 20000);
 
         // Events every 30 seconds
         this.timers.events = setInterval(() => {
