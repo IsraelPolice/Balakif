@@ -291,6 +291,62 @@ export class UI {
         this.renderMilitary(state);
         this.renderEconomy(state);
         this.renderEvents(state.events);
+
+        // הצגת אירועים חדשים במודל
+        this.checkForNewEvents(state);
+    }
+
+    checkForNewEvents(state) {
+        // בדיקה אם יש אירועים פעילים מהמערכת החדשה
+        if (this.engine.eventsSystem && this.engine.eventsSystem.activeEvents.length > 0) {
+            const activeEvent = this.engine.eventsSystem.activeEvents[0];
+            if (!this.currentDisplayedEventId || this.currentDisplayedEventId !== activeEvent.id) {
+                this.currentDisplayedEventId = activeEvent.id;
+                this.showEventModal(activeEvent);
+            }
+        }
+    }
+
+    showEventModal(event) {
+        const choicesHTML = event.choices.map((choice, index) => `
+            <button class="btn-primary" style="margin: 0.5rem 0; width: 100%; text-align: right; padding: 1rem;"
+                    onclick="window.game.ui.handleEventChoice('${event.id}', ${index})">
+                ${choice.text}
+                ${choice.cost > 0 ? `<span style="color: #ff8800; font-weight: bold;"> (-$${(choice.cost / 1000000000).toFixed(1)}B)</span>` : ''}
+            </button>
+        `).join('');
+
+        const html = `
+            <div style="text-align: center;">
+                <h2 style="color: #ffd700; font-size: 1.8rem; margin-bottom: 1rem;">
+                    ${event.title}
+                </h2>
+                <p style="color: #ddd; line-height: 1.6; margin-bottom: 2rem; font-size: 1.1rem;">
+                    ${event.description}
+                </p>
+                <div style="text-align: right;">
+                    <h3 style="color: #00d9ff; margin-bottom: 1rem;">בחר פעולה:</h3>
+                    ${choicesHTML}
+                </div>
+            </div>
+        `;
+
+        this.showModal(html);
+    }
+
+    handleEventChoice(eventId, choiceIndex) {
+        const event = this.engine.eventsSystem.activeEvents.find(e => e.id === eventId);
+        if (!event) return;
+
+        const result = this.engine.handleEventChoice(event, choiceIndex);
+
+        if (result.success) {
+            this.showNotification(result.message, 'success');
+            this.hideModal();
+            this.currentDisplayedEventId = null;
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
     }
 
     renderTerritories(state) {
@@ -477,25 +533,95 @@ export class UI {
     }
 
     renderEconomy(state) {
+        const joyStatus = this.engine.getPublicJoyStatus();
+        const publicJoy = state.internal.publicJoy || 70;
+        const taxRate = state.internal.taxRate || 25;
+
         let html = `
+            <!-- מד שמחת עם -->
+            <div class="building-card" style="border: 2px solid ${joyStatus.color};">
+                <h4 style="color: ${joyStatus.color};">😊 שמחת העם</h4>
+                <div style="margin: 1rem 0;">
+                    <div style="background: rgba(0,0,0,0.5); height: 30px; border-radius: 15px; overflow: hidden;">
+                        <div style="width: ${publicJoy}%; height: 100%; background: linear-gradient(to right, ${joyStatus.color}, #00ff88);
+                                    display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.5s ease;">
+                            ${publicJoy.toFixed(0)}%
+                        </div>
+                    </div>
+                    <p style="color: ${joyStatus.color}; margin-top: 0.5rem; font-weight: bold;">
+                        ${joyStatus.message}
+                    </p>
+                </div>
+            </div>
+
+            <!-- מערכת מיסוי -->
             <div class="building-card">
-                <h4>Economic Investment</h4>
-                <p>Invest 5% of GDP to boost growth</p>
+                <h4>💰 מדיניות מיסוי</h4>
+                <div style="margin: 1rem 0;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #00d9ff; font-weight: bold;">
+                        שיעור מס: <span id="tax-rate-display">${taxRate}</span>%
+                    </label>
+                    <input type="range" id="tax-slider" min="10" max="50" value="${taxRate}"
+                           style="width: 100%; accent-color: #00d9ff;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.85rem; color: #aaa;">
+                        <span>10% (נמוך)</span>
+                        <span>50% (גבוה)</span>
+                    </div>
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(0, 100, 200, 0.2); border-radius: 6px;">
+                        <div style="color: #00ff88;">✓ מיסים גבוהים = הכנסה רבה</div>
+                        <div style="color: #ff8800;">✗ מיסים גבוהים = שמחה נמוכה</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- השקעה כלכלית -->
+            <div class="building-card">
+                <h4>📈 השקעה כלכלית</h4>
+                <p>השקע 5% מהתמ"ג כדי להגביר צמיחה</p>
                 <div class="card-cost">
                     <span class="cost-item">💵 $${(state.resources.gdp * 0.05 / 1000000000).toFixed(2)}B</span>
                 </div>
-                <button class="btn-primary" onclick="window.game.ui.investEconomy()">Invest</button>
+                <button class="btn-primary" onclick="window.game.ui.investEconomy()">השקע</button>
             </div>
+
+            <!-- סקירה כלכלית -->
             <div class="building-card">
-                <h4>Economic Overview</h4>
-                <div style="margin-top: 1rem;">
-                    <div>GDP Growth: +2% per turn</div>
-                    <div>Treasury Income: 5% of GDP/turn</div>
-                    <div>Military Budget: 3% of GDP/turn</div>
+                <h4>📊 סקירה כלכלית</h4>
+                <div style="margin-top: 1rem; line-height: 2;">
+                    <div>צמיחת תמ"ג: +${state.resources.growthRate}% בשנה</div>
+                    <div>הכנסה מיסים: ${(taxRate * 0.05).toFixed(1)}% מתמ"ג</div>
+                    <div>תקציב צבאי: 3% מתמ"ג</div>
                 </div>
             </div>
         `;
+
         this.elements.economyPanel.innerHTML = html;
+
+        // הוספת event listener ל-slider
+        setTimeout(() => {
+            const slider = document.getElementById('tax-slider');
+            const display = document.getElementById('tax-rate-display');
+            if (slider && display) {
+                slider.addEventListener('input', (e) => {
+                    const newRate = parseInt(e.target.value);
+                    display.textContent = newRate;
+                });
+
+                slider.addEventListener('change', (e) => {
+                    const newRate = parseInt(e.target.value);
+                    this.changeTaxRate(newRate);
+                });
+            }
+        }, 100);
+    }
+
+    changeTaxRate(newRate) {
+        const result = this.engine.setTaxRate(newRate);
+        if (result.success) {
+            this.showNotification(`שיעור המס השתנה ל-${newRate}%`, 'success');
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
     }
 
     investEconomy() {
