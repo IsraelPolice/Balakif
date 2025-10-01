@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אימפריית LasriLand - דמו מלא</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Heebo', Arial, sans-serif;
+            background: linear-gradient(135deg, #000a14, #001428, #001a3a);
+            color: white;
+            min-height: 100vh;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem 0;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 255, 136, 0.1));
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #00d9ff;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-top: 0.5rem;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: rgba(0, 20, 40, 0.9);
+            border: 2px solid #00d9ff;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .panel h2 {
+            color: #00d9ff;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: rgba(0, 100, 200, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .event-card {
+            background: linear-gradient(135deg, rgba(0, 100, 200, 0.3), rgba(0, 50, 100, 0.3));
+            border: 2px solid #ffd700;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .event-title {
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-description {
+            color: #ddd;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .choice-btn {
+            background: linear-gradient(135deg, #0066cc, #0088ff);
+            border: none;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Heebo', Arial, sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: right;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 136, 255, 0.4);
+        }
+
+        .choice-cost {
+            color: #ff8800;
+            font-weight: bold;
+        }
+
+        .leader-img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 12px;
+            border: 3px solid #00d9ff;
+            margin: 0 auto 1rem;
+            display: block;
+        }
+
+        .tax-control {
+            margin-top: 1rem;
+        }
+
+        .tax-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to left, #ff0055, #ffd700, #00ff88);
+            margin: 1rem 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .joy-meter {
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .joy-fill {
+            height: 100%;
+            background: linear-gradient(to left, #00ff88, #ffd700);
+            transition: width 0.5s ease, background 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 1024px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 אימפריית LasriLand 🌍</h1>
+            <p class="subtitle">משחק אסטרטגיה גיאופוליטי בזמן אמת</p>
+        </div>
+
+        <div class="game-grid">
+            <!-- Left: Nation Info -->
+            <div class="panel">
+                <h2>המדינה שלך</h2>
+                <img src="https://i.postimg.cc/kgSJfg51/Chat-GPT-Image-Oct-1-2025-01-55-21-PM.png"
+                     alt="מנהיג LasriLand"
+                     class="leader-img">
+                <div class="stat-box">
+                    <div class="stat-value">LasriLand</div>
+                    <div class="stat-label">המדינה החדשנית</div>
+                </div>
+            </div>
+
+            <!-- Center: Main Stats & Events -->
+            <div class="panel">
+                <h2>סטטיסטיקות</h2>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="gdp">$500B</div>
+                        <div class="stat-label">תמ"ג</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="treasury">$50B</div>
+                        <div class="stat-label">אוצר</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="military">85%</div>
+                        <div class="stat-label">כוח צבאי</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="support">75%</div>
+                        <div class="stat-label">תמיכה</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 2rem;">שמחת העם</h2>
+                <div class="joy-meter">
+                    <div class="joy-fill" id="joyFill" style="width: 70%;">
+                        <span id="joyText">70% 😊</span>
+                    </div>
+                </div>
+
+                <div class="tax-control">
+                    <label style="color: #00d9ff; font-weight: bold;">שיעור מס: <span id="taxValue">25</span>%</label>
+                    <input type="range" id="taxSlider" min="10" max="50" value="25"
+                           style="width: 100%; accent-color: #00d9ff;">
+                </div>
+
+                <div id="eventsContainer" style="margin-top: 2rem;">
+                    <h2>אירוע נוכחי</h2>
+                    <div id="currentEvent"></div>
+                </div>
+            </div>
+
+            <!-- Right: History -->
+            <div class="panel">
+                <h2>היסטוריית החלטות</h2>
+                <div id="history" style="max-height: 600px; overflow-y: auto;">
+                    <p style="color: #888;">המשחק התחיל...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // מצב המשחק
+        const gameState = {
+            gdp: 500000000000,
+            treasury: 50000000000,
+            military: 85,
+            support: 75,
+            publicJoy: 70,
+            taxRate: 25,
+            eventCount: 0
+        };
+
+        // אירועים אקראיים
+        const events = [
+            {
+                title: '⚡ משבר אנרגיה עולמי',
+                description: 'מחירי הנפט זינקו ב-40%! הכלכלה שלך בסכנה.',
+                choices: [
+                    { text: 'השקע באנרגיות מתחדשות ($5B)', cost: 5000000000, effect: { gdp: 1.05, joy: 5 }},
+                    { text: 'קנה נפט ברזרבה ($3B)', cost: 3000000000, effect: { gdp: 0.98, joy: -2 }},
+                    { text: 'התעלם - קיצוץ בתקציב', cost: 0, effect: { gdp: 0.92, joy: -10 }}
+                ]
+            },
+            {
+                title: '✊ הפגנות המוניות',
+                description: 'מאות אלפים יוצאים לרחובות בעקבות מדיניות מיסים!',
+                choices: [
+                    { text: 'שוחח עם מפגינים - הבטח רפורמות', cost: 0, effect: { support: 15, joy: 10 }},
+                    { text: 'פזר אותם בכוח', cost: 0, effect: { support: -25, joy: -20 }},
+                    { text: 'קיים בחירות מיידיות ($500M)', cost: 500000000, effect: { support: 10, joy: 5 }}
+                ]
+            },
+            {
+                title: '💻 פריצת דרך טכנולוגית',
+                description: 'חברת סטארט-אפ מקומית פיתחה AI מהפכני!',
+                choices: [
+                    { text: 'תמוך בפיתוח ($2B)', cost: 2000000000, effect: { gdp: 1.1, joy: 8 }},
+                    { text: 'רכוש את החברה ($4B)', cost: 4000000000, effect: { gdp: 1.2, military: 5 }},
+                    { text: 'אל תתערב', cost: 0, effect: { joy: -5 }}
+                ]
+            },
+            {
+                title: '🚨 אירוע גבול',
+                description: 'כוחות MarksLand חדרו למרחב האווירי שלך!',
+                choices: [
+                    { text: 'סלקדה מיידית - שלח מטוסים ($500M)', cost: 500000000, effect: { military: 3, support: 10 }},
+                    { text: 'הגש מחאה דיפלומטית', cost: 0, effect: { support: -5 }},
+                    { text: 'הכרז מלחמה!', cost: 0, effect: { military: 10, support: 15, treasury: -5000000000 }}
+                ]
+            }
+        ];
+
+        function updateDisplay() {
+            document.getElementById('gdp').textContent = `$${(gameState.gdp / 1000000000).toFixed(0)}B`;
+            document.getElementById('treasury').textContent = `$${(gameState.treasury / 1000000000).toFixed(1)}B`;
+            document.getElementById('military').textContent = `${gameState.military}%`;
+            document.getElementById('support').textContent = `${gameState.support}%`;
+
+            const joyFill = document.getElementById('joyFill');
+            joyFill.style.width = `${gameState.publicJoy}%`;
+
+            let emoji = '😊';
+            if (gameState.publicJoy < 40) emoji = '😠';
+            else if (gameState.publicJoy < 60) emoji = '😐';
+            else if (gameState.publicJoy > 80) emoji = '😄';
+
+            document.getElementById('joyText').textContent = `${gameState.publicJoy}% ${emoji}`;
+        }
+
+        function showRandomEvent() {
+            const event = events[Math.floor(Math.random() * events.length)];
+            gameState.eventCount++;
+
+            const eventHTML = `
+                <div class="event-card">
+                    <div class="event-title">${event.title}</div>
+                    <div class="event-description">${event.description}</div>
+                    <div class="choices">
+                        ${event.choices.map((choice, i) => `
+                            <button class="choice-btn" onclick="handleChoice(${gameState.eventCount}, ${i})">
+                                ${choice.text}
+                                ${choice.cost > 0 ? `<span class="choice-cost"> (-$${(choice.cost / 1000000000).toFixed(1)}B)</span>` : ''}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('currentEvent').innerHTML = eventHTML;
+            window.currentEvent = event;
+        }
+
+        window.handleChoice = function(eventNum, choiceIndex) {
+            const choice = window.currentEvent.choices[choiceIndex];
+
+            if (choice.cost > gameState.treasury) {
+                alert('❌ אין מספיק תקציב!');
+                return;
+            }
+
+            // החל השפעות
+            gameState.treasury -= choice.cost;
+            if (choice.effect.gdp) gameState.gdp *= choice.effect.gdp;
+            if (choice.effect.support) gameState.support = Math.max(0, Math.min(100, gameState.support + choice.effect.support));
+            if (choice.effect.joy) gameState.publicJoy = Math.max(0, Math.min(100, gameState.publicJoy + choice.effect.joy));
+            if (choice.effect.military) gameState.military = Math.max(0, Math.min(100, gameState.military + choice.effect.military));
+            if (choice.effect.treasury) gameState.treasury += choice.effect.treasury;
+
+            // היסטוריה
+            const history = document.getElementById('history');
+            const entry = document.createElement('div');
+            entry.style.cssText = 'background: rgba(0,100,200,0.2); padding: 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; border-right: 3px solid #00d9ff;';
+            entry.innerHTML = `<strong>${window.currentEvent.title}</strong><br><small style="color: #aaa;">${choice.text}</small>`;
+            history.insertBefore(entry, history.firstChild);
+
+            updateDisplay();
+            document.getElementById('currentEvent').innerHTML = '<p style="color: #888;">מחכה לאירוע הבא...</p>';
+
+            setTimeout(showRandomEvent, 3000);
+        };
+
+        // מערכת מיסוי
+        document.getElementById('taxSlider').addEventListener('input', (e) => {
+            const newRate = parseInt(e.target.value);
+            const oldRate = gameState.taxRate;
+
+            document.getElementById('taxValue').textContent = newRate;
+
+            if (newRate > oldRate) {
+                gameState.publicJoy = Math.max(0, gameState.publicJoy - (newRate - oldRate) * 2);
+                gameState.support = Math.max(0, gameState.support - (newRate - oldRate));
+            } else {
+                gameState.publicJoy = Math.min(100, gameState.publicJoy + (oldRate - newRate) * 1.5);
+            }
+
+            gameState.taxRate = newRate;
+            updateDisplay();
+        });
+
+        // צמיחה אוטומטית
+        setInterval(() => {
+            const joyMultiplier = gameState.publicJoy / 100;
+            const taxMultiplier = gameState.taxRate / 100;
+
+            gameState.gdp *= (1 + 0.0002 * joyMultiplier);
+            gameState.treasury += gameState.gdp * 0.0001 * (1 + taxMultiplier);
+
+            if (gameState.taxRate > 30) {
+                gameState.publicJoy = Math.max(0, gameState.publicJoy - 0.1);
+            } else if (gameState.taxRate < 20) {
+                gameState.publicJoy = Math.min(100, gameState.publicJoy + 0.05);
+            }
+
+            updateDisplay();
+        }, 3000);
+
+        // התחלה
+        updateDisplay();
+        setTimeout(showRandomEvent, 2000);
+    </script>
+</body>
+</html>
