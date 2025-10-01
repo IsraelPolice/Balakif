@@ -1,13 +1,13 @@
 export const NATIONS = {
   BareketLand: {
     id: 'BareketLand',
-    name: 'ארץ ברקת',
-    hebrewName: 'ארץ ברקת',
+    name: 'BareketLand',
+    hebrewName: 'BareketLand',
     title: 'הקולוסוס הדמוקרטי',
     flag: '🦅',
     leaderImage: 'https://i.postimg.cc/y8R1v8Nf/Chat-GPT-Image-Oct-1-2025-02-03-53-PM.png',
-    leaderName: 'מנהיג ארץ ברקת',
-    backstory: "נולדה ממהפכה של 1776, ארץ ברקת היא האימפריה הקפיטליסטית של גורדי שחקים, מרכזי סיליקון והוליווד. ב-2025 היא מתמודדת עם חוב עצום וגלי הגירה אך שולטת במימון העולמי דרך הדולר ותאגידים כמו 'אמזון-Corp'. כמעצמת העל היחידה בעולם, זו המדינה הטובה ביותר להתחלה.",
+    leaderName: 'President Bareket',
+    backstory: "נולדה ממהפכה בשנת 1776, BareketLand היא אימפריית הקפיטליזם של גורדי שחקים, מרכזי סיליקון והוליווד. ב-2025 היא מתמודדת עם חוב ציבורי עצום וגלי הגירה אך שולטת במימון העולמי דרך הדולר ותאגידי ענק. כמעצמת העל היחידה בעולם, זו המדינה הטובה ביותר להתחלה.",
     demographics: {
       population: 415000000,
       area: 9200000,

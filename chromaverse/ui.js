@@ -456,18 +456,195 @@ export class UI {
         }
     }
 
-    conductBattle(warIndex) {
+    async conductBattle(warIndex) {
+        const war = this.engine.state.diplomacy.wars[warIndex];
+        if (!war) return;
+
+        const enemyNation = NATIONS[war.target];
+        const playerState = this.engine.state;
+
+        // חישוב כוחות
+        const playerUnits = playerState.military.units;
+        const playerPower =
+            (playerUnits.infantry || 0) * 1 +
+            (playerUnits.armor || 0) * 10 +
+            (playerUnits.airForce || 0) * 50 +
+            (playerUnits.navy || 0) * 100;
+
+        const enemyUnits = enemyNation.military.units;
+        const enemyPower =
+            (enemyUnits.infantry || 0) * 1 +
+            (enemyUnits.armor || 0) * 10 +
+            (enemyUnits.airForce || 0) * 50 +
+            (enemyUnits.navy || 0) * 100;
+
+        // הצגת מודל קרב
+        this.showBattleModal(war, enemyNation, playerPower, enemyPower);
+    }
+
+    showBattleModal(war, enemyNation, playerPower, enemyPower) {
+        const playerState = this.engine.state;
+        const playerNation = NATIONS[playerState.selectedNation];
+
+        const html = `
+            <div style="text-align: center;">
+                <h2 style="color: #ff0055; font-size: 2rem; margin-bottom: 2rem;">
+                    ⚔️ קרב: ${playerNation.name} נגד ${enemyNation.name}
+                </h2>
+
+                <!-- השוואת כוחות -->
+                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; margin: 2rem 0; align-items: center;">
+                    <!-- הכוחות שלך -->
+                    <div style="text-align: right; padding: 1.5rem; background: linear-gradient(135deg, rgba(0,100,200,0.3), rgba(0,50,100,0.3)); border-radius: 12px; border: 2px solid #00d9ff;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #00d9ff; margin-bottom: 1rem;">
+                            ${playerNation.name}
+                        </div>
+                        <div style="font-size: 2rem; color: #00ff88; font-weight: bold; margin: 1rem 0;">
+                            ${playerPower.toLocaleString()}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #aaa; line-height: 1.8;">
+                            🪖 חי"ר: ${(playerState.military.units.infantry || 0).toLocaleString()}<br>
+                            🛡️ שריון: ${(playerState.military.units.armor || 0).toLocaleString()}<br>
+                            ✈️ אוויר: ${(playerState.military.units.airForce || 0).toLocaleString()}<br>
+                            ⚓ ים: ${(playerState.military.units.navy || 0).toLocaleString()}
+                        </div>
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(0,255,136,0.1); border-radius: 6px;">
+                            <div style="color: #00ff88; font-weight: bold;">כוח צבאי: ${playerState.military.strength}%</div>
+                        </div>
+                    </div>
+
+                    <!-- VS -->
+                    <div style="font-size: 3rem; color: #ff0055; font-weight: bold;">
+                        VS
+                    </div>
+
+                    <!-- כוחות האויב -->
+                    <div style="text-align: left; padding: 1.5rem; background: linear-gradient(135deg, rgba(200,0,0,0.3), rgba(100,0,0,0.3)); border-radius: 12px; border: 2px solid #ff0055;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #ff0055; margin-bottom: 1rem;">
+                            ${enemyNation.name}
+                        </div>
+                        <div style="font-size: 2rem; color: #ff8800; font-weight: bold; margin: 1rem 0;">
+                            ${enemyPower.toLocaleString()}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #aaa; line-height: 1.8;">
+                            🪖 חי"ר: ${(enemyNation.military.units.infantry || 0).toLocaleString()}<br>
+                            🛡️ שריון: ${(enemyNation.military.units.armor || 0).toLocaleString()}<br>
+                            ✈️ אוויר: ${(enemyNation.military.units.airForce || 0).toLocaleString()}<br>
+                            ⚓ ים: ${(enemyNation.military.units.navy || 0).toLocaleString()}
+                        </div>
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,0,85,0.1); border-radius: 6px;">
+                            <div style="color: #ff0055; font-weight: bold;">כוח צבאי: ${enemyNation.military.strength}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- תחזית -->
+                <div style="padding: 1.5rem; background: rgba(255,215,0,0.1); border: 2px solid #ffd700; border-radius: 12px; margin: 2rem 0;">
+                    <h3 style="color: #ffd700; margin-bottom: 1rem;">📊 תחזית קרב</h3>
+                    <div style="font-size: 1.1rem; line-height: 2;">
+                        ${playerPower > enemyPower * 1.5 ?
+                            '<div style="color: #00ff88;">✅ יתרון מכריע! סיכוי ניצחון גבוה</div>' :
+                        playerPower > enemyPower * 1.2 ?
+                            '<div style="color: #00d9ff;">✓ יתרון טקטי. סיכוי ניצחון טוב</div>' :
+                        playerPower > enemyPower ?
+                            '<div style="color: #ffd700;">⚠ יתרון קל. קרב קשה צפוי</div>' :
+                        playerPower > enemyPower * 0.8 ?
+                            '<div style="color: #ff8800;">⚠ כוחות שווים. תוצאה לא ודאית</div>' :
+                            '<div style="color: #ff0055;">❌ האויב חזק יותר! סכנה גבוהה</div>'
+                        }
+                        <div style="color: #aaa; font-size: 0.9rem; margin-top: 0.5rem;">
+                            נפגעים צפויים: ${Math.floor(Math.random() * 15 + 5)}% מהכוחות
+                        </div>
+                    </div>
+                </div>
+
+                <!-- כפתורי פעולה -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                    <button class="btn-primary" style="padding: 1.5rem; font-size: 1.2rem; background: linear-gradient(135deg, #ff0055, #cc0044);"
+                            onclick="window.game.ui.executeBattleNow(${war.target})">
+                        ⚔️ התקפה!
+                    </button>
+                    <button class="btn-primary" style="padding: 1.5rem; font-size: 1.2rem; background: linear-gradient(135deg, #666, #444);"
+                            onclick="window.game.ui.hideModal()">
+                        ביטול
+                    </button>
+                </div>
+            </div>
+        `;
+
+        this.showModal(html);
+    }
+
+    async executeBattleNow(targetId) {
+        this.hideModal();
+
+        // סימולציית קרב מרגשת
+        const loadingHtml = `
+            <div style="text-align: center;">
+                <h2 style="color: #ff0055;">⚔️ הקרב מתחיל!</h2>
+                <div id="battle-log" style="margin: 2rem 0; text-align: right; max-height: 400px; overflow-y: auto;"></div>
+                <div style="font-size: 3rem; animation: spin 1s linear infinite;">💥</div>
+            </div>
+            <style>
+                @keyframes spin { to { transform: rotate(360deg); } }
+            </style>
+        `;
+
+        this.showModal(loadingHtml);
+
+        const battleLog = [];
+        const logElement = () => document.getElementById('battle-log');
+
+        const addLog = (text, color = '#fff') => {
+            battleLog.push(`<div style="color: ${color}; padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">${text}</div>`);
+            if (logElement()) {
+                logElement().innerHTML = battleLog.join('');
+                logElement().scrollTop = logElement().scrollHeight;
+            }
+        };
+
+        await new Promise(r => setTimeout(r, 500));
+        addLog('🎯 פתיחה בהפצצה אווירית מסיבית...', '#00d9ff');
+
+        await new Promise(r => setTimeout(r, 1000));
+        addLog('💥 פגיעות ישירות במטרות אסטרטגיות!', '#ff8800');
+
+        await new Promise(r => setTimeout(r, 1000));
+        addLog('🛡️ כוחות שריון פורצים את הקווים!', '#00ff88');
+
+        await new Promise(r => setTimeout(r, 1000));
+        addLog('⚡ יחידות מיוחדות מבצעות חדירה עמוקה...', '#ffd700');
+
+        await new Promise(r => setTimeout(r, 1000));
+        addLog('🔥 קרבות קשים בשטח אורבני!', '#ff0055');
+
+        await new Promise(r => setTimeout(r, 1500));
+
+        // ביצוע הקרב האמיתי
+        const warIndex = this.engine.state.diplomacy.wars.findIndex(w => w.target === targetId);
         const result = this.engine.conductBattle(warIndex);
-        if (result.success) {
+
+        await new Promise(r => setTimeout(r, 500));
+
+        if (result.victory) {
+            addLog('🏆 ניצחון! כוחות האויב נסוגים!', '#00ff88');
             if (result.conquered) {
-                this.showNotification('ניצחון! המדינה נכבשה!', 'success');
-            } else if (result.victory) {
-                this.showNotification('ניצחון בקרב!', 'success');
-            } else {
-                this.showNotification('הפסד בקרב', 'danger');
+                addLog('👑 המדינה נכבשה! הטריטוריה בשליטתך!', '#ffd700');
             }
         } else {
-            this.showNotification(result.message, 'warning');
+            addLog('💔 הקרב הסתיים בתבוסה...', '#ff0055');
+        }
+
+        await new Promise(r => setTimeout(r, 2000));
+
+        this.hideModal();
+
+        if (result.conquered) {
+            this.showNotification('🎉 ניצחון מוחלט! המדינה נכבשה!', 'success');
+        } else if (result.victory) {
+            this.showNotification('✅ ניצחון בקרב!', 'success');
+        } else {
+            this.showNotification('❌ תבוסה. חזק והתקפה שוב', 'danger');
         }
     }
 
@@ -498,29 +675,121 @@ export class UI {
 
     renderMilitary(state) {
         const units = [
-            { type: 'infantry', name: 'Infantry', icon: '🪖', cost: 50000 },
-            { type: 'armor', name: 'Armor', icon: '🛡️', cost: 5000000 },
-            { type: 'airForce', name: 'Air Force', icon: '✈️', cost: 50000000 },
-            { type: 'navy', name: 'Navy', icon: '⚓', cost: 200000000 }
+            { type: 'infantry', name: 'חיילי רגלים', icon: '🪖', cost: 50000, tech: 'מוטיבציה וציוד', power: 1 },
+            { type: 'armor', name: 'שריון', icon: '🛡️', cost: 5000000, tech: 'טנקים מתקדמים', power: 10 },
+            { type: 'airForce', name: 'חיל אוויר', icon: '✈️', cost: 50000000, tech: 'מטוסי F-35', power: 50 },
+            { type: 'navy', name: 'חיל ים', icon: '⚓', cost: 200000000, tech: 'ספינות קרב', power: 100 }
         ];
 
-        let html = '<div style="margin-bottom: 1rem;"><strong>Current Forces:</strong></div>';
+        // Combat Power Calculation
+        let totalPower = 0;
         units.forEach(unit => {
+            totalPower += (state.military.units[unit.type] || 0) * unit.power;
+        });
+
+        let html = `
+            <!-- סקירת כוח -->
+            <div class="building-card" style="border: 2px solid #ff0055; background: linear-gradient(135deg, rgba(255,0,85,0.1), rgba(0,0,0,0.3));">
+                <h4 style="color: #ff0055;">⚔️ כוח קרבי משוקלל</h4>
+                <div style="font-size: 2.5rem; font-weight: bold; color: #ff0055; text-align: center; margin: 1rem 0;">
+                    ${totalPower.toLocaleString()}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;">
+                    <div>כוח צבאי: <strong>${state.military.strength}%</strong></div>
+                    <div>מוכנות: <strong>${state.military.readiness || 100}%</strong></div>
+                </div>
+            </div>
+
+            <!-- סטטיסטיקות יחידות -->
+            <div class="building-card">
+                <h4>📊 הרכב הכוחות</h4>
+                <div style="line-height: 2; margin-top: 1rem;">
+                    ${units.map(unit => `
+                        <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <span>${unit.icon} ${unit.name}</span>
+                            <strong style="color: #00d9ff;">${(state.military.units[unit.type] || 0).toLocaleString()}</strong>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(0,100,200,0.2); border-radius: 6px;">
+                    <div style="font-size: 0.85rem; color: #aaa;">סה"כ יחידות: ${Object.values(state.military.units).reduce((a,b) => a+b, 0).toLocaleString()}</div>
+                </div>
+            </div>
+
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #00d9ff;">🎖️ גיוס יחידות</h4>
+        `;
+
+        units.forEach(unit => {
+            const currentCount = state.military.units[unit.type] || 0;
             html += `
-                <div class="building-card">
-                    <div class="card-header">
-                        <span style="font-size: 2rem;">${unit.icon}</span>
-                        <span class="card-title">${unit.name}</span>
+                <div class="building-card" style="border-right: 4px solid #00d9ff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <div style="font-size: 1.5rem;">${unit.icon} <strong>${unit.name}</strong></div>
+                            <div style="font-size: 0.85rem; color: #aaa; margin-top: 0.25rem;">${unit.tech}</div>
+                        </div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 1.2rem; color: #00ff88;">${currentCount.toLocaleString()}</div>
+                            <div style="font-size: 0.75rem; color: #aaa;">יחידות</div>
+                        </div>
                     </div>
-                    <div>Current: ${state.military.units[unit.type]}</div>
-                    <div class="card-cost">
-                        <span class="cost-item">💵 $${(unit.cost / 1000000).toFixed(1)}M</span>
+
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <span>כוח לכל יחידה:</span>
+                            <span style="color: #ffd700;">⚡ ${unit.power}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                            <span>עלות:</span>
+                            <span style="color: #ff8800;">💵 $${(unit.cost / 1000000).toFixed(2)}M</span>
+                        </div>
                     </div>
-                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="window.game.ui.recruitUnits('${unit.type}', 100)">Recruit 100</button>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                        <button class="btn-primary" style="padding: 0.5rem; font-size: 0.9rem;"
+                                onclick="window.game.ui.recruitUnits('${unit.type}', 10)">
+                            +10
+                        </button>
+                        <button class="btn-primary" style="padding: 0.5rem; font-size: 0.9rem;"
+                                onclick="window.game.ui.recruitUnits('${unit.type}', 100)">
+                            +100
+                        </button>
+                        <button class="btn-primary" style="padding: 0.5rem; font-size: 0.9rem; background: linear-gradient(135deg, #ff0055, #ff4488);"
+                                onclick="window.game.ui.recruitUnits('${unit.type}', 1000)">
+                            +1000
+                        </button>
+                    </div>
                 </div>
             `;
         });
+
+        html += `
+            <!-- שדרוגים צבאיים -->
+            <div class="building-card" style="border: 2px solid #ffd700; margin-top: 1rem;">
+                <h4 style="color: #ffd700;">⭐ שדרוגי טכנולוגיה</h4>
+                <p style="color: #aaa; font-size: 0.9rem; margin: 0.5rem 0;">שפר את יכולות הצבא שלך</p>
+                <button class="btn-primary" style="width: 100%; margin-top: 0.5rem; background: linear-gradient(135deg, #ffd700, #ffaa00);"
+                        onclick="window.game.ui.upgradeMilitary()">
+                    שדרג ציוד (+5% כוח) - $10B
+                </button>
+            </div>
+        `;
+
         this.elements.militaryPanel.innerHTML = html;
+    }
+
+    upgradeMilitary() {
+        const cost = 10000000000;
+        if (this.engine.state.resources.treasury < cost) {
+            this.showNotification('❌ אין מספיק תקציב!', 'warning');
+            return;
+        }
+
+        this.engine.state.resources.treasury -= cost;
+        this.engine.state.military.strength = Math.min(100, this.engine.state.military.strength + 5);
+
+        this.showNotification('✅ שדרוג צבאי הושלם! +5% כוח', 'success');
+        this.engine.notifyListeners();
     }
 
     recruitUnits(unitType, quantity) {
