@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChromaVerse: Interdimensional Tycoon</title>
+    <title>Hevre's Empire - Geopolitical Strategy</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,20 +11,20 @@
         <!-- Loading Screen -->
         <div id="loading-screen" class="screen active">
             <div class="loading-content">
-                <h1 class="glitch" data-text="CHROMAVERSE">CHROMAVERSE</h1>
-                <p class="subtitle">Interdimensional Tycoon</p>
+                <h1 class="glitch" data-text="HEVRE'S EMPIRE">HEVRE'S EMPIRE</h1>
+                <p class="subtitle">Geopolitical Strategy • 2025-2035</p>
                 <div class="loading-bar">
                     <div class="loading-progress"></div>
                 </div>
-                <p class="loading-text">Initializing Reality Matrix...</p>
+                <p class="loading-text">Initializing Global Theater...</p>
             </div>
         </div>
 
         <!-- Main Menu -->
         <div id="menu-screen" class="screen">
             <div class="menu-content">
-                <h1 class="title glitch" data-text="CHROMAVERSE">CHROMAVERSE</h1>
-                <p class="subtitle">Master the Multiverse</p>
+                <h1 class="title glitch" data-text="HEVRE'S EMPIRE">HEVRE'S EMPIRE</h1>
+                <p class="subtitle">Command Nations • Forge Alliances • Conquer the World</p>
 
                 <div class="menu-buttons">
                     <button class="btn-primary" id="btn-new-game">
@@ -49,53 +49,50 @@
             <div class="hud-top">
                 <div class="hud-section">
                     <div class="resource">
-                        <span class="resource-icon">⚡</span>
-                        <span class="resource-label">Energy:</span>
-                        <span class="resource-value" id="energy-value">1000</span>
+                        <span class="resource-icon">💰</span>
+                        <span class="resource-label">GDP:</span>
+                        <span class="resource-value" id="gdp-value">0</span>
                     </div>
                     <div class="resource">
-                        <span class="resource-icon">💎</span>
-                        <span class="resource-label">Shards:</span>
-                        <span class="resource-value" id="shards-value">50</span>
+                        <span class="resource-icon">💵</span>
+                        <span class="resource-label">Treasury:</span>
+                        <span class="resource-value" id="treasury-value">0</span>
                     </div>
                     <div class="resource">
-                        <span class="resource-icon">🧠</span>
-                        <span class="resource-label">Knowledge:</span>
-                        <span class="resource-value" id="knowledge-value">100</span>
+                        <span class="resource-icon">⚔️</span>
+                        <span class="resource-label">Military:</span>
+                        <span class="resource-value" id="military-value">0%</span>
                     </div>
                 </div>
 
                 <div class="hud-center">
-                    <h2 id="player-name">Architect</h2>
-                    <p class="turn-counter">Turn: <span id="turn-number">1</span></p>
+                    <h2 id="player-name">Leader</h2>
+                    <p class="turn-counter"><span id="turn-date">January 2025</span> • Turn <span id="turn-number">1</span></p>
                 </div>
 
                 <div class="hud-section">
                     <div class="stat">
-                        <span class="stat-icon">🌐</span>
-                        <span class="stat-value" id="dimensions-count">1</span>
-                        <span class="stat-label">Dimensions</span>
+                        <span class="stat-icon">🌍</span>
+                        <span class="stat-value" id="territory-percent">0%</span>
+                        <span class="stat-label">Territory</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-icon">⚖️</span>
-                        <span class="stat-value" id="stability-value">100%</span>
-                        <span class="stat-label">Stability</span>
+                        <span class="stat-icon">❤️</span>
+                        <span class="stat-value" id="support-value">75%</span>
+                        <span class="stat-label">Support</span>
                     </div>
                 </div>
             </div>
 
             <!-- Main Game Area -->
             <div class="game-main">
-                <!-- Left Panel - Dimension List -->
+                <!-- Left Panel - Nations List -->
                 <div class="panel-left">
                     <div class="panel-header">
-                        <h3>Dimensions</h3>
-                        <button class="btn-icon" id="btn-discover-dimension" title="Discover New Dimension">
-                            <span>🔍</span>
-                        </button>
+                        <h3>World Nations</h3>
                     </div>
-                    <div class="dimension-list" id="dimension-list">
-                        <!-- Dimensions will be added here -->
+                    <div class="dimension-list" id="nations-list">
+                        <!-- Nations will be added here -->
                     </div>
                 </div>
 
@@ -131,25 +128,25 @@
                 <!-- Right Panel - Actions -->
                 <div class="panel-right">
                     <div class="tabs">
-                        <button class="tab active" data-tab="research">Research</button>
-                        <button class="tab" data-tab="build">Build</button>
-                        <button class="tab" data-tab="trade">Trade</button>
+                        <button class="tab active" data-tab="diplomacy">Diplomacy</button>
+                        <button class="tab" data-tab="military">Military</button>
+                        <button class="tab" data-tab="economy">Economy</button>
                         <button class="tab" data-tab="events">Events</button>
                     </div>
 
-                    <div class="tab-content active" id="tab-research">
-                        <h3>Technology Tree</h3>
-                        <div class="tech-tree" id="tech-tree"></div>
+                    <div class="tab-content active" id="tab-diplomacy">
+                        <h3>Diplomatic Relations</h3>
+                        <div class="tech-tree" id="diplomacy-panel"></div>
                     </div>
 
-                    <div class="tab-content" id="tab-build">
-                        <h3>Construct Buildings</h3>
-                        <div class="building-list" id="building-list"></div>
+                    <div class="tab-content" id="tab-military">
+                        <h3>Military Forces</h3>
+                        <div class="building-list" id="military-panel"></div>
                     </div>
 
-                    <div class="tab-content" id="tab-trade">
-                        <h3>Interdimensional Trade</h3>
-                        <div class="trade-panel" id="trade-panel"></div>
+                    <div class="tab-content" id="tab-economy">
+                        <h3>Economic Management</h3>
+                        <div class="trade-panel" id="economy-panel"></div>
                     </div>
 
                     <div class="tab-content" id="tab-events">

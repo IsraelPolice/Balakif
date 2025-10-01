@@ -1,3 +1,5 @@
+import { NATIONS, BLOCS } from './nations.js';
+
 export class GameEngine {
     constructor() {
         this.state = this.getInitialState();
@@ -6,386 +8,525 @@ export class GameEngine {
 
     getInitialState() {
         return {
-            playerName: 'Architect',
+            playerName: 'Leader',
+            selectedNation: null,
             currentTurn: 1,
+            turnYear: 2025,
+            turnMonth: 1,
+
             resources: {
-                multiverseEnergy: 1000,
-                realityShards: 50,
-                knowledgePoints: 100
+                gdp: 0,
+                militaryBudget: 0,
+                treasury: 0
             },
-            stats: {
-                reputation: 0,
-                timelineStability: 100,
-                discoveredDimensions: 1
+
+            military: {
+                strength: 0,
+                units: {
+                    infantry: 0,
+                    armor: 0,
+                    airForce: 0,
+                    navy: 0
+                },
+                readiness: 100
             },
-            dimensions: [this.generateDimension('prime', 1, 'Standard')],
-            currentDimensionId: 'prime',
-            technologies: [],
-            achievements: [],
+
+            diplomacy: {
+                relations: {},
+                alliances: [],
+                tradeDeals: [],
+                wars: []
+            },
+
+            internal: {
+                support: 75,
+                stability: 100,
+                leftFaction: 50,
+                rightFaction: 50
+            },
+
+            territories: [],
+            conquests: [],
             events: [],
+            technologies: [],
+
+            stats: {
+                totalGDP: 0,
+                territoryPercentage: 0,
+                warsWon: 0,
+                nationsConquered: 0
+            },
+
             saveId: null
         };
     }
 
-    generateDimension(id, level, type = null) {
-        const types = ['Standard', 'Quantum', 'Entropic', 'Chrono', 'Exotic'];
-        const selectedType = type || types[Math.floor(Math.random() * types.length)];
-
-        const dimension = {
-            id,
-            name: this.generateDimensionName(selectedType),
-            type: selectedType,
-            level,
-            discovered: id === 'prime',
-            stability: 100,
-            danger: Math.floor(level * 10) + Math.random() * 20,
-            wealth: Math.floor(50 + Math.random() * 50),
-            resources: this.generateResources(selectedType, level),
-            outposts: id === 'prime' ? [this.generateOutpost('HQ', 'Headquarters')] : [],
-            map: this.generateMap(selectedType),
-            specialRules: this.generateSpecialRules(selectedType),
-            factions: this.generateFactions(selectedType, level)
-        };
-
-        return dimension;
-    }
-
-    generateDimensionName(type) {
-        const prefixes = {
-            Standard: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
-            Quantum: ['Schrödinger', 'Heisenberg', 'Planck', 'Bohr', 'Dirac'],
-            Entropic: ['Chaos', 'Void', 'Entropy', 'Decay', 'Oblivion'],
-            Chrono: ['Temporal', 'Eternal', 'Timeless', 'Paradox', 'Epoch'],
-            Exotic: ['Nexus', 'Aurora', 'Zenith', 'Prisma', 'Aether']
-        };
-
-        const suffixes = ['Realm', 'Sphere', 'Dimension', 'Reality', 'Plane'];
-        const prefix = prefixes[type][Math.floor(Math.random() * prefixes[type].length)];
-        const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-
-        return `${prefix} ${suffix}`;
-    }
-
-    generateResources(type, level) {
-        const baseResources = [
-            { id: 'energy', name: 'Energy Crystals', icon: '⚡', amount: 100 * level, production: 10 * level },
-            { id: 'matter', name: 'Exotic Matter', icon: '🔮', amount: 50 * level, production: 5 * level },
-            { id: 'data', name: 'Quantum Data', icon: '💾', amount: 75 * level, production: 7 * level }
-        ];
-
-        const specialResources = {
-            Quantum: { id: 'qubit', name: 'Quantum Bits', icon: '⚛️', amount: 30 * level, production: 3 * level },
-            Entropic: { id: 'chaos', name: 'Chaos Energy', icon: '🌪️', amount: 40 * level, production: 4 * level },
-            Chrono: { id: 'time', name: 'Time Crystals', icon: '⏳', amount: 20 * level, production: 2 * level },
-            Exotic: { id: 'essence', name: 'Reality Essence', icon: '✨', amount: 60 * level, production: 6 * level }
-        };
-
-        if (specialResources[type]) {
-            baseResources.push(specialResources[type]);
+    selectNation(nationId) {
+        const nation = NATIONS[nationId];
+        if (!nation) {
+            return { success: false, message: 'Nation not found!' };
         }
 
-        return baseResources;
-    }
+        this.state.selectedNation = nationId;
+        this.state.resources.gdp = nation.demographics.gdp;
+        this.state.resources.militaryBudget = Math.floor(nation.demographics.gdp * 0.03);
+        this.state.resources.treasury = Math.floor(nation.demographics.gdp * 0.1);
 
-    generateOutpost(id, name, type = 'mining') {
-        return {
-            id,
-            name,
-            type,
-            level: 1,
-            production: {},
-            upgrades: []
-        };
-    }
-
-    generateMap(type) {
-        const grid = [];
-        const size = 100;
-
-        for (let i = 0; i < size; i++) {
-            const rand = Math.random();
-            let cellType = 'empty';
-
-            if (rand < 0.15) cellType = 'resource';
-            else if (rand < 0.18) cellType = 'special';
-            else if (rand < 0.22) cellType = 'danger';
-            else if (rand < 0.25) cellType = 'portal';
-
-            grid.push({
-                id: i,
-                type: cellType,
-                explored: i < 10,
-                data: cellType === 'resource' ? this.generateResourceNode(type) : null
-            });
-        }
-
-        return grid;
-    }
-
-    generateResourceNode(dimensionType) {
-        const resources = ['energy', 'matter', 'data', 'qubit', 'chaos', 'time', 'essence'];
-        return {
-            resource: resources[Math.floor(Math.random() * resources.length)],
-            amount: Math.floor(50 + Math.random() * 150),
-            quality: Math.floor(1 + Math.random() * 5)
-        };
-    }
-
-    generateSpecialRules(type) {
-        const rules = {
-            Standard: ['Stable physics', 'Normal resource gain'],
-            Quantum: ['Superposition: Resources fluctuate', 'Observation affects outcomes'],
-            Entropic: ['Decay: Buildings degrade faster', 'Chaos events more frequent'],
-            Chrono: ['Time dilation: Extra actions possible', 'Temporal paradoxes occur'],
-            Exotic: ['Reality bending: Special abilities unlocked', 'Unpredictable effects']
+        this.state.military = {
+            strength: nation.military.strength,
+            units: { ...nation.military.units },
+            readiness: 100
         };
 
-        return rules[type] || rules.Standard;
-    }
+        this.state.diplomacy.relations = { ...nation.relations };
 
-    generateFactions(type, level) {
-        const factionTemplates = [
-            { name: 'Dimensional Collective', attitude: 'neutral', strength: 50 },
-            { name: 'Reality Wardens', attitude: 'friendly', strength: 60 },
-            { name: 'Void Seekers', attitude: 'hostile', strength: 70 },
-            { name: 'Time Keepers', attitude: 'neutral', strength: 55 },
-            { name: 'Chaos Cultists', attitude: 'hostile', strength: 65 }
-        ];
+        this.state.territories = [{
+            nationId: nationId,
+            name: nation.name,
+            area: nation.demographics.area,
+            population: nation.demographics.population,
+            originalOwner: true
+        }];
 
-        const numFactions = Math.min(1 + Math.floor(level / 2), 3);
-        const factions = [];
-
-        for (let i = 0; i < numFactions; i++) {
-            const template = factionTemplates[Math.floor(Math.random() * factionTemplates.length)];
-            factions.push({
-                ...template,
-                strength: template.strength + (level * 10),
-                relation: template.attitude === 'friendly' ? 50 : template.attitude === 'hostile' ? -50 : 0
-            });
-        }
-
-        return factions;
-    }
-
-    discoverNewDimension() {
-        const cost = this.getDiscoveryCost();
-
-        if (this.state.resources.multiverseEnergy < cost.energy ||
-            this.state.resources.realityShards < cost.shards) {
-            return { success: false, message: 'Insufficient resources!' };
-        }
-
-        this.state.resources.multiverseEnergy -= cost.energy;
-        this.state.resources.realityShards -= cost.shards;
-
-        const level = this.state.dimensions.length;
-        const newDimension = this.generateDimension(`dim_${Date.now()}`, level);
-        this.state.dimensions.push(newDimension);
-        this.state.stats.discoveredDimensions++;
+        this.state.stats.totalGDP = nation.demographics.gdp;
+        this.state.stats.territoryPercentage = this.calculateTerritoryPercentage();
 
         this.addEvent({
-            type: 'discovery',
-            title: 'New Dimension Discovered!',
-            message: `You've opened a portal to ${newDimension.name}!`,
-            dimension: newDimension.id
+            type: 'gameStart',
+            title: `Welcome, Leader of ${nation.name}!`,
+            message: `You have taken control of ${nation.title}. The year is 2025.`,
+            importance: 'high'
         });
 
         this.notifyListeners();
-        return { success: true, dimension: newDimension };
+        return { success: true, nation };
     }
 
-    getDiscoveryCost() {
-        const multiplier = this.state.dimensions.length;
-        return {
-            energy: 500 * multiplier,
-            shards: 25 * multiplier
-        };
+    getNation(nationId = null) {
+        const id = nationId || this.state.selectedNation;
+        return NATIONS[id];
     }
 
-    getCurrentDimension() {
-        return this.state.dimensions.find(d => d.id === this.state.currentDimensionId);
+    calculateTerritoryPercentage() {
+        const totalWorldArea = Object.values(NATIONS).reduce((sum, n) => sum + n.demographics.area, 0);
+        const controlledArea = this.state.territories.reduce((sum, t) => sum + t.area, 0);
+        return (controlledArea / totalWorldArea) * 100;
     }
 
-    setCurrentDimension(dimensionId) {
-        this.state.currentDimensionId = dimensionId;
-        this.notifyListeners();
+    getRelation(targetNationId) {
+        return this.state.diplomacy.relations[targetNationId] || 0;
     }
 
-    buildOutpost(dimensionId, name, type) {
-        const dimension = this.state.dimensions.find(d => d.id === dimensionId);
-        if (!dimension) return { success: false, message: 'Dimension not found!' };
-
-        const cost = this.getBuildingCost(type);
-
-        if (this.state.resources.multiverseEnergy < cost.energy) {
-            return { success: false, message: 'Insufficient energy!' };
+    improveRelations(targetNationId, amount = 10) {
+        const cost = 1000000000;
+        if (this.state.resources.treasury < cost) {
+            return { success: false, message: 'Insufficient funds!' };
         }
 
-        this.state.resources.multiverseEnergy -= cost.energy;
-
-        const outpost = this.generateOutpost(`outpost_${Date.now()}`, name, type);
-        dimension.outposts.push(outpost);
-
-        this.notifyListeners();
-        return { success: true, outpost };
-    }
-
-    getBuildingCost(type) {
-        const costs = {
-            mining: { energy: 200 },
-            research: { energy: 300 },
-            military: { energy: 250 },
-            portal: { energy: 500 }
-        };
-        return costs[type] || costs.mining;
-    }
-
-    researchTechnology(techId) {
-        const tech = this.getTechnologyById(techId);
-        if (!tech) return { success: false, message: 'Technology not found!' };
-        if (this.state.technologies.includes(techId)) {
-            return { success: false, message: 'Already researched!' };
+        const currentRelation = this.getRelation(targetNationId);
+        if (currentRelation >= 100) {
+            return { success: false, message: 'Relations already at maximum!' };
         }
 
-        if (this.state.resources.knowledgePoints < tech.cost) {
-            return { success: false, message: 'Insufficient knowledge!' };
-        }
+        this.state.resources.treasury -= cost;
+        this.state.diplomacy.relations[targetNationId] = Math.min(100, currentRelation + amount);
 
-        this.state.resources.knowledgePoints -= tech.cost;
-        this.state.technologies.push(techId);
-
+        const targetNation = this.getNation(targetNationId);
         this.addEvent({
-            type: 'research',
-            title: 'Research Complete!',
-            message: `${tech.name} has been unlocked!`
+            type: 'diplomacy',
+            title: 'Diplomatic Success',
+            message: `Relations with ${targetNation.name} improved to ${this.state.diplomacy.relations[targetNationId]}%`,
+            importance: 'medium'
         });
 
         this.notifyListeners();
         return { success: true };
     }
 
-    getTechnologyById(techId) {
-        const techs = this.getAllTechnologies();
-        return techs.find(t => t.id === techId);
+    formAlliance(targetNationId) {
+        const relation = this.getRelation(targetNationId);
+        if (relation < 70) {
+            return { success: false, message: 'Relations too low! Need 70+ to form alliance.' };
+        }
+
+        if (this.state.diplomacy.alliances.includes(targetNationId)) {
+            return { success: false, message: 'Already allied!' };
+        }
+
+        this.state.diplomacy.alliances.push(targetNationId);
+
+        const targetNation = this.getNation(targetNationId);
+        this.addEvent({
+            type: 'alliance',
+            title: 'Alliance Formed!',
+            message: `${this.getNation().name} and ${targetNation.name} have formed an alliance!`,
+            importance: 'high'
+        });
+
+        this.notifyListeners();
+        return { success: true };
     }
 
-    getAllTechnologies() {
-        return [
-            { id: 'portal_1', name: 'Advanced Portals', cost: 150, description: 'Reduce portal costs by 25%', unlocks: [] },
-            { id: 'energy_1', name: 'Energy Efficiency', cost: 100, description: 'Increase energy production by 20%', unlocks: [] },
-            { id: 'mining_1', name: 'Automated Mining', cost: 120, description: 'Double resource extraction', unlocks: [] },
-            { id: 'military_1', name: 'Defense Systems', cost: 180, description: 'Protect outposts from events', unlocks: [] },
-            { id: 'quantum_1', name: 'Quantum Computing', cost: 200, description: 'Unlock quantum technologies', unlocks: ['quantum_2'] },
-            { id: 'time_1', name: 'Temporal Manipulation', cost: 250, description: 'Take extra actions per turn', unlocks: [] },
-            { id: 'reality_1', name: 'Reality Bending', cost: 300, description: 'Modify dimension properties', unlocks: [] }
-        ];
+    declareWar(targetNationId) {
+        if (this.state.diplomacy.wars.find(w => w.target === targetNationId)) {
+            return { success: false, message: 'Already at war!' };
+        }
+
+        const targetNation = this.getNation(targetNationId);
+        const playerNation = this.getNation();
+
+        this.state.diplomacy.wars.push({
+            target: targetNationId,
+            startTurn: this.state.currentTurn,
+            playerStrength: this.state.military.strength,
+            enemyStrength: targetNation.military.strength,
+            battles: []
+        });
+
+        this.state.diplomacy.relations[targetNationId] = -100;
+        this.state.internal.support -= 15;
+
+        this.addEvent({
+            type: 'war',
+            title: 'War Declared!',
+            message: `${playerNation.name} has declared war on ${targetNation.name}!`,
+            importance: 'critical'
+        });
+
+        const blocReaction = this.checkBlocReactions(targetNationId);
+        if (blocReaction.escalation) {
+            this.addEvent({
+                type: 'blocWar',
+                title: 'BLOC CONFLICT!',
+                message: blocReaction.message,
+                importance: 'critical'
+            });
+        }
+
+        this.notifyListeners();
+        return { success: true };
+    }
+
+    checkBlocReactions(targetNationId) {
+        const targetNation = this.getNation(targetNationId);
+        const playerNation = this.getNation();
+
+        if (targetNation.bloc !== playerNation.bloc && targetNation.bloc !== 'Neutral' && playerNation.bloc !== 'Neutral') {
+            return {
+                escalation: true,
+                message: `Warning: ${BLOCS[targetNation.bloc].name} and ${BLOCS[playerNation.bloc].name} are now in conflict! Other bloc members may intervene.`
+            };
+        }
+
+        return { escalation: false };
+    }
+
+    conductBattle(warIndex) {
+        const war = this.state.diplomacy.wars[warIndex];
+        if (!war) return { success: false, message: 'War not found!' };
+
+        const targetNation = this.getNation(war.target);
+
+        const playerPower = this.state.military.strength + (Math.random() * 20 - 10);
+        const enemyPower = war.enemyStrength + (Math.random() * 20 - 10);
+
+        const playerWins = playerPower > enemyPower;
+        const casualtyRate = 0.05 + (Math.random() * 0.05);
+
+        if (playerWins) {
+            this.state.military.units.infantry = Math.floor(this.state.military.units.infantry * (1 - casualtyRate));
+            this.state.military.units.armor = Math.floor(this.state.military.units.armor * (1 - casualtyRate * 0.8));
+
+            war.battles.push({
+                turn: this.state.currentTurn,
+                result: 'victory',
+                casualties: casualtyRate
+            });
+
+            if (war.battles.filter(b => b.result === 'victory').length >= 3) {
+                return this.conquerNation(war.target, warIndex);
+            }
+
+            this.addEvent({
+                type: 'battleVictory',
+                title: 'Battle Won!',
+                message: `Your forces have defeated ${targetNation.name} in battle! ${war.battles.filter(b => b.result === 'victory').length}/3 victories.`,
+                importance: 'high'
+            });
+        } else {
+            this.state.military.units.infantry = Math.floor(this.state.military.units.infantry * (1 - casualtyRate * 1.5));
+            this.state.military.units.armor = Math.floor(this.state.military.units.armor * (1 - casualtyRate * 1.2));
+            this.state.internal.support -= 10;
+
+            war.battles.push({
+                turn: this.state.currentTurn,
+                result: 'defeat',
+                casualties: casualtyRate * 1.5
+            });
+
+            this.addEvent({
+                type: 'battleDefeat',
+                title: 'Battle Lost',
+                message: `Your forces were defeated by ${targetNation.name}. Morale is declining.`,
+                importance: 'high'
+            });
+        }
+
+        this.notifyListeners();
+        return { success: true, victory: playerWins };
+    }
+
+    conquerNation(targetNationId, warIndex) {
+        const targetNation = this.getNation(targetNationId);
+
+        this.state.territories.push({
+            nationId: targetNationId,
+            name: targetNation.name,
+            area: targetNation.demographics.area,
+            population: targetNation.demographics.population,
+            originalOwner: false,
+            conqueredTurn: this.state.currentTurn,
+            integration: 0
+        });
+
+        this.state.conquests.push({
+            nation: targetNationId,
+            turn: this.state.currentTurn,
+            year: this.state.turnYear
+        });
+
+        this.state.resources.gdp += Math.floor(targetNation.demographics.gdp * 0.3);
+        this.state.stats.nationsConquered++;
+        this.state.stats.warsWon++;
+        this.state.stats.territoryPercentage = this.calculateTerritoryPercentage();
+
+        this.state.diplomacy.wars.splice(warIndex, 1);
+
+        Object.keys(NATIONS).forEach(nationId => {
+            if (NATIONS[nationId].relations && NATIONS[nationId].relations[targetNationId] > 50) {
+                this.state.diplomacy.relations[nationId] = Math.max(-100, (this.state.diplomacy.relations[nationId] || 0) - 30);
+            }
+        });
+
+        this.addEvent({
+            type: 'conquest',
+            title: 'NATION CONQUERED!',
+            message: `${targetNation.name} has fallen! Territory, resources, and population absorbed.`,
+            importance: 'critical'
+        });
+
+        this.checkVictoryConditions();
+
+        this.notifyListeners();
+        return { success: true, conquered: true };
+    }
+
+    investEconomy() {
+        const cost = Math.floor(this.state.resources.gdp * 0.05);
+        if (this.state.resources.treasury < cost) {
+            return { success: false, message: 'Insufficient funds!' };
+        }
+
+        this.state.resources.treasury -= cost;
+        this.state.resources.gdp = Math.floor(this.state.resources.gdp * 1.05);
+        this.state.internal.support += 5;
+
+        this.addEvent({
+            type: 'economy',
+            title: 'Economic Investment',
+            message: 'GDP increased by 5% through infrastructure investment!',
+            importance: 'medium'
+        });
+
+        this.notifyListeners();
+        return { success: true };
+    }
+
+    recruitMilitary(unitType, quantity) {
+        const costs = {
+            infantry: 50000,
+            armor: 5000000,
+            airForce: 50000000,
+            navy: 200000000
+        };
+
+        const totalCost = costs[unitType] * quantity;
+        if (this.state.resources.treasury < totalCost) {
+            return { success: false, message: 'Insufficient funds!' };
+        }
+
+        this.state.resources.treasury -= totalCost;
+        this.state.military.units[unitType] += quantity;
+        this.state.military.strength = this.calculateMilitaryStrength();
+
+        this.addEvent({
+            type: 'military',
+            title: 'Military Expansion',
+            message: `Recruited ${quantity} ${unitType} units. Strength: ${this.state.military.strength}%`,
+            importance: 'medium'
+        });
+
+        this.notifyListeners();
+        return { success: true };
+    }
+
+    calculateMilitaryStrength() {
+        const base = this.getNation().military.strength;
+        const unitBonus = Math.floor(
+            (this.state.military.units.infantry / 10000) +
+            (this.state.military.units.armor / 100) +
+            (this.state.military.units.airForce / 10) +
+            (this.state.military.units.navy / 5)
+        );
+        return Math.min(100, base + unitBonus);
     }
 
     endTurn() {
         this.state.currentTurn++;
+        this.state.turnMonth++;
 
-        this.state.dimensions.forEach(dim => {
-            if (!dim.discovered) return;
+        if (this.state.turnMonth > 12) {
+            this.state.turnMonth = 1;
+            this.state.turnYear++;
+        }
 
-            dim.resources.forEach(res => {
-                res.amount += res.production;
-            });
+        const gdpGrowth = Math.floor(this.state.resources.gdp * 0.02);
+        this.state.resources.gdp += gdpGrowth;
+        this.state.resources.treasury += Math.floor(this.state.resources.gdp * 0.05);
+        this.state.resources.militaryBudget = Math.floor(this.state.resources.gdp * 0.03);
 
-            const energyGain = dim.outposts.length * 50;
-            this.state.resources.multiverseEnergy += energyGain;
-            this.state.resources.knowledgePoints += Math.floor(dim.outposts.length * 10);
+        this.state.territories.forEach(territory => {
+            if (!territory.originalOwner && territory.integration < 100) {
+                territory.integration += 5;
+                if (Math.random() < 0.1 && territory.integration < 50) {
+                    this.addEvent({
+                        type: 'revolt',
+                        title: 'Unrest in Conquered Territory',
+                        message: `${territory.name} is experiencing resistance.`,
+                        importance: 'medium'
+                    });
+                    this.state.internal.support -= 5;
+                }
+            }
         });
 
         if (Math.random() < 0.3) {
             this.generateRandomEvent();
         }
 
-        this.state.events = this.state.events.filter(e => !e.expired);
+        this.state.events = this.state.events.filter(e =>
+            this.state.currentTurn - e.turn < 10
+        );
 
-        this.checkAchievements();
+        this.checkVictoryConditions();
+        this.checkDefeatConditions();
+
         this.notifyListeners();
     }
 
     generateRandomEvent() {
         const eventTypes = [
             {
-                type: 'resource_boom',
-                title: 'Resource Surge!',
-                message: 'A dimensional rift has increased resource production!',
+                type: 'economicBoom',
+                title: 'Economic Boom!',
+                message: 'Strong market performance boosted your GDP!',
                 effect: () => {
-                    this.state.resources.multiverseEnergy += 500;
+                    this.state.resources.gdp = Math.floor(this.state.resources.gdp * 1.10);
+                    this.state.internal.support += 10;
                 }
             },
             {
-                type: 'anomaly',
-                title: 'Temporal Anomaly',
-                message: 'Time fluctuations detected. Stability decreased.',
+                type: 'recession',
+                title: 'Economic Recession',
+                message: 'Market downturn affected your economy.',
                 effect: () => {
-                    this.state.stats.timelineStability -= 10;
+                    this.state.resources.gdp = Math.floor(this.state.resources.gdp * 0.95);
+                    this.state.internal.support -= 10;
                 }
             },
             {
-                type: 'discovery',
-                title: 'Ancient Artifact',
-                message: 'Your explorers found a reality shard!',
+                type: 'nuclearTest',
+                title: 'Nuclear Test Detected',
+                message: 'Intelligence reports rogue state nuclear test.',
                 effect: () => {
-                    this.state.resources.realityShards += 10;
+                    this.state.internal.rightFaction += 10;
                 }
             },
             {
-                type: 'faction',
-                title: 'Diplomatic Opportunity',
-                message: 'A faction wishes to establish relations.',
+                type: 'tradeOpportunity',
+                title: 'Trade Opportunity',
+                message: 'A nation offers lucrative trade deals.',
                 effect: () => {
-                    this.state.stats.reputation += 10;
+                    this.state.resources.treasury += 5000000000;
                 }
             }
         ];
 
         const event = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-        const gameEvent = {
-            id: `event_${Date.now()}`,
-            ...event,
-            turn: this.state.currentTurn,
-            expired: false
-        };
-
-        this.addEvent(gameEvent);
+        this.addEvent(event);
         if (event.effect) event.effect();
     }
 
     addEvent(event) {
         this.state.events.unshift({
             ...event,
-            id: event.id || `event_${Date.now()}`,
-            turn: this.state.currentTurn
+            id: `event_${Date.now()}_${Math.random()}`,
+            turn: event.turn || this.state.currentTurn,
+            year: event.year || this.state.turnYear,
+            month: event.month || this.state.turnMonth
         });
 
-        if (this.state.events.length > 10) {
-            this.state.events = this.state.events.slice(0, 10);
+        if (this.state.events.length > 20) {
+            this.state.events = this.state.events.slice(0, 20);
         }
     }
 
-    checkAchievements() {
-        const achievements = [
-            { id: 'first_dimension', name: 'Reality Pioneer', check: () => this.state.stats.discoveredDimensions >= 2 },
-            { id: 'rich', name: 'Energy Tycoon', check: () => this.state.resources.multiverseEnergy >= 10000 },
-            { id: 'researcher', name: 'Mad Scientist', check: () => this.state.technologies.length >= 5 },
-            { id: 'turn_50', name: 'Time Lord', check: () => this.state.currentTurn >= 50 },
-            { id: 'ten_dimensions', name: 'Multiverse Master', check: () => this.state.stats.discoveredDimensions >= 10 }
-        ];
+    checkVictoryConditions() {
+        const conditions = [];
 
-        achievements.forEach(ach => {
-            if (!this.state.achievements.includes(ach.id) && ach.check()) {
-                this.state.achievements.push(ach.id);
-                this.addEvent({
-                    type: 'achievement',
-                    title: 'Achievement Unlocked!',
-                    message: `${ach.name}`,
-                    achievement: ach.id
-                });
-            }
-        });
+        if (this.state.stats.territoryPercentage >= 50) {
+            conditions.push({ type: 'territorial', message: 'Achieved 50% global territory control!' });
+        }
+
+        if (this.state.resources.gdp >= 10000000000000) {
+            conditions.push({ type: 'economic', message: 'Achieved 10 Trillion GDP!' });
+        }
+
+        if (this.state.turnYear >= 2035) {
+            conditions.push({ type: 'survival', message: 'Survived to 2035!' });
+        }
+
+        if (conditions.length > 0) {
+            this.state.victory = {
+                achieved: true,
+                conditions,
+                turn: this.state.currentTurn,
+                year: this.state.turnYear
+            };
+
+            this.addEvent({
+                type: 'victory',
+                title: 'VICTORY ACHIEVED!',
+                message: conditions.map(c => c.message).join(' '),
+                importance: 'critical'
+            });
+        }
+    }
+
+    checkDefeatConditions() {
+        if (this.state.resources.gdp < 10000000000) {
+            this.state.defeat = {
+                reason: 'Economic Collapse',
+                message: 'Your economy has completely collapsed.'
+            };
+        }
+
+        if (this.state.internal.support < 20) {
+            this.state.defeat = {
+                reason: 'Popular Revolt',
+                message: 'Government overthrown by popular uprising.'
+            };
+        }
     }
 
     subscribe(callback) {

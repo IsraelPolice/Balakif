@@ -1,8 +1,9 @@
+import { NATIONS, BLOCS } from './nations.js';
+
 export class UI {
     constructor(gameEngine, database) {
         this.engine = gameEngine;
         this.db = database;
-        this.currentScreen = 'loading';
         this.initializeElements();
         this.setupEventListeners();
     }
@@ -15,15 +16,15 @@ export class UI {
         };
 
         this.elements = {
-            energyValue: document.getElementById('energy-value'),
-            shardsValue: document.getElementById('shards-value'),
-            knowledgeValue: document.getElementById('knowledge-value'),
-            dimensionsCount: document.getElementById('dimensions-count'),
-            stabilityValue: document.getElementById('stability-value'),
+            gdpValue: document.getElementById('gdp-value'),
+            treasuryValue: document.getElementById('treasury-value'),
+            militaryValue: document.getElementById('military-value'),
+            territoryPercent: document.getElementById('territory-percent'),
+            supportValue: document.getElementById('support-value'),
             playerName: document.getElementById('player-name'),
             turnNumber: document.getElementById('turn-number'),
-            dimensionList: document.getElementById('dimension-list'),
-            dimensionView: document.getElementById('dimension-view'),
+            turnDate: document.getElementById('turn-date'),
+            nationsList: document.getElementById('nations-list'),
             currentDimensionName: document.getElementById('current-dimension-name'),
             dimType: document.getElementById('dim-type'),
             dimDanger: document.getElementById('dim-danger'),
@@ -31,9 +32,9 @@ export class UI {
             dimensionMap: document.getElementById('dimension-map'),
             resourceGrid: document.getElementById('resource-grid'),
             outpostGrid: document.getElementById('outpost-grid'),
-            techTree: document.getElementById('tech-tree'),
-            buildingList: document.getElementById('building-list'),
-            tradePanel: document.getElementById('trade-panel'),
+            diplomacyPanel: document.getElementById('diplomacy-panel'),
+            militaryPanel: document.getElementById('military-panel'),
+            economyPanel: document.getElementById('economy-panel'),
             eventsList: document.getElementById('events-list'),
             modalContainer: document.getElementById('modal-container'),
             modalContent: document.getElementById('modal-content'),
@@ -42,21 +43,16 @@ export class UI {
     }
 
     setupEventListeners() {
-        document.getElementById('btn-new-game').addEventListener('click', () => this.startNewGame());
+        document.getElementById('btn-new-game').addEventListener('click', () => this.showNationSelection());
         document.getElementById('btn-load-game').addEventListener('click', () => this.showLoadGameModal());
         document.getElementById('btn-leaderboard').addEventListener('click', () => this.showLeaderboard());
         document.getElementById('btn-how-to-play').addEventListener('click', () => this.showHowToPlay());
 
-        document.getElementById('btn-discover-dimension').addEventListener('click', () => this.discoverDimension());
         document.getElementById('btn-end-turn').addEventListener('click', () => this.endTurn());
         document.getElementById('btn-save-game').addEventListener('click', () => this.saveGame());
-        document.getElementById('btn-achievements').addEventListener('click', () => this.showAchievements());
         document.getElementById('btn-menu').addEventListener('click', () => this.returnToMenu());
 
         document.getElementById('modal-close').addEventListener('click', () => this.hideModal());
-        document.getElementById('modal-container').addEventListener('click', (e) => {
-            if (e.target.id === 'modal-container') this.hideModal();
-        });
 
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
@@ -68,7 +64,6 @@ export class UI {
     showScreen(screenName) {
         Object.values(this.screens).forEach(screen => screen.classList.remove('active'));
         this.screens[screenName].classList.add('active');
-        this.currentScreen = screenName;
     }
 
     async initialize() {
@@ -77,37 +72,56 @@ export class UI {
         }, 2000);
     }
 
-    startNewGame() {
-        const name = prompt('Enter your name:', 'Architect');
-        if (name) {
-            this.engine.state.playerName = name;
+    showNationSelection() {
+        let html = '<h2>Select Your Nation</h2><p style="margin-bottom: 1.5rem;">Choose wisely - each nation has unique advantages and challenges</p>';
+        html += '<div class="nations-grid">';
+
+        Object.values(NATIONS).forEach(nation => {
+            const blocColor = BLOCS[nation.bloc]?.color || '#666';
+            html += `
+                <div class="nation-select-card" onclick="window.game.ui.selectNation('${nation.id}')" style="border-left: 4px solid ${blocColor}">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">${nation.flag}</div>
+                    <h3>${nation.name}</h3>
+                    <p class="nation-title">${nation.title}</p>
+                    <div class="nation-stats">
+                        <div>GDP: $${(nation.demographics.gdp / 1000000000000).toFixed(1)}T</div>
+                        <div>Military: ${nation.military.strength}%</div>
+                        <div>Difficulty: ${nation.difficulty || 'Medium'}</div>
+                    </div>
+                    <div class="nation-bloc" style="color: ${blocColor}">${BLOCS[nation.bloc]?.name}</div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        this.showModal(html);
+    }
+
+    selectNation(nationId) {
+        const result = this.engine.selectNation(nationId);
+        if (result.success) {
+            this.hideModal();
             this.showScreen('game');
-            this.updateUI(this.engine.getState());
+            this.showNotification(`Welcome, Leader of ${result.nation.name}!`, 'success');
         }
     }
 
     async showLoadGameModal() {
         const result = await this.db.getAllSaves();
-        if (!result.success) {
-            this.showNotification('Error loading saves!', 'danger');
-            return;
-        }
-
-        const saves = result.saves;
-        if (saves.length === 0) {
+        if (!result.success || result.saves.length === 0) {
             this.showNotification('No saved games found!', 'warning');
             return;
         }
 
         let html = '<h2>Load Game</h2><div class="saves-list">';
-        saves.forEach(save => {
-            const date = new Date(save.updated_at).toLocaleString();
+        result.saves.forEach(save => {
+            const nation = NATIONS[save.selected_nation];
             html += `
                 <div class="save-card">
                     <div class="save-info">
-                        <h3>${save.player_name}</h3>
-                        <p>Turn: ${save.current_turn} | Dimensions: ${save.discovered_dimensions}</p>
-                        <p class="save-date">${date}</p>
+                        <h3>${nation?.flag || '🌍'} ${save.player_name}</h3>
+                        <p>Nation: ${nation?.name || 'Unknown'} | Turn: ${save.current_turn} | Year: ${save.turn_year}</p>
+                        <p>Territories: ${save.territories_controlled?.length || 1}</p>
                     </div>
                     <div class="save-actions">
                         <button class="btn-primary" onclick="window.game.ui.loadGame('${save.id}')">Load</button>
@@ -117,33 +131,23 @@ export class UI {
             `;
         });
         html += '</div>';
-
         this.showModal(html);
     }
 
     async loadGame(saveId) {
         const result = await this.db.loadGame(saveId);
-        if (!result.success) {
-            this.showNotification('Error loading game!', 'danger');
-            return;
+        if (result.success) {
+            this.engine.setState(result.gameState);
+            this.hideModal();
+            this.showScreen('game');
+            this.showNotification('Game loaded!', 'success');
         }
-
-        this.engine.setState(result.gameState);
-        this.hideModal();
-        this.showScreen('game');
-        this.updateUI(this.engine.getState());
-        this.showNotification('Game loaded successfully!', 'success');
     }
 
     async deleteSave(saveId) {
-        if (!confirm('Are you sure you want to delete this save?')) return;
-
-        const result = await this.db.deleteSave(saveId);
-        if (result.success) {
-            this.showNotification('Save deleted!', 'success');
+        if (confirm('Delete this save?')) {
+            await this.db.deleteSave(saveId);
             this.showLoadGameModal();
-        } else {
-            this.showNotification('Error deleting save!', 'danger');
         }
     }
 
@@ -151,125 +155,63 @@ export class UI {
         const result = await this.db.saveGame(this.engine.getState());
         if (result.success) {
             this.engine.state.saveId = result.saveId;
-            this.showNotification('Game saved successfully!', 'success');
-
-            if (this.engine.state.achievements.length > 0) {
-                for (const achId of this.engine.state.achievements) {
-                    await this.db.unlockAchievement(result.saveId, achId);
-                }
-            }
-        } else {
-            this.showNotification('Error saving game!', 'danger');
+            this.showNotification('Game saved!', 'success');
         }
     }
 
     async showLeaderboard() {
         const result = await this.db.getLeaderboard();
         if (!result.success) {
-            this.showNotification('Error loading leaderboard!', 'danger');
+            this.showNotification('Error loading leaderboard', 'danger');
             return;
         }
 
-        let html = '<h2>Leaderboard</h2><table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Dimensions</th><th>Victory</th></tr></thead><tbody>';
-
+        let html = '<h2>Global Leaderboard</h2><table class="leaderboard-table"><thead><tr><th>Rank</th><th>Leader</th><th>Score</th><th>Territory</th><th>Conquests</th></tr></thead><tbody>';
         result.leaderboard.forEach((entry, index) => {
             html += `
                 <tr>
                     <td>${index + 1}</td>
                     <td>${entry.player_name}</td>
-                    <td>${entry.score.toLocaleString()}</td>
-                    <td>${entry.dimensions_conquered}</td>
-                    <td>${entry.victory_type}</td>
+                    <td>${entry.score?.toLocaleString() || 0}</td>
+                    <td>${entry.territory_percentage?.toFixed(1) || 0}%</td>
+                    <td>${entry.nations_conquered || 0}</td>
                 </tr>
             `;
         });
-
         html += '</tbody></table>';
         this.showModal(html);
     }
 
     showHowToPlay() {
         const html = `
-            <h2>How to Play ChromaVerse</h2>
+            <h2>How to Play Hevre's Empire</h2>
             <div class="instructions">
                 <section>
                     <h3>🎯 Objective</h3>
-                    <p>Become the master of the multiverse by discovering and conquering parallel dimensions, researching advanced technologies, and accumulating vast wealth.</p>
+                    <p>Dominate the world through military conquest, economic supremacy, or diplomatic mastery. Control 50% of global territory, achieve 10T$ GDP, or survive until 2035.</p>
                 </section>
-
                 <section>
-                    <h3>⚡ Resources</h3>
-                    <ul>
-                        <li><strong>Multiverse Energy:</strong> Main currency for building and exploration</li>
-                        <li><strong>Reality Shards:</strong> Rare currency for dimension discovery</li>
-                        <li><strong>Knowledge Points:</strong> Used for research and technology</li>
-                    </ul>
+                    <h3>💰 Economy</h3>
+                    <p>Manage GDP and treasury. Invest in infrastructure for growth. Conquer nations to expand your economic base.</p>
                 </section>
-
                 <section>
-                    <h3>🌐 Dimensions</h3>
-                    <p>Each dimension has unique properties:</p>
-                    <ul>
-                        <li><strong>Standard:</strong> Normal physics, balanced gameplay</li>
-                        <li><strong>Quantum:</strong> Fluctuating resources, unpredictable</li>
-                        <li><strong>Entropic:</strong> High danger, buildings decay faster</li>
-                        <li><strong>Chrono:</strong> Time manipulation, extra actions</li>
-                        <li><strong>Exotic:</strong> Reality-bending abilities</li>
-                    </ul>
+                    <h3>⚔️ Military</h3>
+                    <p>Recruit units: Infantry, Armor, Air Force, Navy. Declare war and fight tactical battles. Win 3 battles to conquer a nation.</p>
                 </section>
-
                 <section>
-                    <h3>🏗️ Buildings</h3>
-                    <p>Construct outposts to extract resources and expand your empire. Each outpost generates passive income.</p>
+                    <h3>🤝 Diplomacy</h3>
+                    <p>Improve relations, form alliances, manage bloc dynamics. Western vs Communist blocs create global tension.</p>
                 </section>
-
-                <section>
-                    <h3>🔬 Research</h3>
-                    <p>Unlock technologies to boost efficiency, reduce costs, and gain new abilities. Plan your tech tree carefully!</p>
-                </section>
-
-                <section>
-                    <h3>⏭️ Turns</h3>
-                    <p>End your turn to collect resources from all dimensions, trigger events, and advance time. Random events can help or hinder your progress.</p>
-                </section>
-
                 <section>
                     <h3>🏆 Victory</h3>
-                    <p>Win by achieving:</p>
                     <ul>
-                        <li>Discover 20+ dimensions</li>
-                        <li>Accumulate 1,000,000+ Multiverse Energy</li>
-                        <li>Research all technologies</li>
-                        <li>Survive 100 turns</li>
+                        <li>Control 50%+ of world territory</li>
+                        <li>Achieve 10 Trillion GDP</li>
+                        <li>Survive to 2035</li>
                     </ul>
                 </section>
             </div>
         `;
-        this.showModal(html);
-    }
-
-    showAchievements() {
-        const achievements = [
-            { id: 'first_dimension', name: 'Reality Pioneer', description: 'Discover your second dimension', icon: '🌟' },
-            { id: 'rich', name: 'Energy Tycoon', description: 'Accumulate 10,000 Multiverse Energy', icon: '💰' },
-            { id: 'researcher', name: 'Mad Scientist', description: 'Research 5 technologies', icon: '🔬' },
-            { id: 'turn_50', name: 'Time Lord', description: 'Survive 50 turns', icon: '⏰' },
-            { id: 'ten_dimensions', name: 'Multiverse Master', description: 'Discover 10 dimensions', icon: '🌌' }
-        ];
-
-        let html = '<h2>Achievements</h2><div class="achievements-grid">';
-        achievements.forEach(ach => {
-            const unlocked = this.engine.state.achievements.includes(ach.id);
-            html += `
-                <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
-                    <div class="achievement-icon">${unlocked ? ach.icon : '🔒'}</div>
-                    <h3>${ach.name}</h3>
-                    <p>${ach.description}</p>
-                </div>
-            `;
-        });
-        html += '</div>';
-
         this.showModal(html);
     }
 
@@ -279,259 +221,282 @@ export class UI {
         }
     }
 
-    discoverDimension() {
-        const result = this.engine.discoverNewDimension();
+    endTurn() {
+        this.engine.endTurn();
+        this.showNotification(`${this.getMonthName(this.engine.state.turnMonth)} ${this.engine.state.turnYear}`, 'success');
+    }
+
+    getMonthName(month) {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[month - 1];
+    }
+
+    updateUI(state) {
+        if (!state.selectedNation) return;
+
+        this.elements.gdpValue.textContent = `$${(state.resources.gdp / 1000000000).toFixed(1)}B`;
+        this.elements.treasuryValue.textContent = `$${(state.resources.treasury / 1000000000).toFixed(1)}B`;
+        this.elements.militaryValue.textContent = `${state.military.strength}%`;
+        this.elements.territoryPercent.textContent = `${state.stats.territoryPercentage.toFixed(1)}%`;
+        this.elements.supportValue.textContent = `${state.internal.support}%`;
+        this.elements.playerName.textContent = NATIONS[state.selectedNation].name;
+        this.elements.turnNumber.textContent = state.currentTurn;
+        this.elements.turnDate.textContent = `${this.getMonthName(state.turnMonth)} ${state.turnYear}`;
+
+        this.renderNationsList(state);
+        this.renderCurrentNation(state);
+        this.renderDiplomacy(state);
+        this.renderMilitary(state);
+        this.renderEconomy(state);
+        this.renderEvents(state.events);
+    }
+
+    renderNationsList(state) {
+        let html = '';
+        Object.values(NATIONS).forEach(nation => {
+            const relation = state.diplomacy.relations[nation.id] || 0;
+            const isPlayer = nation.id === state.selectedNation;
+            const isConquered = state.territories.find(t => t.nationId === nation.id && !t.originalOwner);
+
+            html += `
+                <div class="dimension-card ${isPlayer ? 'active' : ''}" ${!isPlayer && !isConquered ? `onclick="window.game.ui.showNationDetails('${nation.id}')"` : ''}>
+                    <div class="card-header">
+                        <span style="font-size: 1.5rem;">${nation.flag}</span>
+                        <span class="card-title">${nation.name}</span>
+                    </div>
+                    ${isConquered ? '<div style="color: var(--success);">✓ CONQUERED</div>' : ''}
+                    ${!isPlayer && !isConquered ? `<div style="color: ${relation > 50 ? 'var(--success)' : relation < 0 ? 'var(--danger)' : 'var(--text-secondary)'};">Relations: ${relation}%</div>` : ''}
+                </div>
+            `;
+        });
+        this.elements.nationsList.innerHTML = html;
+    }
+
+    showNationDetails(nationId) {
+        const nation = NATIONS[nationId];
+        const relation = this.engine.getRelation(nationId);
+
+        let html = `
+            <h2>${nation.flag} ${nation.name}</h2>
+            <h3 style="color: var(--text-secondary); margin-bottom: 1rem;">${nation.title}</h3>
+            <p>${nation.backstory}</p>
+            <div style="margin-top: 1.5rem;">
+                <h3>Statistics</h3>
+                <div class="nation-stats-detail">
+                    <div>Population: ${(nation.demographics.population / 1000000).toFixed(1)}M</div>
+                    <div>GDP: $${(nation.demographics.gdp / 1000000000000).toFixed(2)}T</div>
+                    <div>Military Strength: ${nation.military.strength}%</div>
+                    <div>Relations: ${relation}%</div>
+                </div>
+            </div>
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn-primary" onclick="window.game.ui.improveRelations('${nationId}')">Improve Relations ($1B)</button>
+                <button class="btn-action" onclick="window.game.ui.declareWar('${nationId}')">Declare War</button>
+            </div>
+        `;
+        this.showModal(html);
+    }
+
+    improveRelations(nationId) {
+        const result = this.engine.improveRelations(nationId);
         if (result.success) {
-            this.showNotification(`Discovered ${result.dimension.name}!`, 'success');
+            this.showNotification('Relations improved!', 'success');
+            this.hideModal();
         } else {
             this.showNotification(result.message, 'warning');
         }
     }
 
-    endTurn() {
-        this.engine.endTurn();
-        this.showNotification(`Turn ${this.engine.state.currentTurn} begins!`, 'success');
-    }
-
-    updateUI(state) {
-        this.elements.energyValue.textContent = state.resources.multiverseEnergy.toLocaleString();
-        this.elements.shardsValue.textContent = state.resources.realityShards.toLocaleString();
-        this.elements.knowledgeValue.textContent = state.resources.knowledgePoints.toLocaleString();
-        this.elements.dimensionsCount.textContent = state.stats.discoveredDimensions;
-        this.elements.stabilityValue.textContent = `${state.stats.timelineStability}%`;
-        this.elements.playerName.textContent = state.playerName;
-        this.elements.turnNumber.textContent = state.currentTurn;
-
-        this.renderDimensionList(state.dimensions);
-        this.renderCurrentDimension(state);
-        this.renderTechTree(state);
-        this.renderBuildingList(state);
-        this.renderEvents(state.events);
-    }
-
-    renderDimensionList(dimensions) {
-        this.elements.dimensionList.innerHTML = '';
-        dimensions.forEach(dim => {
-            const card = document.createElement('div');
-            card.className = `dimension-card ${dim.id === this.engine.state.currentDimensionId ? 'active' : ''}`;
-            card.innerHTML = `
-                <div class="card-header">
-                    <span class="card-title">${dim.name}</span>
-                    <span class="card-badge badge-${dim.type.toLowerCase()}">${dim.type}</span>
-                </div>
-                <div class="card-stats">
-                    <span>Lvl: ${dim.level}</span>
-                    <span>Outposts: ${dim.outposts.length}</span>
-                </div>
-            `;
-            card.addEventListener('click', () => {
-                this.engine.setCurrentDimension(dim.id);
-            });
-            this.elements.dimensionList.appendChild(card);
-        });
-    }
-
-    renderCurrentDimension(state) {
-        const dimension = this.engine.getCurrentDimension();
-        if (!dimension) return;
-
-        this.elements.currentDimensionName.textContent = dimension.name;
-        this.elements.dimType.textContent = dimension.type;
-        this.elements.dimDanger.textContent = dimension.danger > 50 ? 'High' : dimension.danger > 25 ? 'Medium' : 'Low';
-        this.elements.dimWealth.textContent = dimension.wealth > 70 ? 'Very High' : dimension.wealth > 50 ? 'High' : 'Medium';
-
-        this.renderMap(dimension.map);
-        this.renderResources(dimension.resources);
-        this.renderOutposts(dimension.outposts);
-    }
-
-    renderMap(mapData) {
-        const container = this.elements.dimensionMap;
-        container.innerHTML = '';
-
-        const grid = document.createElement('div');
-        grid.className = 'map-grid';
-
-        mapData.forEach(cell => {
-            const cellDiv = document.createElement('div');
-            cellDiv.className = `map-cell cell-${cell.type}`;
-
-            const icons = {
-                empty: '',
-                resource: '💎',
-                outpost: '🏭',
-                portal: '🌀',
-                danger: '⚠️',
-                special: '✨'
-            };
-
-            cellDiv.textContent = icons[cell.type] || '';
-
-            if (cell.type === 'resource' && cell.data) {
-                cellDiv.title = `${cell.data.resource}: ${cell.data.amount}`;
+    declareWar(nationId) {
+        if (confirm(`Declare war on ${NATIONS[nationId].name}? This will damage relations with their allies.`)) {
+            const result = this.engine.declareWar(nationId);
+            if (result.success) {
+                this.showNotification(`War declared on ${NATIONS[nationId].name}!`, 'danger');
+                this.hideModal();
             }
-
-            cellDiv.addEventListener('click', () => this.handleCellClick(cell));
-
-            grid.appendChild(cellDiv);
-        });
-
-        container.appendChild(grid);
-    }
-
-    handleCellClick(cell) {
-        if (cell.type === 'resource') {
-            this.showNotification(`Resource node: ${cell.data?.resource || 'unknown'}`, 'success');
-        } else if (cell.type === 'portal') {
-            this.showNotification('Portal detected! Research required to use.', 'warning');
         }
     }
 
-    renderResources(resources) {
-        this.elements.resourceGrid.innerHTML = '';
-        resources.forEach(res => {
-            const card = document.createElement('div');
-            card.className = 'resource-card';
-            card.innerHTML = `
-                <div style="font-size: 2rem;">${res.icon}</div>
-                <div style="font-weight: bold;">${res.name}</div>
-                <div style="color: var(--accent-tertiary);">${res.amount}</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">+${res.production}/turn</div>
+    renderCurrentNation(state) {
+        const nation = NATIONS[state.selectedNation];
+        this.elements.currentDimensionName.textContent = nation.name;
+        this.elements.dimType.textContent = nation.title;
+        this.elements.dimDanger.textContent = nation.bloc;
+        this.elements.dimWealth.textContent = `$${(nation.demographics.gdp / 1000000000000).toFixed(1)}T GDP`;
+
+        this.elements.dimensionMap.innerHTML = `
+            <div style="padding: 2rem; text-align: center;">
+                <div style="font-size: 8rem; margin-bottom: 1rem;">${nation.flag}</div>
+                <h2>${nation.name}</h2>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">${nation.backstory}</p>
+            </div>
+        `;
+
+        let resourcesHTML = '';
+        state.territories.forEach(t => {
+            resourcesHTML += `
+                <div class="resource-card">
+                    <div style="font-weight: bold;">${NATIONS[t.nationId]?.name || t.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                        ${(t.population / 1000000).toFixed(1)}M people
+                    </div>
+                    ${!t.originalOwner ? `<div style="color: var(--accent-tertiary);">Integration: ${t.integration}%</div>` : ''}
+                </div>
             `;
-            this.elements.resourceGrid.appendChild(card);
         });
+        this.elements.resourceGrid.innerHTML = resourcesHTML || '<p style="color: var(--text-secondary);">No territories</p>';
+
+        let warsHTML = '';
+        state.diplomacy.wars.forEach((war, index) => {
+            const enemy = NATIONS[war.target];
+            const victories = war.battles.filter(b => b.result === 'victory').length;
+            warsHTML += `
+                <div class="outpost-card">
+                    <div style="font-weight: bold;">🔥 War vs ${enemy.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Victories: ${victories}/3</div>
+                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="window.game.ui.conductBattle(${index})">Launch Attack</button>
+                </div>
+            `;
+        });
+        this.elements.outpostGrid.innerHTML = warsHTML || '<p style="color: var(--text-secondary);">No active wars</p>';
     }
 
-    renderOutposts(outposts) {
-        this.elements.outpostGrid.innerHTML = '';
-
-        if (outposts.length === 0) {
-            this.elements.outpostGrid.innerHTML = '<p style="color: var(--text-secondary);">No outposts built yet</p>';
-            return;
+    conductBattle(warIndex) {
+        const result = this.engine.conductBattle(warIndex);
+        if (result.victory) {
+            this.showNotification('Battle won!', 'success');
+        } else if (result.conquered) {
+            this.showNotification('Nation conquered!', 'success');
+        } else {
+            this.showNotification('Battle lost', 'danger');
         }
-
-        outposts.forEach(outpost => {
-            const card = document.createElement('div');
-            card.className = 'outpost-card';
-            card.innerHTML = `
-                <div style="font-weight: bold;">${outpost.name}</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">Level ${outpost.level} ${outpost.type}</div>
-            `;
-            this.elements.outpostGrid.appendChild(card);
-        });
     }
 
-    renderTechTree(state) {
-        this.elements.techTree.innerHTML = '';
-        const techs = this.engine.getAllTechnologies();
+    renderDiplomacy(state) {
+        let html = '';
+        Object.entries(state.diplomacy.relations).slice(0, 10).forEach(([nationId, relation]) => {
+            const nation = NATIONS[nationId];
+            if (!nation) return;
 
-        techs.forEach(tech => {
-            const researched = state.technologies.includes(tech.id);
-            const card = document.createElement('div');
-            card.className = `tech-card ${researched ? 'researched' : ''}`;
-            card.innerHTML = `
-                <div class="card-header">
-                    <span class="card-title">${tech.name}</span>
-                    ${researched ? '<span style="color: var(--success);">✓</span>' : ''}
-                </div>
-                <div class="card-description">${tech.description}</div>
-                <div class="card-cost">
-                    <span class="cost-item">🧠 ${tech.cost}</span>
+            html += `
+                <div class="tech-card" onclick="window.game.ui.showNationDetails('${nationId}')">
+                    <div class="card-header">
+                        <span style="font-size: 1.5rem;">${nation.flag}</span>
+                        <span class="card-title">${nation.name}</span>
+                    </div>
+                    <div style="color: ${relation > 50 ? 'var(--success)' : relation < 0 ? 'var(--danger)' : 'var(--text-secondary)'};">
+                        Relations: ${relation}%
+                    </div>
                 </div>
             `;
-
-            if (!researched) {
-                card.style.cursor = 'pointer';
-                card.addEventListener('click', () => {
-                    const result = this.engine.researchTechnology(tech.id);
-                    if (result.success) {
-                        this.showNotification(`${tech.name} researched!`, 'success');
-                    } else {
-                        this.showNotification(result.message, 'warning');
-                    }
-                });
-            } else {
-                card.style.opacity = '0.6';
-            }
-
-            this.elements.techTree.appendChild(card);
         });
+        this.elements.diplomacyPanel.innerHTML = html || '<p style="color: var(--text-secondary);">No diplomatic relations yet</p>';
     }
 
-    renderBuildingList(state) {
-        const dimension = this.engine.getCurrentDimension();
-        if (!dimension) return;
-
-        const buildings = [
-            { id: 'mining', name: 'Mining Outpost', cost: 200, icon: '⛏️', description: 'Extract resources from dimension' },
-            { id: 'research', name: 'Research Lab', cost: 300, icon: '🔬', description: 'Generate knowledge points' },
-            { id: 'military', name: 'Defense Station', cost: 250, icon: '🛡️', description: 'Protect from hostile events' },
-            { id: 'portal', name: 'Portal Hub', cost: 500, icon: '🌀', description: 'Enable fast travel' }
+    renderMilitary(state) {
+        const units = [
+            { type: 'infantry', name: 'Infantry', icon: '🪖', cost: 50000 },
+            { type: 'armor', name: 'Armor', icon: '🛡️', cost: 5000000 },
+            { type: 'airForce', name: 'Air Force', icon: '✈️', cost: 50000000 },
+            { type: 'navy', name: 'Navy', icon: '⚓', cost: 200000000 }
         ];
 
-        this.elements.buildingList.innerHTML = '';
-        buildings.forEach(building => {
-            const card = document.createElement('div');
-            card.className = 'building-card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <span style="font-size: 2rem;">${building.icon}</span>
-                    <span class="card-title">${building.name}</span>
-                </div>
-                <div class="card-description">${building.description}</div>
-                <div class="card-cost">
-                    <span class="cost-item">⚡ ${building.cost}</span>
+        let html = '<div style="margin-bottom: 1rem;"><strong>Current Forces:</strong></div>';
+        units.forEach(unit => {
+            html += `
+                <div class="building-card">
+                    <div class="card-header">
+                        <span style="font-size: 2rem;">${unit.icon}</span>
+                        <span class="card-title">${unit.name}</span>
+                    </div>
+                    <div>Current: ${state.military.units[unit.type]}</div>
+                    <div class="card-cost">
+                        <span class="cost-item">💵 $${(unit.cost / 1000000).toFixed(1)}M</span>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="window.game.ui.recruitUnits('${unit.type}', 100)">Recruit 100</button>
                 </div>
             `;
-
-            card.addEventListener('click', () => {
-                const name = prompt(`Name your ${building.name}:`, building.name);
-                if (name) {
-                    const result = this.engine.buildOutpost(dimension.id, name, building.id);
-                    if (result.success) {
-                        this.showNotification(`${name} built!`, 'success');
-                    } else {
-                        this.showNotification(result.message, 'warning');
-                    }
-                }
-            });
-
-            this.elements.buildingList.appendChild(card);
         });
+        this.elements.militaryPanel.innerHTML = html;
+    }
+
+    recruitUnits(unitType, quantity) {
+        const result = this.engine.recruitMilitary(unitType, quantity);
+        if (result.success) {
+            this.showNotification(`Recruited ${quantity} ${unitType}!`, 'success');
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
+    }
+
+    renderEconomy(state) {
+        let html = `
+            <div class="building-card">
+                <h4>Economic Investment</h4>
+                <p>Invest 5% of GDP to boost growth</p>
+                <div class="card-cost">
+                    <span class="cost-item">💵 $${(state.resources.gdp * 0.05 / 1000000000).toFixed(2)}B</span>
+                </div>
+                <button class="btn-primary" onclick="window.game.ui.investEconomy()">Invest</button>
+            </div>
+            <div class="building-card">
+                <h4>Economic Overview</h4>
+                <div style="margin-top: 1rem;">
+                    <div>GDP Growth: +2% per turn</div>
+                    <div>Treasury Income: 5% of GDP/turn</div>
+                    <div>Military Budget: 3% of GDP/turn</div>
+                </div>
+            </div>
+        `;
+        this.elements.economyPanel.innerHTML = html;
+    }
+
+    investEconomy() {
+        const result = this.engine.investEconomy();
+        if (result.success) {
+            this.showNotification('Economic investment made!', 'success');
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
     }
 
     renderEvents(events) {
-        this.elements.eventsList.innerHTML = '';
-
-        if (events.length === 0) {
-            this.elements.eventsList.innerHTML = '<p style="color: var(--text-secondary); padding: 1rem;">No current events</p>';
-            return;
-        }
-
-        events.forEach(event => {
-            const card = document.createElement('div');
-            card.className = 'event-card';
-
+        let html = '';
+        events.slice(0, 10).forEach(event => {
             const icons = {
-                resource_boom: '💰',
-                anomaly: '⚠️',
-                discovery: '🔍',
-                faction: '🤝',
-                research: '🔬',
-                achievement: '🏆'
+                gameStart: '🎮',
+                war: '⚔️',
+                battleVictory: '🏆',
+                battleDefeat: '💔',
+                conquest: '👑',
+                diplomacy: '🤝',
+                alliance: '🛡️',
+                economy: '💰',
+                economicBoom: '📈',
+                recession: '📉',
+                nuclearTest: '☢️',
+                tradeOpportunity: '💼'
             };
 
-            card.innerHTML = `
-                <div class="card-header">
-                    <span style="font-size: 1.5rem;">${icons[event.type] || '📢'}</span>
-                    <span class="card-title">${event.title}</span>
-                </div>
-                <div class="card-description">${event.message}</div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Turn ${event.turn}</div>
-            `;
+            const importanceColors = {
+                critical: 'var(--danger)',
+                high: 'var(--warning)',
+                medium: 'var(--accent-primary)',
+                low: 'var(--text-secondary)'
+            };
 
-            this.elements.eventsList.appendChild(card);
+            html += `
+                <div class="event-card" style="border-left: 4px solid ${importanceColors[event.importance] || 'var(--text-secondary)'}">
+                    <div class="card-header">
+                        <span style="font-size: 1.5rem;">${icons[event.type] || '📢'}</span>
+                        <span class="card-title">${event.title}</span>
+                    </div>
+                    <div class="card-description">${event.message}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">${event.month}/${event.year} - Turn ${event.turn}</div>
+                </div>
+            `;
         });
+        this.elements.eventsList.innerHTML = html || '<p style="color: var(--text-secondary); padding: 1rem;">No recent events</p>';
     }
 
     switchTab(tabName) {

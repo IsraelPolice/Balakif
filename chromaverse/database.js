@@ -10,13 +10,20 @@ export class Database {
         try {
             const saveData = {
                 player_name: gameState.playerName,
+                selected_nation: gameState.selectedNation,
                 current_turn: gameState.currentTurn,
-                multiverse_energy: gameState.resources.multiverseEnergy,
-                reality_shards: gameState.resources.realityShards,
-                knowledge_points: gameState.resources.knowledgePoints,
-                reputation: gameState.stats.reputation,
-                timeline_stability: gameState.stats.timelineStability,
-                discovered_dimensions: gameState.stats.discoveredDimensions,
+                turn_year: gameState.turnYear,
+                turn_month: gameState.turnMonth,
+                multiverse_energy: Math.floor(gameState.resources.gdp / 1000000000),
+                reality_shards: gameState.stats.nationsConquered,
+                knowledge_points: gameState.stats.warsWon,
+                timeline_stability: gameState.internal.stability,
+                discovered_dimensions: gameState.territories.length,
+                diplomatic_relations: gameState.diplomacy.relations,
+                military_units: gameState.military.units,
+                territories_controlled: gameState.territories,
+                ongoing_wars: gameState.diplomacy.wars,
+                internal_support: gameState.internal.support,
                 game_data: gameState,
                 updated_at: new Date().toISOString()
             };
@@ -72,7 +79,7 @@ export class Database {
         try {
             const { data, error } = await supabase
                 .from('game_saves')
-                .select('id, player_name, current_turn, updated_at, discovered_dimensions')
+                .select('id, player_name, selected_nation, current_turn, turn_year, updated_at, territories_controlled')
                 .order('updated_at', { ascending: false })
                 .limit(20);
 
@@ -99,17 +106,20 @@ export class Database {
         }
     }
 
-    async submitScore(playerName, score, dimensionsConquered, totalWealth, gameTurns, victoryType) {
+    async submitScore(playerName, nation, score, territoryPercentage, nationsConquered, warsWon, gameTurns, victoryType) {
         try {
             const { data, error } = await supabase
                 .from('leaderboard')
                 .insert([{
                     player_name: playerName,
                     score,
-                    dimensions_conquered: dimensionsConquered,
-                    total_wealth: totalWealth,
+                    dimensions_conquered: nationsConquered,
+                    total_wealth: score,
                     game_turns: gameTurns,
-                    victory_type: victoryType
+                    victory_type: victoryType,
+                    territory_percentage: territoryPercentage,
+                    wars_won: warsWon,
+                    nations_conquered: nationsConquered
                 }])
                 .select()
                 .maybeSingle();
@@ -134,47 +144,6 @@ export class Database {
             return { success: true, leaderboard: data };
         } catch (error) {
             console.error('Error loading leaderboard:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async unlockAchievement(saveId, achievementCode) {
-        try {
-            const { data, error } = await supabase
-                .from('achievements')
-                .insert([{
-                    save_id: saveId,
-                    achievement_code: achievementCode
-                }])
-                .select()
-                .maybeSingle();
-
-            if (error) {
-                if (error.code === '23505') {
-                    return { success: true, alreadyUnlocked: true };
-                }
-                throw error;
-            }
-
-            return { success: true, data };
-        } catch (error) {
-            console.error('Error unlocking achievement:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async getAchievements(saveId) {
-        try {
-            const { data, error } = await supabase
-                .from('achievements')
-                .select('*')
-                .eq('save_id', saveId)
-                .order('unlocked_at', { ascending: false });
-
-            if (error) throw error;
-            return { success: true, achievements: data };
-        } catch (error) {
-            console.error('Error loading achievements:', error);
             return { success: false, error: error.message };
         }
     }
