@@ -4,20 +4,21 @@ export class GameEngine {
     constructor() {
         this.state = this.getInitialState();
         this.listeners = [];
+        this.timers = {};
+        this.startRealTime();
     }
 
     getInitialState() {
         return {
-            playerName: 'Leader',
+            playerName: 'מנהיג',
             selectedNation: null,
-            currentTurn: 1,
-            turnYear: 2025,
-            turnMonth: 1,
-
+            startTime: Date.now(),
+            
             resources: {
                 gdp: 0,
                 militaryBudget: 0,
-                treasury: 0
+                treasury: 0,
+                growthRate: 2.0
             },
 
             military: {
@@ -34,21 +35,17 @@ export class GameEngine {
             diplomacy: {
                 relations: {},
                 alliances: [],
-                tradeDeals: [],
                 wars: []
             },
 
             internal: {
                 support: 75,
-                stability: 100,
-                leftFaction: 50,
-                rightFaction: 50
+                stability: 100
             },
 
             territories: [],
             conquests: [],
             events: [],
-            technologies: [],
 
             stats: {
                 totalGDP: 0,
@@ -61,11 +58,43 @@ export class GameEngine {
         };
     }
 
+    startRealTime() {
+        // Income every 5 seconds
+        this.timers.income = setInterval(() => {
+            if (this.state.selectedNation) {
+                const incomeRate = this.state.resources.gdp * 0.0005; // 0.05% every 5 sec
+                this.state.resources.treasury += incomeRate;
+                
+                // GDP growth
+                const growthAmount = this.state.resources.gdp * (this.state.resources.growthRate / 100 / 720); // Per 5 sec
+                this.state.resources.gdp += growthAmount;
+                
+                this.notifyListeners();
+            }
+        }, 5000);
+
+        // Events every 30 seconds
+        this.timers.events = setInterval(() => {
+            if (this.state.selectedNation && Math.random() < 0.3) {
+                this.generateRandomEvent();
+            }
+        }, 30000);
+
+        // Auto-save every 2 minutes
+        this.timers.autoSave = setInterval(() => {
+            if (this.state.selectedNation && this.state.saveId) {
+                this.autoSave();
+            }
+        }, 120000);
+    }
+
+    stopRealTime() {
+        Object.values(this.timers).forEach(timer => clearInterval(timer));
+    }
+
     selectNation(nationId) {
         const nation = NATIONS[nationId];
-        if (!nation) {
-            return { success: false, message: 'Nation not found!' };
-        }
+        if (!nation) return { success: false, message: 'מדינה לא נמצאה!' };
 
         this.state.selectedNation = nationId;
         this.state.resources.gdp = nation.demographics.gdp;
@@ -79,9 +108,8 @@ export class GameEngine {
         };
 
         this.state.diplomacy.relations = { ...nation.relations };
-
         this.state.territories = [{
-            nationId: nationId,
+            nationId,
             name: nation.name,
             area: nation.demographics.area,
             population: nation.demographics.population,
@@ -93,8 +121,8 @@ export class GameEngine {
 
         this.addEvent({
             type: 'gameStart',
-            title: `Welcome, Leader of ${nation.name}!`,
-            message: `You have taken control of ${nation.title}. The year is 2025.`,
+            title: `ברוך הבא, מנהיג ${nation.name}!`,
+            message: `${nation.title}. המשחק פועל בזמן אמת!`,
             importance: 'high'
         });
 
@@ -103,8 +131,7 @@ export class GameEngine {
     }
 
     getNation(nationId = null) {
-        const id = nationId || this.state.selectedNation;
-        return NATIONS[id];
+        return NATIONS[nationId || this.state.selectedNation];
     }
 
     calculateTerritoryPercentage() {
@@ -120,12 +147,12 @@ export class GameEngine {
     improveRelations(targetNationId, amount = 10) {
         const cost = 1000000000;
         if (this.state.resources.treasury < cost) {
-            return { success: false, message: 'Insufficient funds!' };
+            return { success: false, message: 'אין מספיק כספים!' };
         }
 
         const currentRelation = this.getRelation(targetNationId);
         if (currentRelation >= 100) {
-            return { success: false, message: 'Relations already at maximum!' };
+            return { success: false, message: 'היחסים כבר במקסימום!' };
         }
 
         this.state.resources.treasury -= cost;
@@ -134,8 +161,8 @@ export class GameEngine {
         const targetNation = this.getNation(targetNationId);
         this.addEvent({
             type: 'diplomacy',
-            title: 'Diplomatic Success',
-            message: `Relations with ${targetNation.name} improved to ${this.state.diplomacy.relations[targetNationId]}%`,
+            title: 'הצלחה דיפלומטית',
+            message: `היחסים עם ${targetNation.name} שופרו ל-${this.state.diplomacy.relations[targetNationId]}%`,
             importance: 'medium'
         });
 
@@ -146,11 +173,11 @@ export class GameEngine {
     formAlliance(targetNationId) {
         const relation = this.getRelation(targetNationId);
         if (relation < 70) {
-            return { success: false, message: 'Relations too low! Need 70+ to form alliance.' };
+            return { success: false, message: 'היחסים נמוכים מדי! נדרש 70+ כדי ליצור ברית.' };
         }
 
         if (this.state.diplomacy.alliances.includes(targetNationId)) {
-            return { success: false, message: 'Already allied!' };
+            return { success: false, message: 'כבר בברית!' };
         }
 
         this.state.diplomacy.alliances.push(targetNationId);
@@ -158,8 +185,8 @@ export class GameEngine {
         const targetNation = this.getNation(targetNationId);
         this.addEvent({
             type: 'alliance',
-            title: 'Alliance Formed!',
-            message: `${this.getNation().name} and ${targetNation.name} have formed an alliance!`,
+            title: 'ברית נוצרה!',
+            message: `${this.getNation().name} ו-${targetNation.name} יצרו ברית!`,
             importance: 'high'
         });
 
@@ -169,7 +196,7 @@ export class GameEngine {
 
     declareWar(targetNationId) {
         if (this.state.diplomacy.wars.find(w => w.target === targetNationId)) {
-            return { success: false, message: 'Already at war!' };
+            return { success: false, message: 'כבר במלחמה!' };
         }
 
         const targetNation = this.getNation(targetNationId);
@@ -177,7 +204,7 @@ export class GameEngine {
 
         this.state.diplomacy.wars.push({
             target: targetNationId,
-            startTurn: this.state.currentTurn,
+            startTime: Date.now(),
             playerStrength: this.state.military.strength,
             enemyStrength: targetNation.military.strength,
             battles: []
@@ -188,45 +215,20 @@ export class GameEngine {
 
         this.addEvent({
             type: 'war',
-            title: 'War Declared!',
-            message: `${playerNation.name} has declared war on ${targetNation.name}!`,
+            title: 'מלחמה הוכרזה!',
+            message: `${playerNation.name} הכריז מלחמה על ${targetNation.name}!`,
             importance: 'critical'
         });
-
-        const blocReaction = this.checkBlocReactions(targetNationId);
-        if (blocReaction.escalation) {
-            this.addEvent({
-                type: 'blocWar',
-                title: 'BLOC CONFLICT!',
-                message: blocReaction.message,
-                importance: 'critical'
-            });
-        }
 
         this.notifyListeners();
         return { success: true };
     }
 
-    checkBlocReactions(targetNationId) {
-        const targetNation = this.getNation(targetNationId);
-        const playerNation = this.getNation();
-
-        if (targetNation.bloc !== playerNation.bloc && targetNation.bloc !== 'Neutral' && playerNation.bloc !== 'Neutral') {
-            return {
-                escalation: true,
-                message: `Warning: ${BLOCS[targetNation.bloc].name} and ${BLOCS[playerNation.bloc].name} are now in conflict! Other bloc members may intervene.`
-            };
-        }
-
-        return { escalation: false };
-    }
-
     conductBattle(warIndex) {
         const war = this.state.diplomacy.wars[warIndex];
-        if (!war) return { success: false, message: 'War not found!' };
+        if (!war) return { success: false, message: 'מלחמה לא נמצאה!' };
 
         const targetNation = this.getNation(war.target);
-
         const playerPower = this.state.military.strength + (Math.random() * 20 - 10);
         const enemyPower = war.enemyStrength + (Math.random() * 20 - 10);
 
@@ -237,11 +239,7 @@ export class GameEngine {
             this.state.military.units.infantry = Math.floor(this.state.military.units.infantry * (1 - casualtyRate));
             this.state.military.units.armor = Math.floor(this.state.military.units.armor * (1 - casualtyRate * 0.8));
 
-            war.battles.push({
-                turn: this.state.currentTurn,
-                result: 'victory',
-                casualties: casualtyRate
-            });
+            war.battles.push({ time: Date.now(), result: 'victory', casualties: casualtyRate });
 
             if (war.battles.filter(b => b.result === 'victory').length >= 3) {
                 return this.conquerNation(war.target, warIndex);
@@ -249,25 +247,20 @@ export class GameEngine {
 
             this.addEvent({
                 type: 'battleVictory',
-                title: 'Battle Won!',
-                message: `Your forces have defeated ${targetNation.name} in battle! ${war.battles.filter(b => b.result === 'victory').length}/3 victories.`,
+                title: 'ניצחון בקרב!',
+                message: `הכוחות שלך ניצחו את ${targetNation.name}! ${war.battles.filter(b => b.result === 'victory').length}/3 ניצחונות.`,
                 importance: 'high'
             });
         } else {
             this.state.military.units.infantry = Math.floor(this.state.military.units.infantry * (1 - casualtyRate * 1.5));
-            this.state.military.units.armor = Math.floor(this.state.military.units.armor * (1 - casualtyRate * 1.2));
             this.state.internal.support -= 10;
 
-            war.battles.push({
-                turn: this.state.currentTurn,
-                result: 'defeat',
-                casualties: casualtyRate * 1.5
-            });
+            war.battles.push({ time: Date.now(), result: 'defeat', casualties: casualtyRate * 1.5 });
 
             this.addEvent({
                 type: 'battleDefeat',
-                title: 'Battle Lost',
-                message: `Your forces were defeated by ${targetNation.name}. Morale is declining.`,
+                title: 'הפסד בקרב',
+                message: `הכוחות שלך הובסו על ידי ${targetNation.name}. המורל יורד.`,
                 importance: 'high'
             });
         }
@@ -285,16 +278,11 @@ export class GameEngine {
             area: targetNation.demographics.area,
             population: targetNation.demographics.population,
             originalOwner: false,
-            conqueredTurn: this.state.currentTurn,
+            conqueredTime: Date.now(),
             integration: 0
         });
 
-        this.state.conquests.push({
-            nation: targetNationId,
-            turn: this.state.currentTurn,
-            year: this.state.turnYear
-        });
-
+        this.state.conquests.push({ nation: targetNationId, time: Date.now() });
         this.state.resources.gdp += Math.floor(targetNation.demographics.gdp * 0.3);
         this.state.stats.nationsConquered++;
         this.state.stats.warsWon++;
@@ -302,21 +290,14 @@ export class GameEngine {
 
         this.state.diplomacy.wars.splice(warIndex, 1);
 
-        Object.keys(NATIONS).forEach(nationId => {
-            if (NATIONS[nationId].relations && NATIONS[nationId].relations[targetNationId] > 50) {
-                this.state.diplomacy.relations[nationId] = Math.max(-100, (this.state.diplomacy.relations[nationId] || 0) - 30);
-            }
-        });
-
         this.addEvent({
             type: 'conquest',
-            title: 'NATION CONQUERED!',
-            message: `${targetNation.name} has fallen! Territory, resources, and population absorbed.`,
+            title: 'מדינה נכבשה!',
+            message: `${targetNation.name} נפל! שטח, משאבים ואוכלוסייה נספחו.`,
             importance: 'critical'
         });
 
         this.checkVictoryConditions();
-
         this.notifyListeners();
         return { success: true, conquered: true };
     }
@@ -324,7 +305,7 @@ export class GameEngine {
     investEconomy() {
         const cost = Math.floor(this.state.resources.gdp * 0.05);
         if (this.state.resources.treasury < cost) {
-            return { success: false, message: 'Insufficient funds!' };
+            return { success: false, message: 'אין מספיק כספים!' };
         }
 
         this.state.resources.treasury -= cost;
@@ -333,8 +314,8 @@ export class GameEngine {
 
         this.addEvent({
             type: 'economy',
-            title: 'Economic Investment',
-            message: 'GDP increased by 5% through infrastructure investment!',
+            title: 'השקעה כלכלית',
+            message: 'תמ"ג גדל ב-5% דרך השקעה בתשתיות!',
             importance: 'medium'
         });
 
@@ -352,7 +333,7 @@ export class GameEngine {
 
         const totalCost = costs[unitType] * quantity;
         if (this.state.resources.treasury < totalCost) {
-            return { success: false, message: 'Insufficient funds!' };
+            return { success: false, message: 'אין מספיק כספים!' };
         }
 
         this.state.resources.treasury -= totalCost;
@@ -361,8 +342,8 @@ export class GameEngine {
 
         this.addEvent({
             type: 'military',
-            title: 'Military Expansion',
-            message: `Recruited ${quantity} ${unitType} units. Strength: ${this.state.military.strength}%`,
+            title: 'הרחבת צבא',
+            message: `גויסו ${quantity} יחידות ${unitType}. כוח: ${this.state.military.strength}%`,
             importance: 'medium'
         });
 
@@ -381,55 +362,12 @@ export class GameEngine {
         return Math.min(100, base + unitBonus);
     }
 
-    endTurn() {
-        this.state.currentTurn++;
-        this.state.turnMonth++;
-
-        if (this.state.turnMonth > 12) {
-            this.state.turnMonth = 1;
-            this.state.turnYear++;
-        }
-
-        const gdpGrowth = Math.floor(this.state.resources.gdp * 0.02);
-        this.state.resources.gdp += gdpGrowth;
-        this.state.resources.treasury += Math.floor(this.state.resources.gdp * 0.05);
-        this.state.resources.militaryBudget = Math.floor(this.state.resources.gdp * 0.03);
-
-        this.state.territories.forEach(territory => {
-            if (!territory.originalOwner && territory.integration < 100) {
-                territory.integration += 5;
-                if (Math.random() < 0.1 && territory.integration < 50) {
-                    this.addEvent({
-                        type: 'revolt',
-                        title: 'Unrest in Conquered Territory',
-                        message: `${territory.name} is experiencing resistance.`,
-                        importance: 'medium'
-                    });
-                    this.state.internal.support -= 5;
-                }
-            }
-        });
-
-        if (Math.random() < 0.3) {
-            this.generateRandomEvent();
-        }
-
-        this.state.events = this.state.events.filter(e =>
-            this.state.currentTurn - e.turn < 10
-        );
-
-        this.checkVictoryConditions();
-        this.checkDefeatConditions();
-
-        this.notifyListeners();
-    }
-
     generateRandomEvent() {
         const eventTypes = [
             {
                 type: 'economicBoom',
-                title: 'Economic Boom!',
-                message: 'Strong market performance boosted your GDP!',
+                title: 'פריחה כלכלית!',
+                message: 'ביצועים חזקים בשוק הגבירו את התמ"ג שלך!',
                 effect: () => {
                     this.state.resources.gdp = Math.floor(this.state.resources.gdp * 1.10);
                     this.state.internal.support += 10;
@@ -437,8 +375,8 @@ export class GameEngine {
             },
             {
                 type: 'recession',
-                title: 'Economic Recession',
-                message: 'Market downturn affected your economy.',
+                title: 'מיתון כלכלי',
+                message: 'ירידה בשוק השפיעה על הכלכלה שלך.',
                 effect: () => {
                     this.state.resources.gdp = Math.floor(this.state.resources.gdp * 0.95);
                     this.state.internal.support -= 10;
@@ -446,16 +384,14 @@ export class GameEngine {
             },
             {
                 type: 'nuclearTest',
-                title: 'Nuclear Test Detected',
-                message: 'Intelligence reports rogue state nuclear test.',
-                effect: () => {
-                    this.state.internal.rightFaction += 10;
-                }
+                title: 'נבדק ניסוי גרעיני',
+                message: 'מודיעין מדווח על ניסוי גרעיני של מדינת נוכלים.',
+                effect: () => {}
             },
             {
                 type: 'tradeOpportunity',
-                title: 'Trade Opportunity',
-                message: 'A nation offers lucrative trade deals.',
+                title: 'הזדמנות סחר',
+                message: 'מדינה מציעה עסקאות סחר משתלמות.',
                 effect: () => {
                     this.state.resources.treasury += 5000000000;
                 }
@@ -471,9 +407,7 @@ export class GameEngine {
         this.state.events.unshift({
             ...event,
             id: `event_${Date.now()}_${Math.random()}`,
-            turn: event.turn || this.state.currentTurn,
-            year: event.year || this.state.turnYear,
-            month: event.month || this.state.turnMonth
+            time: Date.now()
         });
 
         if (this.state.events.length > 20) {
@@ -485,48 +419,31 @@ export class GameEngine {
         const conditions = [];
 
         if (this.state.stats.territoryPercentage >= 50) {
-            conditions.push({ type: 'territorial', message: 'Achieved 50% global territory control!' });
+            conditions.push({ type: 'territorial', message: 'שליטה על 50% מהשטח העולמי!' });
         }
 
         if (this.state.resources.gdp >= 10000000000000) {
-            conditions.push({ type: 'economic', message: 'Achieved 10 Trillion GDP!' });
-        }
-
-        if (this.state.turnYear >= 2035) {
-            conditions.push({ type: 'survival', message: 'Survived to 2035!' });
+            conditions.push({ type: 'economic', message: 'תמ"ג של 10 טריליון דולר!' });
         }
 
         if (conditions.length > 0) {
             this.state.victory = {
                 achieved: true,
                 conditions,
-                turn: this.state.currentTurn,
-                year: this.state.turnYear
+                time: Date.now()
             };
 
             this.addEvent({
                 type: 'victory',
-                title: 'VICTORY ACHIEVED!',
+                title: 'ניצחון!',
                 message: conditions.map(c => c.message).join(' '),
                 importance: 'critical'
             });
         }
     }
 
-    checkDefeatConditions() {
-        if (this.state.resources.gdp < 10000000000) {
-            this.state.defeat = {
-                reason: 'Economic Collapse',
-                message: 'Your economy has completely collapsed.'
-            };
-        }
-
-        if (this.state.internal.support < 20) {
-            this.state.defeat = {
-                reason: 'Popular Revolt',
-                message: 'Government overthrown by popular uprising.'
-            };
-        }
+    autoSave() {
+        // Will be called by UI
     }
 
     subscribe(callback) {
@@ -544,5 +461,9 @@ export class GameEngine {
     setState(newState) {
         this.state = { ...this.state, ...newState };
         this.notifyListeners();
+    }
+
+    destroy() {
+        this.stopRealTime();
     }
 }

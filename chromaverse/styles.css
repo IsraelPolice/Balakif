@@ -908,3 +908,337 @@ body {
     border-radius: 8px;
     margin-top: 1rem;
 }
+
+/* RTL and Mobile-First Enhancements */
+body {
+    direction: rtl;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+}
+
+/* Mobile-Optimized Layout */
+.full-width {
+    width: 100% !important;
+    max-width: 100%;
+}
+
+.world-map-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.map-header {
+    padding: 1rem;
+    background: var(--bg-medium);
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.map-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.world-map {
+    flex: 1;
+    overflow: auto;
+    background: radial-gradient(circle at center, rgba(0, 217, 255, 0.05), transparent),
+                var(--bg-dark);
+    position: relative;
+    touch-action: pan-x pan-y pinch-zoom;
+}
+
+.map-legend {
+    padding: 0.75rem;
+    background: var(--bg-medium);
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid var(--border-color);
+}
+
+.quick-info {
+    padding: 1rem;
+    background: var(--bg-medium);
+    border-top: 2px solid var(--border-color);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.quick-info .info-section h4 {
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Actions Panel - Mobile Bottom Sheet */
+.actions-panel {
+    background: var(--bg-medium);
+    border-top: 2px solid var(--border-color);
+    max-height: 50vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-tabs {
+    display: flex;
+    background: var(--bg-light);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.action-tab {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.action-tab.active {
+    color: var(--accent-primary);
+    border-bottom-color: var(--accent-primary);
+}
+
+.tab-icon {
+    font-size: 1.5rem;
+}
+
+.tab-label {
+    font-size: 0.75rem;
+}
+
+/* World Map SVG Styling */
+.nation-path {
+    stroke: var(--border-color);
+    stroke-width: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nation-path:hover {
+    stroke-width: 2;
+    filter: brightness(1.2);
+}
+
+.nation-path.selected {
+    stroke: var(--accent-tertiary);
+    stroke-width: 3;
+    filter: brightness(1.3);
+}
+
+.nation-path.conquered {
+    fill: var(--accent-tertiary) !important;
+    animation: pulseConquered 2s infinite;
+}
+
+@keyframes pulseConquered {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Mobile Responsive Overrides */
+@media (max-width: 768px) {
+    .hud-top {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .hud-section {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .resource {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+    .resource-label {
+        font-size: 0.75rem;
+    }
+
+    .resource-value,
+    .stat-value {
+        font-size: 0.95rem;
+    }
+
+    .hud-center {
+        width: 100%;
+        order: -1;
+    }
+
+    .hud-center h2 {
+        font-size: 1.25rem;
+    }
+
+    .turn-counter {
+        font-size: 0.85rem;
+    }
+
+    .game-main {
+        flex-direction: column;
+    }
+
+    .panel-left,
+    .panel-right {
+        display: none;
+    }
+
+    .quick-info {
+        grid-template-columns: 1fr;
+    }
+
+    .actions-panel {
+        max-height: 40vh;
+    }
+
+    .tab-content {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        overflow-y: auto;
+        max-height: calc(40vh - 70px);
+    }
+
+    .hud-bottom {
+        padding: 0.75rem 1rem;
+        justify-content: space-around;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-text {
+        display: inline;
+    }
+
+    /* Touch-friendly button sizes */
+    .btn-primary,
+    .btn-secondary,
+    .btn-action,
+    .btn-icon {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .dimension-card,
+    .tech-card,
+    .building-card {
+        padding: 0.75rem;
+    }
+
+    .nation-select-card {
+        padding: 1rem;
+    }
+
+    .modal {
+        width: 95%;
+        max-height: 85vh;
+    }
+}
+
+/* Very Small Screens */
+@media (max-width: 480px) {
+    .hud-top {
+        padding: 0.5rem;
+    }
+
+    .hud-center h2 {
+        font-size: 1.1rem;
+    }
+
+    .resource-value,
+    .stat-value {
+        font-size: 0.85rem;
+    }
+
+    .map-legend {
+        font-size: 0.75rem;
+    }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+    }
+
+    .tab-label {
+        font-size: 0.65rem;
+    }
+
+    .title {
+        font-size: 2.5rem !important;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* Landscape Mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+    .hud-top {
+        padding: 0.5rem 1rem;
+    }
+
+    .actions-panel {
+        max-height: 60vh;
+    }
+
+    .quick-info {
+        display: none;
+    }
+}
+
+/* Touch Feedback */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-action:active,
+.action-tab:active,
+.nation-path:active {
+    transform: scale(0.95);
+}
+
+/* Smooth Scrolling */
+* {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent Text Selection on Buttons */
+button {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hevre's Empire - Geopolitical Strategy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>אימפריית החברה - אסטרטגיה גיאופוליטית</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,33 +13,33 @@
         <!-- Loading Screen -->
         <div id="loading-screen" class="screen active">
             <div class="loading-content">
-                <h1 class="glitch" data-text="HEVRE'S EMPIRE">HEVRE'S EMPIRE</h1>
-                <p class="subtitle">Geopolitical Strategy • 2025-2035</p>
+                <h1 class="glitch" data-text="אימפריית החברה">אימפריית החברה</h1>
+                <p class="subtitle">אסטרטגיה גיאופוליטית בזמן אמת</p>
                 <div class="loading-bar">
                     <div class="loading-progress"></div>
                 </div>
-                <p class="loading-text">Initializing Global Theater...</p>
+                <p class="loading-text">מאתחל את הזירה העולמית...</p>
             </div>
         </div>
 
         <!-- Main Menu -->
         <div id="menu-screen" class="screen">
             <div class="menu-content">
-                <h1 class="title glitch" data-text="HEVRE'S EMPIRE">HEVRE'S EMPIRE</h1>
-                <p class="subtitle">Command Nations • Forge Alliances • Conquer the World</p>
+                <h1 class="title glitch" data-text="אימפריית החברה">אימפריית החברה</h1>
+                <p class="subtitle">שלוט במדינות • צור בריתות • כבוש את העולם</p>
 
                 <div class="menu-buttons">
                     <button class="btn-primary" id="btn-new-game">
-                        <span>New Game</span>
+                        <span>משחק חדש</span>
                     </button>
                     <button class="btn-secondary" id="btn-load-game">
-                        <span>Load Game</span>
+                        <span>טען משחק</span>
                     </button>
                     <button class="btn-secondary" id="btn-leaderboard">
-                        <span>Leaderboard</span>
+                        <span>טבלת מובילים</span>
                     </button>
                     <button class="btn-secondary" id="btn-how-to-play">
-                        <span>How to Play</span>
+                        <span>איך משחקים</span>
                     </button>
                 </div>
             </div>
@@ -50,118 +52,147 @@
                 <div class="hud-section">
                     <div class="resource">
                         <span class="resource-icon">💰</span>
-                        <span class="resource-label">GDP:</span>
                         <span class="resource-value" id="gdp-value">0</span>
+                        <span class="resource-label">תמ"ג</span>
                     </div>
                     <div class="resource">
                         <span class="resource-icon">💵</span>
-                        <span class="resource-label">Treasury:</span>
                         <span class="resource-value" id="treasury-value">0</span>
+                        <span class="resource-label">אוצר</span>
                     </div>
                     <div class="resource">
                         <span class="resource-icon">⚔️</span>
-                        <span class="resource-label">Military:</span>
                         <span class="resource-value" id="military-value">0%</span>
+                        <span class="resource-label">צבא</span>
                     </div>
                 </div>
 
                 <div class="hud-center">
-                    <h2 id="player-name">Leader</h2>
-                    <p class="turn-counter"><span id="turn-date">January 2025</span> • Turn <span id="turn-number">1</span></p>
+                    <h2 id="player-name">מנהיג</h2>
+                    <p class="turn-counter"><span id="turn-date">זמן אמת</span></p>
                 </div>
 
                 <div class="hud-section">
                     <div class="stat">
                         <span class="stat-icon">🌍</span>
                         <span class="stat-value" id="territory-percent">0%</span>
-                        <span class="stat-label">Territory</span>
+                        <span class="stat-label">שטח</span>
                     </div>
                     <div class="stat">
                         <span class="stat-icon">❤️</span>
                         <span class="stat-value" id="support-value">75%</span>
-                        <span class="stat-label">Support</span>
+                        <span class="stat-label">תמיכה</span>
                     </div>
                 </div>
             </div>
 
             <!-- Main Game Area -->
             <div class="game-main">
-                <!-- Left Panel - Nations List -->
-                <div class="panel-left">
-                    <div class="panel-header">
-                        <h3>World Nations</h3>
-                    </div>
-                    <div class="dimension-list" id="nations-list">
-                        <!-- Nations will be added here -->
-                    </div>
-                </div>
-
-                <!-- Center - Main View -->
-                <div class="panel-center">
-                    <div class="dimension-view" id="dimension-view">
-                        <div class="dimension-header">
-                            <h2 id="current-dimension-name">Prime Reality</h2>
-                            <div class="dimension-stats">
-                                <span class="dim-stat">Type: <strong id="dim-type">Standard</strong></span>
-                                <span class="dim-stat">Danger: <strong id="dim-danger">Low</strong></span>
-                                <span class="dim-stat">Wealth: <strong id="dim-wealth">Medium</strong></span>
+                <!-- Main World Map -->
+                <div class="panel-center full-width">
+                    <div class="world-map-container">
+                        <div class="map-header">
+                            <h2 id="current-nation-name">בחר מדינה</h2>
+                            <div class="map-controls">
+                                <button class="btn-icon" id="btn-zoom-in" title="הגדל">➕</button>
+                                <button class="btn-icon" id="btn-zoom-out" title="הקטן">➖</button>
+                                <button class="btn-icon" id="btn-reset-zoom" title="אפס תצוגה">🔄</button>
                             </div>
                         </div>
 
-                        <div class="dimension-map" id="dimension-map">
-                            <!-- Procedurally generated map -->
+                        <div class="world-map" id="world-map">
+                            <!-- Interactive SVG map will be rendered here -->
                         </div>
 
-                        <div class="dimension-info">
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #0066cc;"></span>
+                                <span>מערב (חופש)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #cc0000;"></span>
+                                <span>קומוניזם (שוויון)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #808080;"></span>
+                                <span>נייטרלי</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #660066;"></span>
+                                <span>כאוס</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #00ff88;"></span>
+                                <span>כבוש על ידך</span>
+                            </div>
+                        </div>
+
+                        <div class="quick-info" id="quick-info">
                             <div class="info-section">
-                                <h4>Resources</h4>
+                                <h4>השטחים שלך</h4>
                                 <div class="resource-grid" id="resource-grid"></div>
                             </div>
                             <div class="info-section">
-                                <h4>Outposts</h4>
+                                <h4>מלחמות פעילות</h4>
                                 <div class="outpost-grid" id="outpost-grid"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Panel - Actions -->
-                <div class="panel-right">
-                    <div class="tabs">
-                        <button class="tab active" data-tab="diplomacy">Diplomacy</button>
-                        <button class="tab" data-tab="military">Military</button>
-                        <button class="tab" data-tab="economy">Economy</button>
-                        <button class="tab" data-tab="events">Events</button>
+                <!-- Bottom Actions Panel (Mobile-friendly) -->
+                <div class="actions-panel">
+                    <div class="action-tabs">
+                        <button class="action-tab active" data-tab="diplomacy">
+                            <span class="tab-icon">🤝</span>
+                            <span class="tab-label">דיפלומטיה</span>
+                        </button>
+                        <button class="action-tab" data-tab="military">
+                            <span class="tab-icon">⚔️</span>
+                            <span class="tab-label">צבא</span>
+                        </button>
+                        <button class="action-tab" data-tab="economy">
+                            <span class="tab-icon">💰</span>
+                            <span class="tab-label">כלכלה</span>
+                        </button>
+                        <button class="action-tab" data-tab="events">
+                            <span class="tab-icon">📰</span>
+                            <span class="tab-label">אירועים</span>
+                        </button>
                     </div>
 
                     <div class="tab-content active" id="tab-diplomacy">
-                        <h3>Diplomatic Relations</h3>
+                        <h3>יחסים דיפלומטיים</h3>
                         <div class="tech-tree" id="diplomacy-panel"></div>
                     </div>
 
                     <div class="tab-content" id="tab-military">
-                        <h3>Military Forces</h3>
+                        <h3>כוחות צבאיים</h3>
                         <div class="building-list" id="military-panel"></div>
                     </div>
 
                     <div class="tab-content" id="tab-economy">
-                        <h3>Economic Management</h3>
+                        <h3>ניהול כלכלי</h3>
                         <div class="trade-panel" id="economy-panel"></div>
                     </div>
 
                     <div class="tab-content" id="tab-events">
-                        <h3>Current Events</h3>
+                        <h3>אירועים אחרונים</h3>
                         <div class="events-list" id="events-list"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom Controls -->
+            <!-- Bottom Controls (Mobile-optimized) -->
             <div class="hud-bottom">
-                <button class="btn-action" id="btn-save-game">💾 Save</button>
-                <button class="btn-action" id="btn-achievements">🏆 Achievements</button>
-                <button class="btn-primary" id="btn-end-turn">End Turn ⏭️</button>
-                <button class="btn-action" id="btn-menu">⚙️ Menu</button>
+                <button class="btn-action" id="btn-save-game">
+                    <span>💾</span>
+                    <span class="btn-text">שמור</span>
+                </button>
+                <button class="btn-action" id="btn-menu">
+                    <span>⚙️</span>
+                    <span class="btn-text">תפריט</span>
+                </button>
             </div>
         </div>
 
