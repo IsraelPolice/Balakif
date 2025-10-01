@@ -360,100 +360,63 @@ export class UI {
         const nation = NATIONS[nationId];
         const relation = this.engine.getRelation(nationId);
 
-        let html = `
-            <h2>${nation.flag} ${nation.name}</h2>
-            <h3 style="color: var(--text-secondary); margin-bottom: 1rem;">${nation.title}</h3>
-            <p>${nation.backstory}</p>
-            <div style="margin-top: 1.5rem;">
-                <h3>Statistics</h3>
-                <div class="nation-stats-detail">
-                    <div>Population: ${(nation.demographics.population / 1000000).toFixed(1)}M</div>
-                    <div>GDP: $${(nation.demographics.gdp / 1000000000000).toFixed(2)}T</div>
-                    <div>Military Strength: ${nation.military.strength}%</div>
-                    <div>Relations: ${relation}%</div>
-                </div>
-            </div>
-            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                <button class="btn-primary" onclick="window.game.ui.improveRelations('${nationId}')">Improve Relations ($1B)</button>
-                <button class="btn-action" onclick="window.game.ui.declareWar('${nationId}')">Declare War</button>
-            </div>
-        `;
+        const html = LeaderCard.createModal(nationId, nation, relation);
         this.showModal(html);
     }
 
     improveRelations(nationId) {
         const result = this.engine.improveRelations(nationId);
         if (result.success) {
-            this.showNotification('Relations improved!', 'success');
+            this.showNotification('יחסים שופרו!', 'success');
             this.hideModal();
         } else {
             this.showNotification(result.message, 'warning');
         }
     }
 
-    declareWar(nationId) {
-        if (confirm(`Declare war on ${NATIONS[nationId].name}? This will damage relations with their allies.`)) {
-            const result = this.engine.declareWar(nationId);
-            if (result.success) {
-                this.showNotification(`War declared on ${NATIONS[nationId].name}!`, 'danger');
-                this.hideModal();
-            }
+    formAlliance(nationId) {
+        const result = this.engine.formAlliance(nationId);
+        if (result.success) {
+            this.showNotification(`ברית נוצרה עם ${NATIONS[nationId].name}!`, 'success');
+            this.hideModal();
+        } else {
+            this.showNotification(result.message, 'warning');
         }
     }
 
-    renderCurrentNation(state) {
-        const nation = NATIONS[state.selectedNation];
-        this.elements.currentDimensionName.textContent = nation.name;
-        this.elements.dimType.textContent = nation.title;
-        this.elements.dimDanger.textContent = nation.bloc;
-        this.elements.dimWealth.textContent = `$${(nation.demographics.gdp / 1000000000000).toFixed(1)}T GDP`;
+    confirmWar(nationId) {
+        if (confirm(`להכריז מלחמה על ${NATIONS[nationId].name}? זה יפגע ביחסים עם בני בריתם.`)) {
+            this.declareWar(nationId);
+        }
+    }
 
-        this.elements.dimensionMap.innerHTML = `
-            <div style="padding: 2rem; text-align: center;">
-                <div style="font-size: 8rem; margin-bottom: 1rem;">${nation.flag}</div>
-                <h2>${nation.name}</h2>
-                <p style="color: var(--text-secondary); margin-top: 0.5rem;">${nation.backstory}</p>
-            </div>
-        `;
-
-        let resourcesHTML = '';
-        state.territories.forEach(t => {
-            resourcesHTML += `
-                <div class="resource-card">
-                    <div style="font-weight: bold;">${NATIONS[t.nationId]?.name || t.name}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
-                        ${(t.population / 1000000).toFixed(1)}M people
-                    </div>
-                    ${!t.originalOwner ? `<div style="color: var(--accent-tertiary);">Integration: ${t.integration}%</div>` : ''}
-                </div>
-            `;
-        });
-        this.elements.resourceGrid.innerHTML = resourcesHTML || '<p style="color: var(--text-secondary);">No territories</p>';
-
-        let warsHTML = '';
-        state.diplomacy.wars.forEach((war, index) => {
-            const enemy = NATIONS[war.target];
-            const victories = war.battles.filter(b => b.result === 'victory').length;
-            warsHTML += `
-                <div class="outpost-card">
-                    <div style="font-weight: bold;">🔥 War vs ${enemy.name}</div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Victories: ${victories}/3</div>
-                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="window.game.ui.conductBattle(${index})">Launch Attack</button>
-                </div>
-            `;
-        });
-        this.elements.outpostGrid.innerHTML = warsHTML || '<p style="color: var(--text-secondary);">No active wars</p>';
+    declareWar(nationId) {
+        const result = this.engine.declareWar(nationId);
+        if (result.success) {
+            this.showNotification(`מלחמה הוכרזה על ${NATIONS[nationId].name}!`, 'danger');
+            this.hideModal();
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
     }
 
     conductBattle(warIndex) {
         const result = this.engine.conductBattle(warIndex);
-        if (result.victory) {
-            this.showNotification('Battle won!', 'success');
-        } else if (result.conquered) {
-            this.showNotification('Nation conquered!', 'success');
+        if (result.success) {
+            if (result.conquered) {
+                this.showNotification('ניצחון! המדינה נכבשה!', 'success');
+            } else if (result.victory) {
+                this.showNotification('ניצחון בקרב!', 'success');
+            } else {
+                this.showNotification('הפסד בקרב', 'danger');
+            }
         } else {
-            this.showNotification('Battle lost', 'danger');
+            this.showNotification(result.message, 'warning');
         }
+    }
+
+    renderCurrentNation(state) {
+        // פונקציה זו כבר לא נחוצה - renderTerritories ו-renderWars מטפלים בתצוגה
     }
 
     renderDiplomacy(state) {

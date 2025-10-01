@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בדיקה - אימפריית לסרילנד</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #000a14, #001428);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            direction: rtl;
+        }
+
+        .header {
+            padding: 1rem;
+            text-align: center;
+            background: rgba(0, 217, 255, 0.1);
+            border-bottom: 2px solid #00d9ff;
+        }
+
+        h1 {
+            color: #00d9ff;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .container {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nation-card {
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00d9ff;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 217, 255, 0.4);
+            border-color: #00ff88;
+        }
+
+        .leader-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 2px solid #00d9ff;
+        }
+
+        .nation-name {
+            font-size: 1.3rem;
+            color: #00d9ff;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .nation-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 0.5rem;
+        }
+
+        .status {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(0, 20, 40, 0.95);
+            border: 2px solid #00d9ff;
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+        }
+
+        .status.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .map-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌍 אימפריית לסרילנד 🌍</h1>
+        <p>בחר מדינה כדי להתחיל</p>
+    </div>
+
+    <div class="container">
+        <div class="map-grid" id="mapGrid"></div>
+    </div>
+
+    <div class="status" id="status">
+        <h3>סטטוס: <span id="statusText">מוכן</span></h3>
+    </div>
+
+    <script>
+        const nations = [
+            {
+                id: 'LasriLand',
+                name: 'ארץ לסרי',
+                image: 'https://i.postimg.cc/kgSJfg51/Chat-GPT-Image-Oct-1-2025-01-55-21-PM.png',
+                gdp: 500,
+                military: 85
+            },
+            {
+                id: 'BareketLand',
+                name: 'ארץ ברקת',
+                image: 'https://i.postimg.cc/y8R1v8Nf/Chat-GPT-Image-Oct-1-2025-02-03-53-PM.png',
+                gdp: 31000,
+                military: 90
+            },
+            {
+                id: 'Titiland',
+                name: 'ארץ טיטי',
+                image: 'https://i.postimg.cc/59P2trTW/image.png',
+                gdp: 2200,
+                military: 75
+            },
+            {
+                id: 'SchwartzLand',
+                name: 'ארץ שוורץ',
+                image: 'https://i.postimg.cc/3rLxwq6f/Chat-GPT-Image-Oct-1-2025-02-10-55-PM.png',
+                gdp: 4500,
+                military: 88
+            },
+            {
+                id: 'KachlerLand',
+                name: 'ארץ כחלר',
+                image: 'https://i.postimg.cc/CLXMGqwW/Chat-GPT-Image-Oct-1-2025-01-56-24-PM.png',
+                gdp: 1800,
+                military: 85
+            },
+            {
+                id: 'DvirOhanaLand',
+                name: 'ארץ דביר אוחנה',
+                image: 'https://i.postimg.cc/xCn1kVn6/Chat-GPT-Image-Oct-1-2025-03-09-34-PM.png',
+                gdp: 18000,
+                military: 82
+            }
+        ];
+
+        const mapGrid = document.getElementById('mapGrid');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+
+        nations.forEach(nation => {
+            const card = document.createElement('div');
+            card.className = 'nation-card';
+            card.innerHTML = `
+                <img src="${nation.image}" alt="${nation.name}" class="leader-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Crect fill=%27%23333%27 width=%27200%27 height=%27200%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 fill=%27%23fff%27 font-size=%2740%27 text-anchor=%27middle%27%3E👤%3C/text%3E%3C/svg%3E'">
+                <div class="nation-name">${nation.name}</div>
+                <div class="nation-stats">
+                    <span>💰 $${nation.gdp}B</span>
+                    <span>⚔️ ${nation.military}%</span>
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                statusText.textContent = `נבחרה: ${nation.name}`;
+                status.classList.add('active');
+
+                document.querySelectorAll('.nation-card').forEach(c => {
+                    c.style.borderColor = '#00d9ff';
+                });
+                card.style.borderColor = '#00ff88';
+
+                setTimeout(() => {
+                    alert(`ברוך הבא למדינת ${nation.name}!\n\nזהו משחק אסטרטגיה גיאופוליטית בזמן אמת.\nהמשחק המלא בפיתוח...`);
+                }, 300);
+            });
+
+            mapGrid.appendChild(card);
+        });
+
+        console.log('✅ אימפריית לסרילנד - גרסת בדיקה טעונה בהצלחה!');
+    </script>
+</body>
+</html>
