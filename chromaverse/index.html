@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChromaVerse: Interdimensional Tycoon</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <div class="loading-content">
+                <h1 class="glitch" data-text="CHROMAVERSE">CHROMAVERSE</h1>
+                <p class="subtitle">Interdimensional Tycoon</p>
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+                <p class="loading-text">Initializing Reality Matrix...</p>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="menu-screen" class="screen">
+            <div class="menu-content">
+                <h1 class="title glitch" data-text="CHROMAVERSE">CHROMAVERSE</h1>
+                <p class="subtitle">Master the Multiverse</p>
+
+                <div class="menu-buttons">
+                    <button class="btn-primary" id="btn-new-game">
+                        <span>New Game</span>
+                    </button>
+                    <button class="btn-secondary" id="btn-load-game">
+                        <span>Load Game</span>
+                    </button>
+                    <button class="btn-secondary" id="btn-leaderboard">
+                        <span>Leaderboard</span>
+                    </button>
+                    <button class="btn-secondary" id="btn-how-to-play">
+                        <span>How to Play</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <!-- Top HUD -->
+            <div class="hud-top">
+                <div class="hud-section">
+                    <div class="resource">
+                        <span class="resource-icon">⚡</span>
+                        <span class="resource-label">Energy:</span>
+                        <span class="resource-value" id="energy-value">1000</span>
+                    </div>
+                    <div class="resource">
+                        <span class="resource-icon">💎</span>
+                        <span class="resource-label">Shards:</span>
+                        <span class="resource-value" id="shards-value">50</span>
+                    </div>
+                    <div class="resource">
+                        <span class="resource-icon">🧠</span>
+                        <span class="resource-label">Knowledge:</span>
+                        <span class="resource-value" id="knowledge-value">100</span>
+                    </div>
+                </div>
+
+                <div class="hud-center">
+                    <h2 id="player-name">Architect</h2>
+                    <p class="turn-counter">Turn: <span id="turn-number">1</span></p>
+                </div>
+
+                <div class="hud-section">
+                    <div class="stat">
+                        <span class="stat-icon">🌐</span>
+                        <span class="stat-value" id="dimensions-count">1</span>
+                        <span class="stat-label">Dimensions</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">⚖️</span>
+                        <span class="stat-value" id="stability-value">100%</span>
+                        <span class="stat-label">Stability</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Game Area -->
+            <div class="game-main">
+                <!-- Left Panel - Dimension List -->
+                <div class="panel-left">
+                    <div class="panel-header">
+                        <h3>Dimensions</h3>
+                        <button class="btn-icon" id="btn-discover-dimension" title="Discover New Dimension">
+                            <span>🔍</span>
+                        </button>
+                    </div>
+                    <div class="dimension-list" id="dimension-list">
+                        <!-- Dimensions will be added here -->
+                    </div>
+                </div>
+
+                <!-- Center - Main View -->
+                <div class="panel-center">
+                    <div class="dimension-view" id="dimension-view">
+                        <div class="dimension-header">
+                            <h2 id="current-dimension-name">Prime Reality</h2>
+                            <div class="dimension-stats">
+                                <span class="dim-stat">Type: <strong id="dim-type">Standard</strong></span>
+                                <span class="dim-stat">Danger: <strong id="dim-danger">Low</strong></span>
+                                <span class="dim-stat">Wealth: <strong id="dim-wealth">Medium</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="dimension-map" id="dimension-map">
+                            <!-- Procedurally generated map -->
+                        </div>
+
+                        <div class="dimension-info">
+                            <div class="info-section">
+                                <h4>Resources</h4>
+                                <div class="resource-grid" id="resource-grid"></div>
+                            </div>
+                            <div class="info-section">
+                                <h4>Outposts</h4>
+                                <div class="outpost-grid" id="outpost-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Actions -->
+                <div class="panel-right">
+                    <div class="tabs">
+                        <button class="tab active" data-tab="research">Research</button>
+                        <button class="tab" data-tab="build">Build</button>
+                        <button class="tab" data-tab="trade">Trade</button>
+                        <button class="tab" data-tab="events">Events</button>
+                    </div>
+
+                    <div class="tab-content active" id="tab-research">
+                        <h3>Technology Tree</h3>
+                        <div class="tech-tree" id="tech-tree"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-build">
+                        <h3>Construct Buildings</h3>
+                        <div class="building-list" id="building-list"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-trade">
+                        <h3>Interdimensional Trade</h3>
+                        <div class="trade-panel" id="trade-panel"></div>
+                    </div>
+
+                    <div class="tab-content" id="tab-events">
+                        <h3>Current Events</h3>
+                        <div class="events-list" id="events-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="hud-bottom">
+                <button class="btn-action" id="btn-save-game">💾 Save</button>
+                <button class="btn-action" id="btn-achievements">🏆 Achievements</button>
+                <button class="btn-primary" id="btn-end-turn">End Turn ⏭️</button>
+                <button class="btn-action" id="btn-menu">⚙️ Menu</button>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div id="modal-container" class="modal-overlay hidden">
+            <div class="modal">
+                <button class="modal-close" id="modal-close">&times;</button>
+                <div class="modal-content" id="modal-content"></div>
+            </div>
+        </div>
+
+        <!-- Notification Area -->
+        <div id="notification-area"></div>
+    </div>
+
+    <script type="module" src="game.js"></script>
+</body>
+</html>
