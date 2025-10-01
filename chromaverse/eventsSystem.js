@@ -7,7 +7,7 @@ export class EventsSystem {
         this.eventHistory = [];
         this.activeEvents = [];
         this.lastEventTime = Date.now();
-        this.eventInterval = 30000; // אירוע כל 30 שניות
+        this.eventInterval = 60000; // אירוע כל דקה
     }
 
     startEventLoop() {

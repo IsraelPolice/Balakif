@@ -58,7 +58,11 @@ export class GameEngine {
                 totalGDP: 0,
                 territoryPercentage: 0,
                 warsWon: 0,
-                nationsConquered: 0
+                nationsConquered: 0,
+                score: 0,
+                rank: 'שוליה',
+                level: 1,
+                xp: 0
             },
 
             saveId: null
@@ -556,7 +560,48 @@ export class GameEngine {
     }
 
     getState() {
+        // חישוב ניקוד אוטומטי לפני החזרת מצב
+        this.calculateScore();
         return this.state;
+    }
+
+    calculateScore() {
+        const s = this.state;
+
+        // חישוב ניקוד כולל
+        const gdpScore = Math.floor(s.resources.gdp / 1000000000); // 1 נקודה לכל מיליארד
+        const militaryScore = s.military.strength * 100;
+        const territoryScore = Math.floor(s.stats.territoryPercentage * 1000);
+        const conquestScore = s.stats.nationsConquered * 10000;
+        const warsScore = s.stats.warsWon * 5000;
+
+        s.stats.score = gdpScore + militaryScore + territoryScore + conquestScore + warsScore;
+
+        // חישוב רמה ו-XP
+        s.stats.xp = Math.floor(s.stats.score / 100);
+        s.stats.level = Math.floor(s.stats.xp / 1000) + 1;
+
+        // חישוב דירוג
+        const ranks = [
+            { min: 0, name: 'שוליה', emoji: '🥉' },
+            { min: 50000, name: 'חייל', emoji: '🪖' },
+            { min: 100000, name: 'קצין', emoji: '🎖️' },
+            { min: 200000, name: 'מפקד', emoji: '⭐' },
+            { min: 500000, name: 'גנרל', emoji: '🌟' },
+            { min: 1000000, name: 'מרשל', emoji: '💫' },
+            { min: 2000000, name: 'אגדה', emoji: '👑' },
+            { min: 5000000, name: 'קיסר העולם', emoji: '🌍' }
+        ];
+
+        let currentRank = ranks[0];
+        for (const rank of ranks) {
+            if (s.stats.score >= rank.min) {
+                currentRank = rank;
+            }
+        }
+
+        s.stats.rank = currentRank.name;
+        s.stats.rankEmoji = currentRank.emoji;
     }
 
     setState(newState) {

@@ -89,6 +89,28 @@ export class UI {
         setTimeout(() => {
             this.showScreen('menu');
         }, 2000);
+
+        // אוטו-סייב כל דקה
+        setInterval(() => {
+            if (this.engine.state.selectedNation) {
+                this.autoSave();
+            }
+        }, 60000);
+    }
+
+    autoSave() {
+        try {
+            const state = this.engine.getState();
+            const saveData = {
+                state: state,
+                timestamp: Date.now(),
+                version: '1.0'
+            };
+            localStorage.setItem('chromaverse_autosave', JSON.stringify(saveData));
+            console.log('🔄 Auto-saved at', new Date().toLocaleTimeString());
+        } catch (error) {
+            console.error('Auto-save error:', error);
+        }
     }
 
     showNationSelection() {
@@ -180,10 +202,44 @@ export class UI {
     }
 
     async saveGame() {
-        const result = await this.db.saveGame(this.engine.getState());
-        if (result.success) {
-            this.engine.state.saveId = result.saveId;
-            this.showNotification('Game saved!', 'success');
+        try {
+            // שמירה מקומית מהירה
+            const state = this.engine.getState();
+            const saveData = {
+                state: state,
+                timestamp: Date.now(),
+                version: '1.0'
+            };
+            localStorage.setItem('chromaverse_quicksave', JSON.stringify(saveData));
+
+            // שמירה גם לדאטהבייס
+            const result = await this.db.saveGame(state);
+            if (result.success) {
+                this.engine.state.saveId = result.saveId;
+            }
+
+            this.showNotification('✅ המשחק נשמר בהצלחה!', 'success');
+        } catch (error) {
+            console.error('Save error:', error);
+            this.showNotification('❌ שגיאה בשמירת המשחק', 'danger');
+        }
+    }
+
+    quickLoad() {
+        try {
+            const saveData = localStorage.getItem('chromaverse_quicksave');
+            if (!saveData) {
+                this.showNotification('❌ לא נמצא שמירה מהירה', 'warning');
+                return;
+            }
+
+            const parsed = JSON.parse(saveData);
+            this.engine.loadState(parsed.state);
+            this.showNotification('✅ המשחק נטען בהצלחה!', 'success');
+            this.switchScreen('game');
+        } catch (error) {
+            console.error('Load error:', error);
+            this.showNotification('❌ שגיאה בטעינת המשחק', 'danger');
         }
     }
 
@@ -269,8 +325,19 @@ export class UI {
         this.elements.supportValue.textContent = `${state.internal.support}%`;
         this.elements.playerName.textContent = NATIONS[state.selectedNation].name;
 
-        if (this.elements.turnDate) {
-            this.elements.turnDate.textContent = 'זמן אמת';
+        // עדכון דירוג ורמה
+        const rankElement = document.getElementById('player-rank');
+        const levelElement = document.getElementById('player-level');
+        const scoreElement = document.getElementById('player-score');
+
+        if (rankElement) {
+            rankElement.textContent = `${state.stats.rankEmoji || '🥉'} ${state.stats.rank}`;
+        }
+        if (levelElement) {
+            levelElement.textContent = state.stats.level;
+        }
+        if (scoreElement) {
+            scoreElement.textContent = state.stats.score.toLocaleString();
         }
 
         // Update world map
@@ -561,7 +628,7 @@ export class UI {
                 <!-- כפתורי פעולה -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
                     <button class="btn-primary" style="padding: 1.5rem; font-size: 1.2rem; background: linear-gradient(135deg, #ff0055, #cc0044);"
-                            onclick="window.game.ui.executeBattleNow(${war.target})">
+                            onclick="window.game.ui.executeBattleNow('${war.target}')">
                         ⚔️ התקפה!
                     </button>
                     <button class="btn-primary" style="padding: 1.5rem; font-size: 1.2rem; background: linear-gradient(135deg, #666, #444);"
@@ -622,7 +689,24 @@ export class UI {
 
         // ביצוע הקרב האמיתי
         const warIndex = this.engine.state.diplomacy.wars.findIndex(w => w.target === targetId);
+
+        if (warIndex === -1) {
+            addLog('❌ שגיאה: המלחמה לא נמצאה!', '#ff0055');
+            await new Promise(r => setTimeout(r, 2000));
+            this.hideModal();
+            this.showNotification('❌ שגיאה: המלחמה לא נמצאה', 'danger');
+            return;
+        }
+
         const result = this.engine.conductBattle(warIndex);
+
+        if (!result || !result.success) {
+            addLog('❌ שגיאה בביצוע הקרב!', '#ff0055');
+            await new Promise(r => setTimeout(r, 2000));
+            this.hideModal();
+            this.showNotification(result?.message || '❌ שגיאה בביצוע הקרב', 'danger');
+            return;
+        }
 
         await new Promise(r => setTimeout(r, 500));
 
