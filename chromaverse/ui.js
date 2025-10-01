@@ -1,9 +1,11 @@
 import { NATIONS, BLOCS } from './nations.js';
+import { WorldMap } from './worldMap.js';
 
 export class UI {
     constructor(gameEngine, database) {
         this.engine = gameEngine;
         this.db = database;
+        this.worldMap = null;
         this.initializeElements();
         this.setupEventListeners();
     }
@@ -24,12 +26,8 @@ export class UI {
             playerName: document.getElementById('player-name'),
             turnNumber: document.getElementById('turn-number'),
             turnDate: document.getElementById('turn-date'),
-            nationsList: document.getElementById('nations-list'),
-            currentDimensionName: document.getElementById('current-dimension-name'),
-            dimType: document.getElementById('dim-type'),
-            dimDanger: document.getElementById('dim-danger'),
-            dimWealth: document.getElementById('dim-wealth'),
-            dimensionMap: document.getElementById('dimension-map'),
+            worldMap: document.getElementById('world-map'),
+            currentNationName: document.getElementById('current-nation-name'),
             resourceGrid: document.getElementById('resource-grid'),
             outpostGrid: document.getElementById('outpost-grid'),
             diplomacyPanel: document.getElementById('diplomacy-panel'),
@@ -43,19 +41,39 @@ export class UI {
     }
 
     setupEventListeners() {
-        document.getElementById('btn-new-game').addEventListener('click', () => this.showNationSelection());
-        document.getElementById('btn-load-game').addEventListener('click', () => this.showLoadGameModal());
-        document.getElementById('btn-leaderboard').addEventListener('click', () => this.showLeaderboard());
-        document.getElementById('btn-how-to-play').addEventListener('click', () => this.showHowToPlay());
+        const newGameBtn = document.getElementById('btn-new-game');
+        const loadGameBtn = document.getElementById('btn-load-game');
+        const leaderboardBtn = document.getElementById('btn-leaderboard');
+        const howToPlayBtn = document.getElementById('btn-how-to-play');
 
-        document.getElementById('btn-end-turn').addEventListener('click', () => this.endTurn());
-        document.getElementById('btn-save-game').addEventListener('click', () => this.saveGame());
-        document.getElementById('btn-menu').addEventListener('click', () => this.returnToMenu());
+        if (newGameBtn) newGameBtn.addEventListener('click', () => this.showNationSelection());
+        if (loadGameBtn) loadGameBtn.addEventListener('click', () => this.showLoadGameModal());
+        if (leaderboardBtn) leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
+        if (howToPlayBtn) howToPlayBtn.addEventListener('click', () => this.showHowToPlay());
 
-        document.getElementById('modal-close').addEventListener('click', () => this.hideModal());
+        const saveGameBtn = document.getElementById('btn-save-game');
+        const menuBtn = document.getElementById('btn-menu');
 
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+        if (saveGameBtn) saveGameBtn.addEventListener('click', () => this.saveGame());
+        if (menuBtn) menuBtn.addEventListener('click', () => this.returnToMenu());
+
+        const modalClose = document.getElementById('modal-close');
+        if (modalClose) modalClose.addEventListener('click', () => this.hideModal());
+
+        // Zoom controls
+        const zoomIn = document.getElementById('btn-zoom-in');
+        const zoomOut = document.getElementById('btn-zoom-out');
+        const resetZoom = document.getElementById('btn-reset-zoom');
+
+        if (zoomIn) zoomIn.addEventListener('click', () => this.worldMap?.zoom(0.1));
+        if (zoomOut) zoomOut.addEventListener('click', () => this.worldMap?.zoom(-0.1));
+        if (resetZoom) resetZoom.addEventListener('click', () => this.worldMap?.resetZoom());
+
+        document.querySelectorAll('.action-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                this.switchTab(target.dataset.tab);
+            });
         });
 
         this.engine.subscribe((state) => this.updateUI(state));
@@ -102,7 +120,16 @@ export class UI {
         if (result.success) {
             this.hideModal();
             this.showScreen('game');
-            this.showNotification(`Welcome, Leader of ${result.nation.name}!`, 'success');
+
+            // Initialize world map
+            if (this.elements.worldMap) {
+                this.worldMap = new WorldMap(this.elements.worldMap, (clickedNationId) => {
+                    this.showNationDetails(clickedNationId);
+                });
+                this.worldMap.render(nationId, []);
+            }
+
+            this.showNotification(`ברוך הבא, מנהיג ${result.nation.name}!`, 'success');
         }
     }
 
@@ -240,15 +267,71 @@ export class UI {
         this.elements.territoryPercent.textContent = `${state.stats.territoryPercentage.toFixed(1)}%`;
         this.elements.supportValue.textContent = `${state.internal.support}%`;
         this.elements.playerName.textContent = NATIONS[state.selectedNation].name;
-        this.elements.turnNumber.textContent = state.currentTurn;
-        this.elements.turnDate.textContent = `${this.getMonthName(state.turnMonth)} ${state.turnYear}`;
 
-        this.renderNationsList(state);
-        this.renderCurrentNation(state);
+        if (this.elements.turnDate) {
+            this.elements.turnDate.textContent = 'זמן אמת';
+        }
+
+        // Update world map
+        if (this.worldMap) {
+            const conqueredIds = state.territories
+                .filter(t => !t.originalOwner)
+                .map(t => t.nationId);
+            this.worldMap.render(state.selectedNation, conqueredIds);
+        }
+
+        if (this.elements.currentNationName) {
+            this.elements.currentNationName.textContent = NATIONS[state.selectedNation].name;
+        }
+
+        this.renderTerritories(state);
+        this.renderWars(state);
         this.renderDiplomacy(state);
         this.renderMilitary(state);
         this.renderEconomy(state);
         this.renderEvents(state.events);
+    }
+
+    renderTerritories(state) {
+        if (!this.elements.resourceGrid) return;
+
+        let html = '';
+        state.territories.forEach(t => {
+            const nation = NATIONS[t.nationId];
+            if (!nation) return;
+
+            html += `
+                <div class="resource-card">
+                    <div style="font-size: 2rem;">${nation.flag}</div>
+                    <div style="font-weight: bold;">${nation.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                        ${(t.population / 1000000).toFixed(1)}M אנשים
+                    </div>
+                    ${!t.originalOwner ? `<div style="color: var(--accent-tertiary);">שילוב: ${t.integration || 0}%</div>` : ''}
+                </div>
+            `;
+        });
+        this.elements.resourceGrid.innerHTML = html || '<p style="color: var(--text-secondary);">אין שטחים</p>';
+    }
+
+    renderWars(state) {
+        if (!this.elements.outpostGrid) return;
+
+        let html = '';
+        state.diplomacy.wars.forEach((war, index) => {
+            const enemy = NATIONS[war.target];
+            if (!enemy) return;
+
+            const victories = war.battles.filter(b => b.result === 'victory').length;
+            html += `
+                <div class="outpost-card">
+                    <div style="font-weight: bold;">🔥 מלחמה נגד ${enemy.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">ניצחונות: ${victories}/3</div>
+                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="window.game.ui.conductBattle(${index})">תקוף</button>
+                </div>
+            `;
+        });
+        this.elements.outpostGrid.innerHTML = html || '<p style="color: var(--text-secondary);">אין מלחמות פעילות</p>';
     }
 
     renderNationsList(state) {

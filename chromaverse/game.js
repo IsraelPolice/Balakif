@@ -1,4 +1,4 @@
-import { GameEngine } from './gameEngine.js';
+import { GameEngine } from './gameEngineRealtime.js';
 import { Database } from './database.js';
 import { UI } from './ui.js';
 
