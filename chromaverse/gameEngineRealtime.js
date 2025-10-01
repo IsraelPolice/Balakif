@@ -1,10 +1,14 @@
 import { NATIONS, BLOCS } from './nations.js';
+import { EventsSystem } from './eventsSystem.js';
+import { BattleSystem } from './battleSystem.js';
 
 export class GameEngine {
     constructor() {
         this.state = this.getInitialState();
         this.listeners = [];
         this.timers = {};
+        this.eventsSystem = new EventsSystem(this);
+        this.battleSystem = new BattleSystem(this);
         this.startRealTime();
     }
 
@@ -40,12 +44,15 @@ export class GameEngine {
 
             internal: {
                 support: 75,
-                stability: 100
+                stability: 100,
+                publicJoy: 70,
+                taxRate: 25
             },
 
             territories: [],
             conquests: [],
             events: [],
+            activeEvents: [],
 
             stats: {
                 totalGDP: 0,
@@ -62,16 +69,31 @@ export class GameEngine {
         // Income every 5 seconds
         this.timers.income = setInterval(() => {
             if (this.state.selectedNation) {
-                const incomeRate = this.state.resources.gdp * 0.0005; // 0.05% every 5 sec
+                // חישוב הכנסה
+                const taxMultiplier = this.state.internal.taxRate / 100;
+                const incomeRate = this.state.resources.gdp * 0.0005 * (1 + taxMultiplier);
                 this.state.resources.treasury += incomeRate;
-                
-                // GDP growth
-                const growthAmount = this.state.resources.gdp * (this.state.resources.growthRate / 100 / 720); // Per 5 sec
+
+                // GDP growth מושפע משמחת עם
+                const joyMultiplier = this.state.internal.publicJoy / 100;
+                const growthAmount = this.state.resources.gdp * (this.state.resources.growthRate / 100 / 720) * joyMultiplier;
                 this.state.resources.gdp += growthAmount;
-                
+
+                // שמחת עם מושפעת ממיסים
+                if (this.state.internal.taxRate > 30) {
+                    this.state.internal.publicJoy = Math.max(0, this.state.internal.publicJoy - 0.1);
+                } else if (this.state.internal.taxRate < 20) {
+                    this.state.internal.publicJoy = Math.min(100, this.state.internal.publicJoy + 0.05);
+                }
+
                 this.notifyListeners();
             }
         }, 5000);
+
+        // התחלת לולאת אירועים
+        if (this.eventsSystem) {
+            this.eventsSystem.startEventLoop();
+        }
 
         // Events every 30 seconds
         this.timers.events = setInterval(() => {
@@ -440,6 +462,85 @@ export class GameEngine {
                 importance: 'critical'
             });
         }
+    }
+
+    // פונקציות חדשות למערכת מיסים
+    setTaxRate(rate) {
+        if (rate < 0 || rate > 60) {
+            return { success: false, message: 'שיעור מס לא חוקי!' };
+        }
+
+        const oldRate = this.state.internal.taxRate;
+        this.state.internal.taxRate = rate;
+
+        // השפעה מיידית על שמחת עם
+        if (rate > oldRate) {
+            this.state.internal.publicJoy = Math.max(0, this.state.internal.publicJoy - (rate - oldRate) * 2);
+            this.state.internal.support = Math.max(0, this.state.internal.support - (rate - oldRate));
+        } else {
+            this.state.internal.publicJoy = Math.min(100, this.state.internal.publicJoy + (oldRate - rate) * 1.5);
+            this.state.internal.support = Math.min(100, this.state.internal.support + (oldRate - rate) * 0.5);
+        }
+
+        this.addEvent({
+            type: 'policy',
+            title: '📊 שינוי מדיניות מיסוי',
+            message: `שיעור המס השתנה מ-${oldRate}% ל-${rate}%`,
+            importance: 'medium'
+        });
+
+        this.notifyListeners();
+        return { success: true };
+    }
+
+    // מערכת קרב משופרת
+    async startAdvancedBattle(enemyNationId, strategy) {
+        const battle = this.battleSystem.planBattle(enemyNationId, strategy);
+
+        if (!battle) {
+            return { success: false, message: 'לא ניתן להתחיל קרב' };
+        }
+
+        return { success: true, battle };
+    }
+
+    async executeBattle() {
+        if (!this.battleSystem.activeBattle) {
+            return { success: false, message: 'אין קרב פעיל' };
+        }
+
+        const result = await this.battleSystem.startBattle();
+        return result;
+    }
+
+    // החלת בחירה באירוע
+    handleEventChoice(event, choiceIndex) {
+        return this.eventsSystem.applyEventChoice(event, choiceIndex);
+    }
+
+    // הוספת אירוע למערכת
+    addEvent(event) {
+        this.state.events.unshift({
+            ...event,
+            id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: Date.now()
+        });
+
+        // שמירה על מקסימום 50 אירועים
+        if (this.state.events.length > 50) {
+            this.state.events = this.state.events.slice(0, 50);
+        }
+    }
+
+    // קבלת מידע על שמחת עם
+    getPublicJoyStatus() {
+        const joy = this.state.internal.publicJoy;
+
+        if (joy >= 80) return { status: 'excellent', message: 'העם מאושר מאוד!', color: '#00ff88' };
+        if (joy >= 60) return { status: 'good', message: 'העם מרוצה', color: '#00d9ff' };
+        if (joy >= 40) return { status: 'neutral', message: 'העם ניטרלי', color: '#ffd700' };
+        if (joy >= 20) return { status: 'bad', message: 'העם לא מרוצה', color: '#ff8800' };
+        return { status: 'critical', message: 'העם במרד!', color: '#ff0055' };
     }
 
     autoSave() {
