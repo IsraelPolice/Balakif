@@ -38,6 +38,8 @@ export class UI {
             buildingPanel: document.getElementById('building-panel'),
             marketPanel: document.getElementById('market-panel'),
             budgetPanel: document.getElementById('budget-panel'),
+            leaderPanel: document.getElementById('leader-panel'),
+            erasPanel: document.getElementById('eras-panel'),
             modalContainer: document.getElementById('modal-container'),
             modalContent: document.getElementById('modal-content'),
             notificationArea: document.getElementById('notification-area')
@@ -364,6 +366,8 @@ export class UI {
         this.renderBuilding(state);
         this.renderMarket(state);
         this.renderBudget(state);
+        this.renderLeader(state);
+        this.renderEras(state);
 
         // הצגת אירועים חדשים במודל
         this.checkForNewEvents(state);
@@ -1386,5 +1390,189 @@ export class UI {
         `;
 
         this.showModal(html);
+    }
+
+    // טאב מנהיג - הצגת בונוסים ויכולות
+    renderLeader(state) {
+        if (!this.elements.leaderPanel) return;
+        if (!state.leaderInfo) {
+            this.elements.leaderPanel.innerHTML = '<p style="text-align: center; color: #aaa;">טוען מידע על המנהיג...</p>';
+            return;
+        }
+
+        const leader = state.leaderInfo;
+        const abilityReady = this.engine.leaderBonusSystem.isSpecialAbilityReady();
+        const lastUsed = state.internal.lastAbilityUse || 0;
+        const cooldown = leader.specialAbility.cooldown * 1000;
+        const remaining = Math.max(0, Math.ceil((cooldown - (Date.now() - lastUsed)) / 1000));
+
+        let html = `
+            <div class="building-card" style="border: 3px solid #ffd700; background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,100,0,0.1) 100%);">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">👑</div>
+                    <h2 style="color: #ffd700; margin: 0;">${leader.name}</h2>
+                    <div style="color: #00d9ff; font-size: 1.1rem; margin-top: 0.5rem;">${leader.archetype}</div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;">
+                        <div>📅 יום הולדת:</div>
+                        <div style="text-align: left;"><strong>${leader.birthday}</strong></div>
+                        <div>🏠 מוצא:</div>
+                        <div style="text-align: left;"><strong>${leader.origin}</strong></div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,100,200,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="font-size: 0.95rem; line-height: 1.6; color: #aaa;">
+                        📖 <strong>לור:</strong> ${leader.lore}
+                    </div>
+                </div>
+            </div>
+
+            <div class="building-card" style="border: 2px solid #00ff88;">
+                <h4 style="color: #00ff88; margin-bottom: 1rem;">${leader.bonus.name}</h4>
+                <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">${leader.bonus.description}</p>
+
+                <div style="background: rgba(0,255,136,0.1); padding: 1rem; border-radius: 8px;">
+                    <strong style="color: #00ff88;">אפקטים פעילים:</strong>
+                    <div style="margin-top: 0.5rem; line-height: 2;">
+                        ${Object.entries(leader.bonus.effects).map(([key, value]) => {
+                            let displayValue = value;
+                            if (typeof value === 'number' && value > 1) {
+                                displayValue = `+${((value - 1) * 100).toFixed(0)}%`;
+                            } else if (typeof value === 'number' && value < 1) {
+                                displayValue = `${((value - 1) * 100).toFixed(0)}%`;
+                            } else if (typeof value === 'number') {
+                                displayValue = `+${value}`;
+                            }
+                            return `⚡ ${key}: <strong>${displayValue}</strong>`;
+                        }).join('<br>')}
+                    </div>
+                </div>
+            </div>
+
+            <div class="building-card" style="border: 2px solid ${abilityReady ? '#ff0055' : '#666'};">
+                <h4 style="color: ${abilityReady ? '#ff0055' : '#666'}; margin-bottom: 1rem;">
+                    ✨ ${leader.specialAbility.name}
+                </h4>
+                <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; color: #ccc;">
+                    ${leader.specialAbility.effect}
+                </p>
+
+                <div style="background: rgba(100,100,100,0.2); padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;">
+                    <div style="font-size: 0.9rem;">
+                        ⏱️ Cooldown: <strong>${leader.specialAbility.cooldown} שניות</strong>
+                    </div>
+                    ${!abilityReady ? `
+                        <div style="margin-top: 0.5rem; color: #ff8800;">
+                            ⏳ טוען... ${remaining} שניות נותרו
+                        </div>
+                        <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; margin-top: 0.5rem; overflow: hidden;">
+                            <div style="width: ${((cooldown - remaining * 1000) / cooldown * 100).toFixed(0)}%; height: 100%; background: linear-gradient(90deg, #ff8800, #ff0055); border-radius: 4px; transition: width 1s;"></div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                ${abilityReady ?
+                    `<button class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #ff0055, #9d00ff);" onclick="window.game.ui.useLeaderAbility()">
+                        🌟 הפעל יכולת מיוחדת!
+                    </button>` :
+                    `<button class="btn-primary" style="width: 100%; padding: 1rem; opacity: 0.5; cursor: not-allowed;" disabled>
+                        ⏳ ממתין לטעינה...
+                    </button>`
+                }
+            </div>
+        `;
+
+        this.elements.leaderPanel.innerHTML = html;
+    }
+
+    useLeaderAbility() {
+        const result = this.engine.leaderBonusSystem.useSpecialAbility(this.engine.state.selectedNation);
+
+        if (result.success) {
+            this.showNotification(`🌟 ${result.message}`, 'success');
+            // עדכון מיידי של ההצגה
+            setTimeout(() => this.render(this.engine.state), 100);
+        } else {
+            this.showNotification(result.message, 'warning');
+        }
+    }
+
+    // טאב תקופות - הצגת התקופות והאירועים
+    renderEras(state) {
+        if (!this.elements.erasPanel) return;
+
+        const eraStatus = this.engine.mythicEventsSystem.getCurrentEraStatus();
+        const eras = this.engine.mythicEventsSystem.getEras();
+
+        let html = `
+            <div class="building-card" style="border: 3px solid ${eraStatus.current.color}; background: linear-gradient(135deg, ${eraStatus.current.color}22 0%, ${eraStatus.current.color}11 100%);">
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⏰</div>
+                    <h2 style="color: ${eraStatus.current.color}; margin: 0;">תקופת ${eraStatus.current.name}</h2>
+                    <div style="font-size: 1.2rem; color: #00d9ff; margin-top: 0.5rem;">${eraStatus.current.years}</div>
+                    <p style="font-size: 0.95rem; line-height: 1.6; margin-top: 1rem; color: #ccc;">
+                        ${eraStatus.current.description}
+                    </p>
+                </div>
+
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                    <div style="margin-bottom: 0.5rem;">התקדמות בתקופה:</div>
+                    <div style="width: 100%; height: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;">
+                        <div style="width: ${eraStatus.progress.toFixed(0)}%; height: 100%; background: linear-gradient(90deg, ${eraStatus.current.color}, #ffd700); border-radius: 10px; transition: width 0.5s;"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #aaa;">
+                        ${eraStatus.progress.toFixed(0)}% - 5 אירועים לתקופה הבאה
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #ffd700;">📜 כל התקופות</h4>
+        `;
+
+        Object.values(eras).forEach(era => {
+            const isActive = era.id === eraStatus.current.id;
+            const isLocked = !era.unlocked;
+
+            html += `
+                <div class="building-card" style="border-right: 4px solid ${era.color}; opacity: ${isLocked ? '0.5' : '1'}; position: relative;">
+                    ${isActive ? '<div style="position: absolute; top: 10px; left: 10px; background: #ffd700; color: #000; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">✨ פעיל</div>' : ''}
+                    ${isLocked ? '<div style="position: absolute; top: 10px; left: 10px; background: #666; color: #fff; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem;">🔒 נעול</div>' : ''}
+
+                    <div style="margin-bottom: 0.75rem;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: ${era.color};">${era.name}</div>
+                        <div style="font-size: 0.9rem; color: #aaa;">${era.years}</div>
+                    </div>
+
+                    <p style="font-size: 0.9rem; line-height: 1.6; color: ${isLocked ? '#666' : '#ccc'};">
+                        ${era.description}
+                    </p>
+                </div>
+            `;
+        });
+
+        // תצוגת אירועים אחרונים
+        const recentMythicEvents = state.events.filter(e =>
+            e.era || e.type === 'poop_prank_siege' || e.type === 'bar_mitzvah_betrayal'
+        ).slice(0, 3);
+
+        if (recentMythicEvents.length > 0) {
+            html += `
+                <h4 style="margin: 1.5rem 0 1rem 0; color: #ff0055;">🎭 אירועים מיתיים אחרונים</h4>
+            `;
+
+            recentMythicEvents.forEach(event => {
+                html += `
+                    <div class="building-card" style="border-right: 4px solid #ff0055;">
+                        <div style="font-weight: bold; margin-bottom: 0.5rem;">${event.name || event.title}</div>
+                        <div style="font-size: 0.9rem; color: #aaa;">${event.description || event.message}</div>
+                    </div>
+                `;
+            });
+        }
+
+        this.elements.erasPanel.innerHTML = html;
     }
 }
