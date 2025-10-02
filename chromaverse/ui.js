@@ -1394,9 +1394,24 @@ export class UI {
 
     // טאב מנהיג - הצגת בונוסים ויכולות
     renderLeader(state) {
-        if (!this.elements.leaderPanel) return;
+        if (!this.elements.leaderPanel) {
+            console.log('Leader panel element not found!');
+            return;
+        }
+
+        console.log('renderLeader called', {
+            hasSystem: !!this.engine.leaderBonusSystem,
+            hasLeaderInfo: !!state.leaderInfo,
+            leaderInfo: state.leaderInfo
+        });
+
+        if (!this.engine.leaderBonusSystem) {
+            this.elements.leaderPanel.innerHTML = '<p style="text-align: center; color: #ff0055;">מערכת המנהיגים לא זמינה</p>';
+            return;
+        }
+
         if (!state.leaderInfo) {
-            this.elements.leaderPanel.innerHTML = '<p style="text-align: center; color: #aaa;">טוען מידע על המנהיג...</p>';
+            this.elements.leaderPanel.innerHTML = '<p style="text-align: center; color: #aaa;">בחר מדינה כדי לראות את המנהיג...</p>';
             return;
         }
 
@@ -1502,7 +1517,19 @@ export class UI {
 
     // טאב תקופות - הצגת התקופות והאירועים
     renderEras(state) {
-        if (!this.elements.erasPanel) return;
+        if (!this.elements.erasPanel) {
+            console.log('Eras panel element not found!');
+            return;
+        }
+
+        console.log('renderEras called', {
+            hasSystem: !!this.engine.mythicEventsSystem
+        });
+
+        if (!this.engine.mythicEventsSystem) {
+            this.elements.erasPanel.innerHTML = '<p style="text-align: center; color: #ff0055;">מערכת התקופות לא זמינה</p>';
+            return;
+        }
 
         const eraStatus = this.engine.mythicEventsSystem.getCurrentEraStatus();
         const eras = this.engine.mythicEventsSystem.getEras();

@@ -1,6 +1,8 @@
 // מערכת בונוסים למנהיגים - כל מנהיג עם יכולות ייחודיות
 // Leader Bonus System - Each "Good Guy" member brings unique abilities
 
+import { NATIONS } from './nations.js';
+
 export class LeaderBonusSystem {
     constructor(gameEngine) {
         this.engine = gameEngine;
