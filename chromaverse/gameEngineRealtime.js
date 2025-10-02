@@ -3,6 +3,8 @@ import { EventsSystem } from './eventsSystem.js';
 import { BattleSystem } from './battleSystem.js';
 import { CityBuildingSystem } from './cityBuildingSystem.js';
 import { AdvancedEconomySystem } from './advancedEconomySystem.js';
+import { MythicEventsSystem } from './mythicEventsSystem.js';
+import { LeaderBonusSystem } from './leaderBonusSystem.js';
 
 export class GameEngine {
     constructor() {
@@ -13,6 +15,8 @@ export class GameEngine {
         this.battleSystem = new BattleSystem(this);
         this.cityBuildingSystem = new CityBuildingSystem(this);
         this.economySystem = new AdvancedEconomySystem(this);
+        this.mythicEventsSystem = new MythicEventsSystem(this);
+        this.leaderBonusSystem = new LeaderBonusSystem(this);
         this.startRealTime();
     }
 
@@ -125,6 +129,20 @@ export class GameEngine {
             }
         }, 20000);
 
+        // אירועים מיתיים - כל דקה
+        this.timers.mythicEvents = setInterval(() => {
+            if (this.state.selectedNation && this.mythicEventsSystem) {
+                const event = this.mythicEventsSystem.triggerRandomMythicEvent();
+                if (event) {
+                    this.state.events.unshift(event);
+                    if (this.state.events.length > 50) {
+                        this.state.events = this.state.events.slice(0, 50);
+                    }
+                    this.notifyListeners();
+                }
+            }
+        }, 60000);
+
         // Events every 30 seconds
         this.timers.events = setInterval(() => {
             if (this.state.selectedNation && Math.random() < 0.3) {
@@ -170,6 +188,16 @@ export class GameEngine {
 
         this.state.stats.totalGDP = nation.demographics.gdp;
         this.state.stats.territoryPercentage = this.calculateTerritoryPercentage();
+
+        // הפעל בונוס מנהיג
+        const leaderBonus = this.leaderBonusSystem.activateLeaderBonus(nationId);
+        if (leaderBonus.success) {
+            this.state.leaderInfo = leaderBonus.leader;
+        }
+
+        // הצג תקופה נוכחית
+        const eraStatus = this.mythicEventsSystem.getCurrentEraStatus();
+        this.state.currentEra = eraStatus.current;
 
         this.addEvent({
             type: 'gameStart',
