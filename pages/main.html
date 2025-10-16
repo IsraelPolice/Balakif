@@ -264,6 +264,96 @@
       color: #65676B;
       font-size: 0.75rem;
     }
+    .topic-filter {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+    .topic-button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #E4E6EB;
+      background: white;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .topic-button:hover {
+      background: #F0F2F5;
+    }
+    .topic-button.active {
+      background: #1877F2;
+      color: white;
+      border-color: #1877F2;
+    }
+    .reply-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #E4E6EB;
+    }
+    .reply-item {
+      background: #F0F2F5;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-right: 2rem;
+    }
+    .reply-form {
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .reply-form.active {
+      display: block;
+    }
+    .reply-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #E4E6EB;
+      border-radius: 8px;
+      resize: vertical;
+      min-height: 60px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+    .reply-textarea:focus {
+      outline: none;
+      border-color: #1877F2;
+      box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.1);
+    }
+    .passcode-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .passcode-content {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+    }
+    .author-badge {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -433,23 +523,71 @@
       const [loading, setLoading] = React.useState(true);
       const [posting, setPosting] = React.useState(false);
       const [likedPosts, setLikedPosts] = React.useState(new Set());
+      const [selectedTopic, setSelectedTopic] = React.useState('הכל');
+      const [topics, setTopics] = React.useState([]);
+      const [replyingTo, setReplyingTo] = React.useState(null);
+      const [replyContent, setReplyContent] = React.useState('');
+      const [showPasscodePopup, setShowPasscodePopup] = React.useState(false);
+      const [passcode, setPasscode] = React.useState('');
+      const [selectedAuthor, setSelectedAuthor] = React.useState('');
+      const [postTopic, setPostTopic] = React.useState('כללי');
+
+      const AUTHORS = [
+        'Liav Ben Yaakov',
+        'Dvir Ohana',
+        'Yosef Kachler',
+        'Amit Lasri',
+        'Jordan Bohbot',
+        'Chaim Marks',
+        'Ariel Ein Gal',
+        'Yogev Shabtay',
+        'Ariel Sharvit'
+      ];
+
+      const CORRECT_PASSCODE = '316439249';
 
       React.useEffect(() => {
         loadPosts();
+        loadTopics();
         const savedLikes = localStorage.getItem('likedPosts');
         if (savedLikes) {
           setLikedPosts(new Set(JSON.parse(savedLikes)));
         }
       }, []);
 
+      const loadTopics = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('forum_topics')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+          if (error) throw error;
+          setTopics(data || []);
+        } catch (error) {
+          console.error('Error loading topics:', error);
+        }
+      };
+
       const loadPosts = async () => {
         try {
           const { data, error } = await supabase
             .from('forum_posts')
             .select('*')
+            .is('parent_id', null)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
+
+          for (let post of (data || [])) {
+            const { data: replies } = await supabase
+              .from('forum_posts')
+              .select('*')
+              .eq('parent_id', post.id)
+              .order('created_at', { ascending: true });
+            post.replies = replies || [];
+          }
+
           setPosts(data || []);
         } catch (error) {
           console.error('Error loading posts:', error);
@@ -463,19 +601,66 @@
 
         setPosting(true);
         try {
+          const postData = {
+            content: newPost.trim(),
+            topic: postTopic,
+            author_name: selectedAuthor || null
+          };
+
           const { error } = await supabase
             .from('forum_posts')
-            .insert([{ content: newPost.trim() }]);
+            .insert([postData]);
 
           if (error) throw error;
 
           setNewPost('');
+          setSelectedAuthor('');
+          setPostTopic('כללי');
           await loadPosts();
         } catch (error) {
           console.error('Error posting:', error);
           alert('שגיאה בפרסום ההודעה. נסה שוב.');
         } finally {
           setPosting(false);
+        }
+      };
+
+      const handleSubmitReply = async (parentId) => {
+        if (!replyContent.trim() || posting) return;
+
+        setPosting(true);
+        try {
+          const replyData = {
+            content: replyContent.trim(),
+            parent_id: parentId,
+            author_name: selectedAuthor || null
+          };
+
+          const { error } = await supabase
+            .from('forum_posts')
+            .insert([replyData]);
+
+          if (error) throw error;
+
+          setReplyContent('');
+          setReplyingTo(null);
+          setSelectedAuthor('');
+          await loadPosts();
+        } catch (error) {
+          console.error('Error posting reply:', error);
+          alert('שגיאה בפרסום התגובה. נסה שוב.');
+        } finally {
+          setPosting(false);
+        }
+      };
+
+      const handlePasscodeSubmit = () => {
+        if (passcode === CORRECT_PASSCODE) {
+          setShowPasscodePopup(false);
+          setPasscode('');
+        } else {
+          alert('קוד שגוי. נסה שוב.');
+          setPasscode('');
         }
       };
 
@@ -521,66 +706,250 @@
         return date.toLocaleDateString('he-IL');
       };
 
+      const filteredPosts = selectedTopic === 'הכל'
+        ? posts
+        : posts.filter(post => post.topic === selectedTopic);
+
       return (
         <section id="forum" className="forum-section content-container">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="leadership-title">
               <i className="fas fa-comments ml-2"></i>
-              פורום אנונימי
+              פורום החבר'ה הטובים
             </h2>
-            <p className="text-center text-gray-600 mb-6 text-base">שתף מחשבות, רעיונות והודעות באופן אנונימי מוחלט</p>
+            <p className="text-center text-gray-600 mb-6 text-base">שתף מחשבות, רעיונות והודעות. פרסום אנונימי או עם שם (בקוד)</p>
+
+            <div className="topic-filter">
+              <button
+                className={`topic-button ${selectedTopic === 'הכל' ? 'active' : ''}`}
+                onClick={() => setSelectedTopic('הכל')}
+              >
+                <i className="fas fa-globe"></i>
+                הכל
+              </button>
+              {topics.map(topic => (
+                <button
+                  key={topic.id}
+                  className={`topic-button ${selectedTopic === topic.name ? 'active' : ''}`}
+                  onClick={() => setSelectedTopic(topic.name)}
+                >
+                  <i className={`fas ${topic.icon}`}></i>
+                  {topic.name}
+                </button>
+              ))}
+            </div>
 
             <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+              <div className="mb-3">
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">נושא:</label>
+                <select
+                  className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                  value={postTopic}
+                  onChange={(e) => setPostTopic(e.target.value)}
+                >
+                  {topics.map(topic => (
+                    <option key={topic.id} value={topic.name}>{topic.name}</option>
+                  ))}
+                </select>
+              </div>
               <textarea
                 className="forum-textarea"
-                placeholder="כתוב הודעה אנונימית..."
+                placeholder="כתוב הודעה..."
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
                 maxLength={1000}
               />
-              <div className="flex justify-between items-center mt-3">
-                <span className="text-xs text-gray-500">{newPost.length}/1000 תווים</span>
-                <button
-                  onClick={handleSubmitPost}
-                  disabled={!newPost.trim() || posting}
-                  className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {posting ? 'מפרסם...' : 'פרסם הודעה'}
-                </button>
+              <div className="flex justify-between items-center mt-3 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{newPost.length}/1000 תווים</span>
+                  {selectedAuthor && (
+                    <span className="author-badge">
+                      <i className="fas fa-user ml-1"></i>
+                      {selectedAuthor}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowPasscodePopup(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-semibold"
+                  >
+                    <i className="fas fa-key ml-1"></i>
+                    פרסם עם שם
+                  </button>
+                  <button
+                    onClick={handleSubmitPost}
+                    disabled={!newPost.trim() || posting}
+                    className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {posting ? 'מפרסם...' : 'פרסם'}
+                  </button>
+                </div>
               </div>
             </div>
 
             {loading ? (
               <div className="text-center py-8 text-gray-600">טוען הודעות...</div>
-            ) : posts.length === 0 ? (
+            ) : filteredPosts.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <i className="fas fa-comments text-4xl mb-4 text-gray-300"></i>
-                <p className="text-base">עדיין אין הודעות בפורום. היה הראשון לפרסם!</p>
+                <p className="text-base">עדיין אין הודעות בנושא זה. היה הראשון לפרסם!</p>
               </div>
             ) : (
               <div>
-                {posts.map(post => (
+                {filteredPosts.map(post => (
                   <div key={post.id} className="forum-post">
                     <div className="forum-header">
-                      <span className="forum-meta">
-                        <i className="fas fa-user-secret ml-1"></i>
-                        אנונימי
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {post.author_name ? (
+                          <span className="author-badge">
+                            <i className="fas fa-user ml-1"></i>
+                            {post.author_name}
+                          </span>
+                        ) : (
+                          <span className="forum-meta">
+                            <i className="fas fa-user-secret ml-1"></i>
+                            אנונימי
+                          </span>
+                        )}
+                        <span className="forum-meta">
+                          <i className="fas fa-tag ml-1"></i>
+                          {post.topic}
+                        </span>
+                      </div>
                       <span className="forum-meta">
                         <i className="far fa-clock ml-1"></i>
                         {formatDate(post.created_at)}
                       </span>
                     </div>
                     <p className="forum-post-content mb-4">{post.content}</p>
-                    <button
-                      onClick={() => handleLike(post.id, post.likes)}
-                      className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
-                    >
-                      <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
-                      <span>{post.likes || 0}</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleLike(post.id, post.likes)}
+                        className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
+                      >
+                        <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
+                        <span>{post.likes || 0}</span>
+                      </button>
+                      <button
+                        onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+                        className="like-button"
+                      >
+                        <i className="fas fa-reply"></i>
+                        <span>{post.replies?.length || 0}</span>
+                      </button>
+                    </div>
+
+                    {post.replies && post.replies.length > 0 && (
+                      <div className="reply-section">
+                        {post.replies.map(reply => (
+                          <div key={reply.id} className="reply-item">
+                            <div className="forum-header" style={{borderBottom: 'none', paddingBottom: 0, marginBottom: '0.5rem'}}>
+                              {reply.author_name ? (
+                                <span className="author-badge" style={{fontSize: '0.7rem', padding: '0.15rem 0.5rem'}}>
+                                  <i className="fas fa-user ml-1"></i>
+                                  {reply.author_name}
+                                </span>
+                              ) : (
+                                <span className="forum-meta">
+                                  <i className="fas fa-user-secret ml-1"></i>
+                                  אנונימי
+                                </span>
+                              )}
+                              <span className="forum-meta">
+                                {formatDate(reply.created_at)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">{reply.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className={`reply-form ${replyingTo === post.id ? 'active' : ''}`}>
+                      <textarea
+                        className="reply-textarea"
+                        placeholder="כתוב תגובה..."
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        maxLength={500}
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-gray-500">{replyContent.length}/500</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setReplyingTo(null);
+                              setReplyContent('');
+                            }}
+                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+                          >
+                            ביטול
+                          </button>
+                          <button
+                            onClick={() => handleSubmitReply(post.id)}
+                            disabled={!replyContent.trim() || posting}
+                            className="custom-button px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {posting ? 'שולח...' : 'שלח תגובה'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {showPasscodePopup && (
+              <div className="passcode-popup">
+                <div className="passcode-content">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                    <i className="fas fa-key text-purple-600 ml-2"></i>
+                    פרסום עם שם
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4 text-center">הזן את הקוד המיוחד כדי לבחור שם</p>
+                  <input
+                    type="password"
+                    className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center text-lg font-mono"
+                    placeholder="הזן קוד"
+                    value={passcode}
+                    onChange={(e) => setPasscode(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handlePasscodeSubmit()}
+                  />
+                  {passcode === CORRECT_PASSCODE && (
+                    <div className="mb-4">
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block">בחר שם:</label>
+                      <select
+                        className="w-full p-3 border border-gray-300 rounded-lg"
+                        value={selectedAuthor}
+                        onChange={(e) => setSelectedAuthor(e.target.value)}
+                      >
+                        <option value="">בחר מהרשימה</option>
+                        {AUTHORS.map(author => (
+                          <option key={author} value={author}>{author}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setShowPasscodePopup(false);
+                        setPasscode('');
+                      }}
+                      className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
+                    >
+                      ביטול
+                    </button>
+                    <button
+                      onClick={handlePasscodeSubmit}
+                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-semibold"
+                    >
+                      אישור
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
