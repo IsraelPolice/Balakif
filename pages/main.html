@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Impact&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -194,6 +195,75 @@
       .leadership-title { font-size: 1.75rem; }
       .leadership-card { padding: 1.5rem; }
     }
+    .forum-section {
+      background-color: white;
+      padding: 2rem 1rem;
+      border-top: 1px solid #E4E6EB;
+    }
+    .forum-post {
+      background: white;
+      border: 1px solid #E4E6EB;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      transition: box-shadow 0.2s ease;
+    }
+    .forum-post:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .forum-textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid #E4E6EB;
+      border-radius: 8px;
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+    .forum-textarea:focus {
+      outline: none;
+      border-color: #1877F2;
+      box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.1);
+    }
+    .like-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #F0F2F5;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+    }
+    .like-button:hover {
+      background: #E4E6EB;
+    }
+    .like-button.liked {
+      background: #1877F2;
+      color: white;
+    }
+    .forum-post-content {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.5;
+      color: #1C2526;
+      font-size: 0.875rem;
+    }
+    .forum-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #E4E6EB;
+    }
+    .forum-meta {
+      color: #65676B;
+      font-size: 0.75rem;
+    }
   </style>
 </head>
 <body>
@@ -202,6 +272,11 @@
   </div>
   <script type="text/babel" data-presets="env,react">
     console.log('Babel script loaded, attempting to render React app...');
+
+    const supabase = window.supabase.createClient(
+      'https://qhgdwgosximyouysmupq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZ2R3Z29zeGlteW91eXNtdXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1OTU0ODgsImV4cCI6MjA3NjE3MTQ4OH0.o94wxtUyvqF44FWazC10nM39uMAeHiLpXveoSmX4NbM'
+    );
 
     const AuthPopup = () => {
       const [question, setQuestion] = React.useState(null);
@@ -306,7 +381,7 @@
       <section className="leadership-section content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="leadership-title">הנהגת החבר׳ה הטובים</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
             <div className="leadership-card">
               <img
                 src="https://i.ibb.co/YYgWt7f/Screenshot-2025-05-23-at-10-12-15.png"
@@ -335,9 +410,183 @@
               <h3 className="text-lg font-bold text-gray-800">כוכב: דביר אוחנה</h3>
             </div>
           </div>
+          <div className="text-center mt-8 mb-4">
+            <div className="inline-flex items-center gap-4 bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-3">
+              <a href="https://israelpolice.github.io/Balakif/pages/good-guys.html" className="text-blue-600 hover:text-blue-700 font-semibold transition text-base">
+                <i className="fas fa-book ml-2"></i>
+                ויקיחבר׳ה
+              </a>
+              <span className="text-gray-300">|</span>
+              <a href="#forum" className="text-blue-600 hover:text-blue-700 font-semibold transition text-base">
+                <i className="fas fa-comments ml-2"></i>
+                פורום אנונימי
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     );
+
+    const Forum = () => {
+      const [posts, setPosts] = React.useState([]);
+      const [newPost, setNewPost] = React.useState('');
+      const [loading, setLoading] = React.useState(true);
+      const [posting, setPosting] = React.useState(false);
+      const [likedPosts, setLikedPosts] = React.useState(new Set());
+
+      React.useEffect(() => {
+        loadPosts();
+        const savedLikes = localStorage.getItem('likedPosts');
+        if (savedLikes) {
+          setLikedPosts(new Set(JSON.parse(savedLikes)));
+        }
+      }, []);
+
+      const loadPosts = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('forum_posts')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          setPosts(data || []);
+        } catch (error) {
+          console.error('Error loading posts:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleSubmitPost = async () => {
+        if (!newPost.trim() || posting) return;
+
+        setPosting(true);
+        try {
+          const { error } = await supabase
+            .from('forum_posts')
+            .insert([{ content: newPost.trim() }]);
+
+          if (error) throw error;
+
+          setNewPost('');
+          await loadPosts();
+        } catch (error) {
+          console.error('Error posting:', error);
+          alert('שגיאה בפרסום ההודעה. נסה שוב.');
+        } finally {
+          setPosting(false);
+        }
+      };
+
+      const handleLike = async (postId, currentLikes) => {
+        const isLiked = likedPosts.has(postId);
+        const newLikes = isLiked ? currentLikes - 1 : currentLikes + 1;
+
+        try {
+          const { error } = await supabase
+            .from('forum_posts')
+            .update({ likes: newLikes })
+            .eq('id', postId);
+
+          if (error) throw error;
+
+          const updatedLikedPosts = new Set(likedPosts);
+          if (isLiked) {
+            updatedLikedPosts.delete(postId);
+          } else {
+            updatedLikedPosts.add(postId);
+          }
+          setLikedPosts(updatedLikedPosts);
+          localStorage.setItem('likedPosts', JSON.stringify([...updatedLikedPosts]));
+
+          await loadPosts();
+        } catch (error) {
+          console.error('Error updating likes:', error);
+        }
+      };
+
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'עכשיו';
+        if (diffMins < 60) return `לפני ${diffMins} דקות`;
+        if (diffHours < 24) return `לפני ${diffHours} שעות`;
+        if (diffDays < 7) return `לפני ${diffDays} ימים`;
+        return date.toLocaleDateString('he-IL');
+      };
+
+      return (
+        <section id="forum" className="forum-section content-container">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="leadership-title">
+              <i className="fas fa-comments ml-2"></i>
+              פורום אנונימי
+            </h2>
+            <p className="text-center text-gray-600 mb-6 text-base">שתף מחשבות, רעיונות והודעות באופן אנונימי מוחלט</p>
+
+            <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+              <textarea
+                className="forum-textarea"
+                placeholder="כתוב הודעה אנונימית..."
+                value={newPost}
+                onChange={(e) => setNewPost(e.target.value)}
+                maxLength={1000}
+              />
+              <div className="flex justify-between items-center mt-3">
+                <span className="text-xs text-gray-500">{newPost.length}/1000 תווים</span>
+                <button
+                  onClick={handleSubmitPost}
+                  disabled={!newPost.trim() || posting}
+                  className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {posting ? 'מפרסם...' : 'פרסם הודעה'}
+                </button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-8 text-gray-600">טוען הודעות...</div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <i className="fas fa-comments text-4xl mb-4 text-gray-300"></i>
+                <p className="text-base">עדיין אין הודעות בפורום. היה הראשון לפרסם!</p>
+              </div>
+            ) : (
+              <div>
+                {posts.map(post => (
+                  <div key={post.id} className="forum-post">
+                    <div className="forum-header">
+                      <span className="forum-meta">
+                        <i className="fas fa-user-secret ml-1"></i>
+                        אנונימי
+                      </span>
+                      <span className="forum-meta">
+                        <i className="far fa-clock ml-1"></i>
+                        {formatDate(post.created_at)}
+                      </span>
+                    </div>
+                    <p className="forum-post-content mb-4">{post.content}</p>
+                    <button
+                      onClick={() => handleLike(post.id, post.likes)}
+                      className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
+                    >
+                      <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
+                      <span>{post.likes || 0}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    };
 
     const Hero = () => (
       <section className="bg-white py-12 sm:py-20 content-container">
@@ -423,6 +672,7 @@
         <AuthPopup />
         <Nav />
         <Leadership />
+        <Forum />
         <Hero />
         <Sections />
         <Footer />
