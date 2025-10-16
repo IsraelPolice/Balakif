@@ -354,6 +354,61 @@
       font-size: 0.75rem;
       font-weight: 600;
     }
+    .poll-option {
+      background: white;
+      border: 2px solid #E4E6EB;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .poll-option:hover {
+      border-color: #1877F2;
+      background: #F0F2F5;
+    }
+    .poll-option-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(24, 119, 242, 0.1) 0%, rgba(24, 119, 242, 0.2) 100%);
+      transition: width 0.3s ease;
+      z-index: 0;
+    }
+    .poll-option-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .poll-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #E4E6EB;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+    .show-more-button {
+      background: white;
+      border: 2px solid #1877F2;
+      color: #1877F2;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin: 1.5rem auto;
+      display: block;
+    }
+    .show-more-button:hover {
+      background: #1877F2;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -531,6 +586,10 @@
       const [passcode, setPasscode] = React.useState('');
       const [selectedAuthor, setSelectedAuthor] = React.useState('');
       const [postTopic, setPostTopic] = React.useState('כללי');
+      const [isPoll, setIsPoll] = React.useState(false);
+      const [pollOptions, setPollOptions] = React.useState(['', '']);
+      const [likedReplies, setLikedReplies] = React.useState(new Set());
+      const [postsToShow, setPostsToShow] = React.useState(5);
 
       const AUTHORS = [
         'Liav Ben Yaakov',
@@ -550,8 +609,12 @@
         loadPosts();
         loadTopics();
         const savedLikes = localStorage.getItem('likedPosts');
+        const savedReplyLikes = localStorage.getItem('likedReplies');
         if (savedLikes) {
           setLikedPosts(new Set(JSON.parse(savedLikes)));
+        }
+        if (savedReplyLikes) {
+          setLikedReplies(new Set(JSON.parse(savedReplyLikes)));
         }
       }, []);
 
@@ -598,13 +661,20 @@
 
       const handleSubmitPost = async () => {
         if (!newPost.trim() || posting) return;
+        if (isPoll && pollOptions.filter(opt => opt.trim()).length < 2) {
+          alert('סקר חייב לכלול לפחות 2 אופציות');
+          return;
+        }
 
         setPosting(true);
         try {
           const postData = {
             content: newPost.trim(),
             topic: postTopic,
-            author_name: selectedAuthor || null
+            author_name: selectedAuthor || null,
+            is_poll: isPoll,
+            poll_options: isPoll ? pollOptions.filter(opt => opt.trim()).map(opt => ({ text: opt.trim(), votes: 0 })) : null,
+            poll_votes: isPoll ? [] : null
           };
 
           const { error } = await supabase
@@ -616,6 +686,8 @@
           setNewPost('');
           setSelectedAuthor('');
           setPostTopic('כללי');
+          setIsPoll(false);
+          setPollOptions(['', '']);
           await loadPosts();
         } catch (error) {
           console.error('Error posting:', error);
@@ -664,6 +736,65 @@
         }
       };
 
+      const handlePollVote = async (postId, optionIndex, currentOptions, currentVotes) => {
+        const userFingerprint = localStorage.getItem('userFingerprint') || Math.random().toString(36);
+        localStorage.setItem('userFingerprint', userFingerprint);
+
+        if (currentVotes && currentVotes.includes(userFingerprint)) {
+          alert('כבר הצבעת בסקר זה');
+          return;
+        }
+
+        try {
+          const updatedOptions = [...currentOptions];
+          updatedOptions[optionIndex].votes += 1;
+          const updatedVotes = [...(currentVotes || []), userFingerprint];
+
+          const { error } = await supabase
+            .from('forum_posts')
+            .update({
+              poll_options: updatedOptions,
+              poll_votes: updatedVotes
+            })
+            .eq('id', postId);
+
+          if (error) throw error;
+          await loadPosts();
+        } catch (error) {
+          console.error('Error voting:', error);
+        }
+      };
+
+      const handleReplyLike = async (replyId, currentLikes) => {
+        const userFingerprint = localStorage.getItem('userFingerprint') || Math.random().toString(36);
+        localStorage.setItem('userFingerprint', userFingerprint);
+
+        const isLiked = likedReplies.has(replyId);
+        const newLikes = isLiked ? currentLikes - 1 : currentLikes + 1;
+
+        try {
+          const { error } = await supabase
+            .from('forum_posts')
+            .update({ likes: newLikes })
+            .eq('id', replyId);
+
+          if (error) throw error;
+
+          const updatedLikedReplies = new Set(likedReplies);
+          if (isLiked) {
+            updatedLikedReplies.delete(replyId);
+          } else {
+            updatedLikedReplies.add(replyId);
+          }
+          setLikedReplies(updatedLikedReplies);
+          localStorage.setItem('likedReplies', JSON.stringify([...updatedLikedReplies]));
+
+          await loadPosts();
+        } catch (error) {
+          console.error('Error updating reply likes:', error);
+        }
+      };
+
       const handleLike = async (postId, currentLikes) => {
         const isLiked = likedPosts.has(postId);
         const newLikes = isLiked ? currentLikes - 1 : currentLikes + 1;
@@ -706,9 +837,12 @@
         return date.toLocaleDateString('he-IL');
       };
 
-      const filteredPosts = selectedTopic === 'הכל'
+      const allFilteredPosts = selectedTopic === 'הכל'
         ? posts
         : posts.filter(post => post.topic === selectedTopic);
+
+      const filteredPosts = allFilteredPosts.slice(0, postsToShow);
+      const hasMorePosts = allFilteredPosts.length > postsToShow;
 
       return (
         <section id="forum" className="forum-section content-container">
@@ -740,25 +874,64 @@
             </div>
 
             <div className="mb-8 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-              <div className="mb-3">
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">נושא:</label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm"
-                  value={postTopic}
-                  onChange={(e) => setPostTopic(e.target.value)}
-                >
-                  {topics.map(topic => (
-                    <option key={topic.id} value={topic.name}>{topic.name}</option>
-                  ))}
-                </select>
+              <div className="mb-3 flex gap-2">
+                <div className="flex-1">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">נושא:</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                    value={postTopic}
+                    onChange={(e) => setPostTopic(e.target.value)}
+                  >
+                    {topics.map(topic => (
+                      <option key={topic.id} value={topic.name}>{topic.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() => setIsPoll(!isPoll)}
+                    className={`px-4 py-2 rounded-lg transition text-sm font-semibold ${isPoll ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    <i className="fas fa-poll ml-1"></i>
+                    סקר
+                  </button>
+                </div>
               </div>
               <textarea
                 className="forum-textarea"
-                placeholder="כתוב הודעה..."
+                placeholder={isPoll ? "שאלת הסקר..." : "כתוב הודעה..."}
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
                 maxLength={1000}
               />
+              {isPoll && (
+                <div className="mt-3 mb-3">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">אופציות הסקר:</label>
+                  {pollOptions.map((option, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      className="poll-input"
+                      placeholder={`אופציה ${index + 1}`}
+                      value={option}
+                      onChange={(e) => {
+                        const newOptions = [...pollOptions];
+                        newOptions[index] = e.target.value;
+                        setPollOptions(newOptions);
+                      }}
+                    />
+                  ))}
+                  {pollOptions.length < 6 && (
+                    <button
+                      onClick={() => setPollOptions([...pollOptions, ''])}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
+                    >
+                      <i className="fas fa-plus ml-1"></i>
+                      הוסף אופציה
+                    </button>
+                  )}
+                </div>
+              )}
               <div className="flex justify-between items-center mt-3 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">{newPost.length}/1000 תווים</span>
@@ -782,7 +955,7 @@
                     disabled={!newPost.trim() || posting}
                     className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {posting ? 'מפרסם...' : 'פרסם'}
+                    {posting ? 'מפרסם...' : isPoll ? 'פרסם סקר' : 'פרסם'}
                   </button>
                 </div>
               </div>
@@ -823,14 +996,51 @@
                       </span>
                     </div>
                     <p className="forum-post-content mb-4">{post.content}</p>
+
+                    {post.is_poll && post.poll_options && (
+                      <div className="mb-4">
+                        {post.poll_options.map((option, index) => {
+                          const totalVotes = post.poll_options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
+                          const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+                          const userFingerprint = localStorage.getItem('userFingerprint');
+                          const hasVoted = post.poll_votes && post.poll_votes.includes(userFingerprint);
+
+                          return (
+                            <div
+                              key={index}
+                              className="poll-option"
+                              onClick={() => !hasVoted && handlePollVote(post.id, index, post.poll_options, post.poll_votes)}
+                              style={{cursor: hasVoted ? 'default' : 'pointer'}}
+                            >
+                              <div className="poll-option-bar" style={{width: `${percentage}%`}}></div>
+                              <div className="poll-option-content">
+                                <span className="font-semibold text-sm">{option.text}</span>
+                                <span className="text-sm text-gray-600 font-bold">{option.votes || 0} ({percentage}%)</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                          {(() => {
+                            const userFingerprint = localStorage.getItem('userFingerprint');
+                            const hasVoted = post.poll_votes && post.poll_votes.includes(userFingerprint);
+                            const totalVotes = post.poll_options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
+                            return hasVoted ? `${totalVotes} הצבעות | הצבעת כבר` : `${totalVotes} הצבעות | לחץ כדי להצביע`;
+                          })()}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleLike(post.id, post.likes)}
-                        className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
-                      >
-                        <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
-                        <span>{post.likes || 0}</span>
-                      </button>
+                      {!post.is_poll && (
+                        <button
+                          onClick={() => handleLike(post.id, post.likes)}
+                          className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
+                        >
+                          <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
+                          <span>{post.likes || 0}</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
                         className="like-button"
@@ -860,7 +1070,15 @@
                                 {formatDate(reply.created_at)}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-700">{reply.content}</p>
+                            <p className="text-sm text-gray-700 mb-2">{reply.content}</p>
+                            <button
+                              onClick={() => handleReplyLike(reply.id, reply.likes)}
+                              className={`like-button ${likedReplies.has(reply.id) ? 'liked' : ''}`}
+                              style={{padding: '0.25rem 0.5rem', fontSize: '0.75rem'}}
+                            >
+                              <i className={`fa${likedReplies.has(reply.id) ? 's' : 'r'} fa-heart`}></i>
+                              <span>{reply.likes || 0}</span>
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -898,6 +1116,15 @@
                     </div>
                   </div>
                 ))}
+                {hasMorePosts && (
+                  <button
+                    onClick={() => setPostsToShow(postsToShow + 5)}
+                    className="show-more-button"
+                  >
+                    <i className="fas fa-chevron-down ml-2"></i>
+                    הצג עוד פרסומים
+                  </button>
+                )}
               </div>
             )}
 
