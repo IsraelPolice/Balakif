@@ -48,6 +48,7 @@
       const [selectedCategory, setSelectedCategory] = useState(null);
       const [email, setEmail] = useState('');
       const [phone, setPhone] = useState('');
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
       const [selectedNominee, setSelectedNominee] = useState(null);
       const [adminCode, setAdminCode] = useState('');
       const [showAdmin, setShowAdmin] = useState(false);
@@ -56,6 +57,7 @@
       const [voting, setVoting] = useState(false);
       const [message, setMessage] = useState(null);
       const [nominationCounts, setNominationCounts] = useState({});
+      const [totalNominations, setTotalNominations] = useState({});
 
       useEffect(() => {
         loadCategories();
@@ -77,6 +79,7 @@
 
           const nomineesByCategory = {};
           const counts = {};
+          const totalCounts = {};
 
           (nomineesData || []).forEach(nominee => {
             if (!nomineesByCategory[nominee.category_id]) {
@@ -85,10 +88,14 @@
             nomineesByCategory[nominee.category_id].push(nominee);
 
             counts[nominee.name] = (counts[nominee.name] || 0) + 1;
+
+            const name = nominee.name.split(' - ')[0].trim();
+            totalCounts[name] = (totalCounts[name] || 0) + 1;
           });
 
           setNominees(nomineesByCategory);
           setNominationCounts(counts);
+          setTotalNominations(totalCounts);
           setLoading(false);
         } catch (error) {
           console.error('Error loading categories:', error);
@@ -126,9 +133,9 @@
         }
       };
 
-      const handleVote = async () => {
-        if (!email || !phone || !selectedNominee) {
-          setMessage({ type: 'error', text: 'נא למלא את כל השדות' });
+      const handleAuthentication = async () => {
+        if (!email || !phone) {
+          setMessage({ type: 'error', text: 'נא למלא מייל ומספר טלפון' });
           setTimeout(() => setMessage(null), 3000);
           return;
         }
@@ -190,13 +197,37 @@
             return;
           }
 
+          setPhone(normalizedPhone);
+          setIsAuthenticated(true);
+          setMessage({ type: 'success', text: '✓ אומת בהצלחה! בחר קטגוריה להצבעה' });
+          setTimeout(() => setMessage(null), 3000);
+        } catch (error) {
+          console.error('Error checking phone:', error);
+          setMessage({ type: 'error', text: 'שגיאה באימות' });
+          setTimeout(() => setMessage(null), 3000);
+        } finally {
+          setVoting(false);
+        }
+      };
+
+      const handleVote = async () => {
+        if (!selectedNominee) {
+          setMessage({ type: 'error', text: 'נא לבחור מועמד' });
+          setTimeout(() => setMessage(null), 3000);
+          return;
+        }
+
+        setVoting(true);
+
+        try {
+
           const { error } = await supabase
             .from('award_votes')
             .insert({
               category_id: selectedCategory.id,
               nominee_id: selectedNominee,
               voter_email: email,
-              voter_phone: normalizedPhone
+              voter_phone: phone
             });
 
           if (error) throw error;
@@ -204,11 +235,9 @@
           setMessage({ type: 'success', text: '✓ ההצבעה נשלחה בהצלחה!' });
           setTimeout(() => {
             setSelectedCategory(null);
-            setEmail('');
-            setPhone('');
             setSelectedNominee(null);
             setMessage(null);
-          }, 2000);
+          }, 1500);
         } catch (error) {
           console.error('Error voting:', error);
           setMessage({ type: 'error', text: 'שגיאה בשליחת ההצבעה' });
@@ -364,62 +393,28 @@
                     </div>
                   )}
 
-                  <div style={{display: 'grid', gap: '0.875rem'}}>
-                    <input
-                      type="email"
-                      placeholder="המייל שלך"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: 'clamp(0.75rem, 2vw, 1rem)',
-                        borderRadius: '0.5rem',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: 'white',
-                        fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                        outline: 'none'
-                      }}
-                    />
-                    <input
-                      type="tel"
-                      placeholder="מספר הטלפון שלך"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: 'clamp(0.75rem, 2vw, 1rem)',
-                        borderRadius: '0.5rem',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: 'white',
-                        fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-                        outline: 'none'
-                      }}
-                    />
-                    <button
-                      onClick={handleVote}
-                      disabled={voting || !selectedNominee}
-                      style={{
-                        width: '100%',
-                        padding: 'clamp(0.875rem, 2.5vw, 1.125rem)',
-                        background: voting || !selectedNominee
-                          ? 'rgba(212, 175, 55, 0.3)'
-                          : 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)',
-                        color: '#000000',
-                        fontWeight: '700',
-                        fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-                        borderRadius: '0.5rem',
-                        border: 'none',
-                        cursor: voting || !selectedNominee ? 'not-allowed' : 'pointer',
-                        boxShadow: voting || !selectedNominee ? 'none' : '0 4px 20px rgba(212, 175, 55, 0.3)',
-                        transition: 'all 0.2s',
-                        letterSpacing: '0.02em'
-                      }}
-                    >
-                      {voting ? 'שולח...' : 'הצבע עכשיו'}
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleVote}
+                    disabled={voting || !selectedNominee}
+                    style={{
+                      width: '100%',
+                      padding: 'clamp(1rem, 2.5vw, 1.25rem)',
+                      background: voting || !selectedNominee
+                        ? 'rgba(212, 175, 55, 0.3)'
+                        : 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)',
+                      color: '#000000',
+                      fontWeight: '700',
+                      fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                      borderRadius: '0.5rem',
+                      border: 'none',
+                      cursor: voting || !selectedNominee ? 'not-allowed' : 'pointer',
+                      boxShadow: voting || !selectedNominee ? 'none' : '0 6px 20px rgba(212, 175, 55, 0.4)',
+                      transition: 'all 0.2s',
+                      letterSpacing: '0.02em'
+                    }}
+                  >
+                    {voting ? 'שולח...' : 'הצבע עכשיו'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -452,6 +447,123 @@
                 החבר'ה הטובים
               </p>
             </div>
+
+            {Object.keys(totalNominations).length > 0 && (
+              <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '0.75rem', padding: 'clamp(1.5rem, 3vw, 2rem)', border: '1px solid rgba(212, 175, 55, 0.2)', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'}}>
+                <h2 className="oscar-title" style={{fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: '800', marginBottom: '1.5rem', textAlign: 'center', color: '#D4AF37'}}>
+                  <i className="fas fa-star" style={{marginLeft: '0.75rem'}}></i>
+                  סיכום מועמדויות
+                </h2>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap: 'clamp(0.75rem, 2vw, 1rem)', maxWidth: '1200px', margin: '0 auto'}}>
+                  {Object.entries(totalNominations).sort((a, b) => b[1] - a[1]).map(([name, count]) => (
+                    <div key={name} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'clamp(0.75rem, 2vw, 1rem)', background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%)', borderRadius: '0.5rem', border: '1px solid rgba(212, 175, 55, 0.2)'}}>
+                      <span style={{color: '#ffffff', fontWeight: '500', fontSize: 'clamp(0.9rem, 2vw, 1rem)'}}>{name}</span>
+                      <span style={{color: '#D4AF37', fontWeight: '700', fontSize: 'clamp(1rem, 2.5vw, 1.25rem)'}}>
+                        {count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!isAuthenticated ? (
+              <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', display: 'flex', justifyContent: 'center'}}>
+                <div style={{background: 'linear-gradient(180deg, rgba(212, 175, 55, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)', borderRadius: '0.75rem', padding: 'clamp(1.5rem, 3vw, 2rem)', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)', border: '2px solid rgba(212, 175, 55, 0.3)', maxWidth: '32rem', width: '100%'}}>
+                  <div style={{textAlign: 'center', marginBottom: '1.5rem'}}>
+                    <i className="fas fa-vote-yea" style={{fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#D4AF37', marginBottom: '1rem', display: 'block'}}></i>
+                    <h3 className="oscar-title" style={{fontSize: 'clamp(1.25rem, 3vw, 1.75rem)', fontWeight: '700', color: '#D4AF37', marginBottom: '0.5rem'}}>
+                      התחל להצביע
+                    </h3>
+                    <p style={{color: '#aaa', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}>
+                      הזן את הפרטים שלך כדי להתחיל להצביע
+                    </p>
+                  </div>
+
+                  {message && (
+                    <div style={{
+                      padding: '0.875rem',
+                      borderRadius: '0.5rem',
+                      marginBottom: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                      background: message.type === 'success' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      color: message.type === 'success' ? '#22c55e' : '#ef4444',
+                      border: '1px solid ' + (message.type === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)')
+                    }}>
+                      {message.text}
+                    </div>
+                  )}
+
+                  <div style={{display: 'grid', gap: '1rem'}}>
+                    <input
+                      type="email"
+                      placeholder="המייל שלך"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: 'clamp(0.875rem, 2vw, 1rem)',
+                        borderRadius: '0.5rem',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        color: 'white',
+                        fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                        outline: 'none'
+                      }}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="מספר הטלפון שלך"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: 'clamp(0.875rem, 2vw, 1rem)',
+                        borderRadius: '0.5rem',
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        color: 'white',
+                        fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                        outline: 'none'
+                      }}
+                    />
+                    <button
+                      onClick={handleAuthentication}
+                      disabled={voting}
+                      style={{
+                        width: '100%',
+                        padding: 'clamp(1rem, 2.5vw, 1.25rem)',
+                        background: voting
+                          ? 'rgba(212, 175, 55, 0.3)'
+                          : 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)',
+                        color: '#000000',
+                        fontWeight: '700',
+                        fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                        borderRadius: '0.5rem',
+                        border: 'none',
+                        cursor: voting ? 'not-allowed' : 'pointer',
+                        boxShadow: voting ? 'none' : '0 6px 20px rgba(212, 175, 55, 0.4)',
+                        transition: 'all 0.2s',
+                        letterSpacing: '0.02em'
+                      }}
+                    >
+                      {voting ? 'בודק...' : 'המשך להצבעה'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', textAlign: 'center'}}>
+                <div style={{background: 'rgba(34, 197, 94, 0.15)', border: '2px solid rgba(34, 197, 94, 0.3)', borderRadius: '0.75rem', padding: 'clamp(1rem, 2vw, 1.5rem)', display: 'inline-block'}}>
+                  <i className="fas fa-check-circle" style={{color: '#22c55e', fontSize: 'clamp(1.5rem, 3vw, 2rem)', marginLeft: '0.75rem'}}></i>
+                  <span style={{color: '#22c55e', fontWeight: '700', fontSize: 'clamp(1rem, 2vw, 1.25rem)'}}>
+                    מאומת! בחר קטגוריה להצבעה
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', display: 'flex', justifyContent: 'center'}}>
               <div style={{background: 'rgba(255, 255, 255, 0.03)', borderRadius: '0.5rem', padding: 'clamp(1rem, 3vw, 1.5rem)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: '28rem', width: '100%'}}>
@@ -492,26 +604,34 @@
                 return (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => isAuthenticated && setSelectedCategory(category)}
+                    disabled={!isAuthenticated}
                     style={{
-                      background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                      background: isAuthenticated
+                        ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)'
+                        : 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)',
                       borderRadius: '0.5rem',
                       padding: 'clamp(1.25rem, 3vw, 2rem)',
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
                       border: '1px solid rgba(212, 175, 55, 0.2)',
-                      cursor: 'pointer',
+                      cursor: isAuthenticated ? 'pointer' : 'not-allowed',
                       transition: 'all 0.3s',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      opacity: isAuthenticated ? 1 : 0.5
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-5px)';
-                      e.currentTarget.style.borderColor = '#D4AF37';
-                      e.currentTarget.style.boxShadow = '0 8px 30px rgba(212, 175, 55, 0.3)';
+                      if (isAuthenticated) {
+                        e.currentTarget.style.transform = 'translateY(-5px)';
+                        e.currentTarget.style.borderColor = '#D4AF37';
+                        e.currentTarget.style.boxShadow = '0 8px 30px rgba(212, 175, 55, 0.3)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.2)';
-                      e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+                      if (isAuthenticated) {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.2)';
+                        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+                      }
                     }}
                   >
                     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(0.75rem, 2vw, 1rem)'}}>
