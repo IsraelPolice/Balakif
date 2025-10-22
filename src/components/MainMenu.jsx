@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Users, ShoppingBag, Target, User, Trophy } from 'lucide-react'
+import { Users, ShoppingBag, Target, User, Trophy, Award } from 'lucide-react'
 import { useGame } from '../context/GameContext'
 import BottomNavigation from './BottomNavigation'
 
@@ -25,11 +25,19 @@ function MainMenu({ onNavigate }) {
       stats: 'חבילות זמינות'
     },
     {
+      id: 'awards',
+      title: 'פרסי האקדמיה',
+      description: 'הצביעו לפרסים של החבר\'ה הטובים',
+      icon: Award,
+      color: 'from-yellow-500 to-amber-600',
+      stats: 'הצבעה פתוחה'
+    },
+    {
       id: 'challenges',
       title: 'אתגרים',
       description: 'השלימו משימות והרוויחו מטבעות',
       icon: Target,
-      color: 'from-purple-500 to-purple-700',
+      color: 'from-pink-500 to-rose-600',
       stats: 'פרסים יומיים'
     },
     {

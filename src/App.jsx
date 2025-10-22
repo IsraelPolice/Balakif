@@ -9,6 +9,7 @@ import SquadBuilder from './components/SquadBuilder'
 import Store from './components/Store'
 import Challenges from './components/Challenges'
 import Profile from './components/Profile'
+import AcademyAwards from './components/AcademyAwards'
 import { GameProvider } from './context/GameContext'
 import { isMobile } from './utils/device'
 
@@ -66,6 +67,9 @@ function App() {
             )}
             {currentScreen === 'profile' && (
               <Profile key="profile" onNavigate={setCurrentScreen} />
+            )}
+            {currentScreen === 'awards' && (
+              <AcademyAwards key="awards" onBack={() => setCurrentScreen('menu')} />
             )}
           </AnimatePresence>
         </div>
