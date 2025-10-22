@@ -167,8 +167,11 @@
           '0549988476',
           '0545488845',
           '0543179530',
-          '0528977852'
+          '0528977852',
+          '0545218003'
         ];
+
+        const testPhone = '0545218003';
 
         const normalizedPhone = phone.replace(/\D/g, '');
         if (!allowedPhones.includes(normalizedPhone)) {
@@ -180,21 +183,23 @@
         setVoting(true);
 
         try {
-          const { data: existingVote, error: checkError } = await supabase
-            .from('award_votes')
-            .select('id')
-            .eq('voter_phone', normalizedPhone)
-            .maybeSingle();
+          if (normalizedPhone !== testPhone) {
+            const { data: existingVote, error: checkError } = await supabase
+              .from('award_votes')
+              .select('id')
+              .eq('voter_phone', normalizedPhone)
+              .maybeSingle();
 
-          if (checkError && checkError.code !== 'PGRST116') {
-            throw checkError;
-          }
+            if (checkError && checkError.code !== 'PGRST116') {
+              throw checkError;
+            }
 
-          if (existingVote) {
-            setMessage({ type: 'error', text: 'מספר הטלפון הזה כבר הצביע' });
-            setVoting(false);
-            setTimeout(() => setMessage(null), 3000);
-            return;
+            if (existingVote) {
+              setMessage({ type: 'error', text: 'מספר הטלפון הזה כבר הצביע' });
+              setVoting(false);
+              setTimeout(() => setMessage(null), 3000);
+              return;
+            }
           }
 
           setPhone(normalizedPhone);
