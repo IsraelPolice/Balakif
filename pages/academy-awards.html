@@ -9,19 +9,22 @@
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
-      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      background: #000000;
+    }
+    .oscar-title {
+      font-family: 'Playfair Display', serif;
     }
   </style>
 </head>
 <body>
   <div id="root">
-    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #fbbf24; font-size: 1.5rem;">
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #D4AF37; font-size: 1.5rem;">
       טוען...
     </div>
   </div>
@@ -52,6 +55,7 @@
       const [loading, setLoading] = useState(true);
       const [voting, setVoting] = useState(false);
       const [message, setMessage] = useState(null);
+      const [nominationCounts, setNominationCounts] = useState({});
 
       useEffect(() => {
         loadCategories();
@@ -72,14 +76,19 @@
           setCategories(categoriesData || []);
 
           const nomineesByCategory = {};
+          const counts = {};
+
           (nomineesData || []).forEach(nominee => {
             if (!nomineesByCategory[nominee.category_id]) {
               nomineesByCategory[nominee.category_id] = [];
             }
             nomineesByCategory[nominee.category_id].push(nominee);
-          });
-          setNominees(nomineesByCategory);
 
+            counts[nominee.name] = (counts[nominee.name] || 0) + 1;
+          });
+
+          setNominees(nomineesByCategory);
+          setNominationCounts(counts);
           setLoading(false);
         } catch (error) {
           console.error('Error loading categories:', error);
@@ -91,6 +100,8 @@
         if (adminCode === '316439249') {
           setShowAdmin(true);
           await loadVoteCounts();
+          setMessage({ type: 'success', text: '✓ מצב מנהל מופעל' });
+          setTimeout(() => setMessage(null), 2000);
         } else {
           setMessage({ type: 'error', text: 'קוד שגוי' });
           setTimeout(() => setMessage(null), 3000);
@@ -155,7 +166,7 @@
 
           if (error) throw error;
 
-          setMessage({ type: 'success', text: 'ההצבעה נשלחה בהצלחה!' });
+          setMessage({ type: 'success', text: '✓ ההצבעה נשלחה בהצלחה!' });
           setTimeout(() => {
             setSelectedCategory(null);
             setEmail('');
@@ -174,8 +185,8 @@
 
       if (loading) {
         return (
-          <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #78350f 0%, #92400e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-            <div style={{color: '#fde68a', fontSize: '1.5rem'}}>טוען...</div>
+          <div style={{minHeight: '100vh', background: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <div style={{color: '#D4AF37', fontSize: '1.5rem', fontFamily: 'Playfair Display, serif'}}>טוען...</div>
           </div>
         );
       }
@@ -186,26 +197,26 @@
         const categoryVotes = voteCounts[selectedCategory.id] || {};
 
         return (
-          <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #111827 0%, #000000 100%)', color: 'white', padding: '2rem 1rem'}}>
+          <div style={{minHeight: '100vh', background: '#000000', color: 'white', padding: '1rem'}}>
             <div style={{maxWidth: '1280px', margin: '0 auto'}}>
               <button
                 onClick={() => setSelectedCategory(null)}
-                style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fbbf24', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', marginBottom: '1.5rem'}}
+                style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#D4AF37', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.95rem', marginBottom: '1.5rem', padding: '0.5rem'}}
               >
                 <i className="fas fa-arrow-right"></i>
                 <span>חזרה לכל הקטגוריות</span>
               </button>
 
-              <div style={{background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', borderRadius: '1rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', border: '1px solid rgba(251, 191, 36, 0.3)'}}>
-                <div style={{background: 'linear-gradient(90deg, #d97706 0%, #f59e0b 100%)', padding: '2rem', textAlign: 'center'}}>
-                  <h2 style={{fontSize: '2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: 0}}>
-                    <i className="fas fa-trophy" style={{fontSize: '2.5rem'}}></i>
+              <div style={{background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)', borderRadius: '0.5rem', boxShadow: '0 20px 60px rgba(212, 175, 55, 0.15)', overflow: 'hidden', border: '1px solid rgba(212, 175, 55, 0.2)'}}>
+                <div style={{background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)', padding: '1.5rem', textAlign: 'center'}}>
+                  <h2 className="oscar-title" style={{fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', margin: 0, color: '#000000', letterSpacing: '0.02em'}}>
+                    <i className="fas fa-trophy" style={{fontSize: 'clamp(1.75rem, 4vw, 2.5rem)'}}></i>
                     {selectedCategory.name}
                   </h2>
                 </div>
 
                 {videoId && (
-                  <div style={{aspectRatio: '16/9', width: '100%'}}>
+                  <div style={{aspectRatio: '16/9', width: '100%', background: '#000'}}>
                     <iframe
                       width="100%"
                       height="100%"
@@ -219,10 +230,35 @@
                   </div>
                 )}
 
-                <div style={{padding: '2rem'}}>
-                  <h3 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', color: '#fbbf24'}}>המועמדים</h3>
+                <div style={{padding: 'clamp(1rem, 3vw, 2rem)'}}>
+                  <h3 className="oscar-title" style={{fontSize: 'clamp(1.25rem, 3vw, 1.75rem)', fontWeight: '700', marginBottom: '1.5rem', textAlign: 'center', color: '#D4AF37', letterSpacing: '0.05em'}}>
+                    המועמדים
+                  </h3>
 
-                  <div style={{display: 'grid', gap: '1rem', marginBottom: '2rem'}}>
+                  <div style={{marginBottom: '1.5rem', padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '0.5rem', border: '1px solid rgba(212, 175, 55, 0.15)'}}>
+                    <h4 style={{fontSize: '0.9rem', fontWeight: '600', color: '#D4AF37', marginBottom: '0.75rem', textAlign: 'center'}}>
+                      <i className="fas fa-star" style={{marginLeft: '0.5rem'}}></i>
+                      סיכום מועמדויות
+                    </h4>
+                    <div style={{display: 'grid', gap: '0.5rem'}}>
+                      {Object.entries(
+                        categoryNominees.reduce((acc, nominee) => {
+                          const name = nominee.name.split(' - ')[0].trim();
+                          acc[name] = (acc[name] || 0) + 1;
+                          return acc;
+                        }, {})
+                      ).sort((a, b) => b[1] - a[1]).map(([name, count]) => (
+                        <div key={name} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 1rem', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '0.25rem', fontSize: '0.85rem'}}>
+                          <span style={{color: '#e5e5e5'}}>{name}</span>
+                          <span style={{color: '#D4AF37', fontWeight: '600'}}>
+                            {count} {count === 1 ? 'מועמדות' : 'מועמדויות'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{display: 'grid', gap: '0.75rem', marginBottom: '1.5rem'}}>
                     {categoryNominees.map((nominee) => {
                       const voteCount = categoryVotes[nominee.id] || 0;
                       const totalVotes = Object.values(categoryVotes).reduce((a, b) => a + b, 0);
@@ -233,37 +269,42 @@
                           key={nominee.id}
                           onClick={() => setSelectedNominee(nominee.id)}
                           style={{
-                            padding: '1.5rem',
-                            borderRadius: '0.75rem',
-                            border: selectedNominee === nominee.id ? '2px solid #fbbf24' : '2px solid #374151',
-                            background: selectedNominee === nominee.id ? 'rgba(251, 191, 36, 0.2)' : 'rgba(31, 41, 55, 0.5)',
+                            padding: 'clamp(0.875rem, 2vw, 1.25rem)',
+                            borderRadius: '0.5rem',
+                            border: selectedNominee === nominee.id ? '2px solid #D4AF37' : '1px solid rgba(255, 255, 255, 0.1)',
+                            background: selectedNominee === nominee.id
+                              ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%)'
+                              : 'rgba(255, 255, 255, 0.03)',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
-                            boxShadow: selectedNominee === nominee.id ? '0 0 20px rgba(251, 191, 36, 0.3)' : 'none'
+                            boxShadow: selectedNominee === nominee.id ? '0 0 20px rgba(212, 175, 55, 0.2)' : 'none'
                           }}
                         >
-                          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem'}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1}}>
                               <div style={{
-                                width: '1.5rem',
-                                height: '1.5rem',
+                                width: '1.25rem',
+                                height: '1.25rem',
                                 borderRadius: '50%',
-                                border: '2px solid ' + (selectedNominee === nominee.id ? '#fbbf24' : '#4b5563'),
-                                background: selectedNominee === nominee.id ? '#fbbf24' : 'transparent',
+                                border: '2px solid ' + (selectedNominee === nominee.id ? '#D4AF37' : 'rgba(255, 255, 255, 0.3)'),
+                                background: selectedNominee === nominee.id ? '#D4AF37' : 'transparent',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                flexShrink: 0
                               }}>
                                 {selectedNominee === nominee.id && (
-                                  <div style={{width: '0.75rem', height: '0.75rem', background: 'white', borderRadius: '50%'}} />
+                                  <div style={{width: '0.6rem', height: '0.6rem', background: '#000', borderRadius: '50%'}} />
                                 )}
                               </div>
-                              <span style={{fontSize: '1.25rem', fontWeight: '600'}}>{nominee.name}</span>
+                              <span style={{fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)', fontWeight: '500', textAlign: 'right', color: selectedNominee === nominee.id ? '#ffffff' : '#e5e5e5'}}>
+                                {nominee.name}
+                              </span>
                             </div>
                             {showAdmin && (
-                              <div style={{textAlign: 'left'}}>
-                                <div style={{color: '#fbbf24', fontWeight: 'bold', fontSize: '1.125rem'}}>{voteCount} קולות</div>
-                                <div style={{color: '#9ca3af', fontSize: '0.875rem'}}>{percentage}%</div>
+                              <div style={{textAlign: 'left', flexShrink: 0}}>
+                                <div style={{color: '#D4AF37', fontWeight: '700', fontSize: 'clamp(0.95rem, 2.5vw, 1.125rem)'}}>{voteCount}</div>
+                                <div style={{color: '#888', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)'}}>{percentage}%</div>
                               </div>
                             )}
                           </div>
@@ -274,50 +315,71 @@
 
                   {message && (
                     <div style={{
-                      padding: '1rem',
+                      padding: '0.875rem',
                       borderRadius: '0.5rem',
                       marginBottom: '1rem',
                       textAlign: 'center',
                       fontWeight: '600',
-                      background: message.type === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                      color: message.type === 'success' ? '#10b981' : '#ef4444',
-                      border: '1px solid ' + (message.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)')
+                      fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                      background: message.type === 'success' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      color: message.type === 'success' ? '#22c55e' : '#ef4444',
+                      border: '1px solid ' + (message.type === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)')
                     }}>
                       {message.text}
                     </div>
                   )}
 
-                  <div style={{display: 'grid', gap: '1rem'}}>
+                  <div style={{display: 'grid', gap: '0.875rem'}}>
                     <input
                       type="email"
                       placeholder="המייל שלך"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      style={{width: '100%', padding: '1rem', borderRadius: '0.75rem', background: '#1f2937', border: '1px solid #374151', color: 'white', fontSize: '1rem'}}
+                      style={{
+                        width: '100%',
+                        padding: 'clamp(0.75rem, 2vw, 1rem)',
+                        borderRadius: '0.5rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                        outline: 'none'
+                      }}
                     />
                     <input
                       type="tel"
                       placeholder="מספר הטלפון שלך"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      style={{width: '100%', padding: '1rem', borderRadius: '0.75rem', background: '#1f2937', border: '1px solid #374151', color: 'white', fontSize: '1rem'}}
+                      style={{
+                        width: '100%',
+                        padding: 'clamp(0.75rem, 2vw, 1rem)',
+                        borderRadius: '0.5rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                        outline: 'none'
+                      }}
                     />
                     <button
                       onClick={handleVote}
                       disabled={voting || !selectedNominee}
                       style={{
                         width: '100%',
-                        padding: '1rem',
-                        background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
-                        color: 'black',
-                        fontWeight: 'bold',
-                        fontSize: '1.25rem',
-                        borderRadius: '0.75rem',
+                        padding: 'clamp(0.875rem, 2.5vw, 1.125rem)',
+                        background: voting || !selectedNominee
+                          ? 'rgba(212, 175, 55, 0.3)'
+                          : 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)',
+                        color: '#000000',
+                        fontWeight: '700',
+                        fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                        borderRadius: '0.5rem',
                         border: 'none',
                         cursor: voting || !selectedNominee ? 'not-allowed' : 'pointer',
-                        opacity: voting || !selectedNominee ? 0.5 : 1,
-                        boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.3)',
-                        transition: 'all 0.2s'
+                        boxShadow: voting || !selectedNominee ? 'none' : '0 4px 20px rgba(212, 175, 55, 0.3)',
+                        transition: 'all 0.2s',
+                        letterSpacing: '0.02em'
                       }}
                     >
                       {voting ? 'שולח...' : 'הצבע עכשיו'}
@@ -331,64 +393,65 @@
       }
 
       return (
-        <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #111827 0%, #000000 100%)', color: 'white', padding: '2rem 1rem'}}>
+        <div style={{minHeight: '100vh', background: '#000000', color: 'white', padding: 'clamp(1rem, 3vw, 2rem)'}}>
           <div style={{maxWidth: '1536px', margin: '0 auto'}}>
             <button
               onClick={() => window.location.href = 'main.html'}
-              style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fbbf24', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', marginBottom: '1.5rem'}}
+              style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#D4AF37', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.95rem', marginBottom: '1.5rem', padding: '0.5rem'}}
             >
               <i className="fas fa-arrow-right"></i>
               <span>חזרה לתפריט הראשי</span>
             </button>
 
-            <div style={{textAlign: 'center', marginBottom: '3rem'}}>
+            <div style={{textAlign: 'center', marginBottom: 'clamp(2rem, 5vw, 3rem)'}}>
               <img
                 src="https://i.ibb.co/C3zyqv4F/Chat-GPT-Image-Oct-22-2025-04-33-19-PM.png"
                 alt="פרסי האקדמיה"
-                style={{width: '100%', maxWidth: '1024px', margin: '0 auto 2rem', borderRadius: '1rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'}}
+                style={{width: '100%', maxWidth: '1024px', margin: '0 auto 2rem', borderRadius: '0.5rem', boxShadow: '0 20px 60px rgba(212, 175, 55, 0.2)'}}
               />
 
-              <h1 style={{fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 'bold', marginBottom: '1rem', background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>
+              <h1 className="oscar-title" style={{fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: '900', marginBottom: '0.5rem', color: '#D4AF37', letterSpacing: '0.02em', textShadow: '0 0 40px rgba(212, 175, 55, 0.3)'}}>
                 פרסי האקדמיה
               </h1>
-              <p style={{fontSize: 'clamp(1.25rem, 3vw, 1.5rem)', color: '#d1d5db'}}>
+              <p style={{fontSize: 'clamp(1.125rem, 3vw, 1.5rem)', color: '#888', fontWeight: '300', letterSpacing: '0.1em'}}>
                 החבר'ה הטובים
               </p>
             </div>
 
-            <div style={{marginBottom: '2rem', display: 'flex', justifyContent: 'center'}}>
-              <div style={{background: '#1f2937', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)', border: '1px solid #374151', maxWidth: '28rem', width: '100%'}}>
+            <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', display: 'flex', justifyContent: 'center'}}>
+              <div style={{background: 'rgba(255, 255, 255, 0.03)', borderRadius: '0.5rem', padding: 'clamp(1rem, 3vw, 1.5rem)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: '28rem', width: '100%'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem'}}>
-                  <i className="fas fa-eye" style={{color: '#f59e0b'}}></i>
-                  <span style={{fontWeight: '600', color: '#d1d5db'}}>יש לך קוד מנהל?</span>
+                  <i className="fas fa-user-shield" style={{color: '#D4AF37'}}></i>
+                  <span style={{fontWeight: '600', color: '#e5e5e5', fontSize: 'clamp(0.875rem, 2vw, 1rem)'}}>יש לך קוד מנהל?</span>
                 </div>
-                <div style={{display: 'flex', gap: '0.5rem'}}>
+                <div style={{display: 'flex', gap: '0.5rem', flexDirection: window.innerWidth < 400 ? 'column' : 'row'}}>
                   <input
                     type="password"
                     placeholder="הזן קוד"
                     value={adminCode}
                     onChange={(e) => setAdminCode(e.target.value)}
-                    style={{flex: 1, padding: '0.75rem', borderRadius: '0.5rem', background: '#111827', border: '1px solid #374151', color: 'white'}}
+                    onKeyPress={(e) => e.key === 'Enter' && checkAdminCode()}
+                    style={{flex: 1, padding: '0.75rem', borderRadius: '0.375rem', background: 'rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'white', fontSize: 'clamp(0.875rem, 2vw, 1rem)', outline: 'none'}}
                   />
                   <button
                     onClick={checkAdminCode}
-                    style={{padding: '0.75rem 1.5rem', background: '#f59e0b', color: 'black', fontWeight: 'bold', borderRadius: '0.5rem', border: 'none', cursor: 'pointer'}}
+                    style={{padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)', color: '#000', fontWeight: '700', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: 'clamp(0.875rem, 2vw, 1rem)', whiteSpace: 'nowrap'}}
                   >
                     בדוק
                   </button>
                 </div>
                 {showAdmin && (
-                  <div style={{marginTop: '1rem', padding: '0.75rem', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.5rem', textAlign: 'center', color: '#10b981', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
-                    <i className="fas fa-eye-slash"></i>
-                    מצב מנהל פעיל - תוצאות גלויות
+                  <div style={{marginTop: '1rem', padding: '0.75rem', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '0.375rem', textAlign: 'center', color: '#22c55e', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: 'clamp(0.8rem, 2vw, 0.9rem)'}}>
+                    <i className="fas fa-check-circle"></i>
+                    מצב מנהל פעיל
                   </div>
                 )}
               </div>
             </div>
 
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem'}}>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 'clamp(1rem, 3vw, 1.5rem)'}}>
               {categories.map((category, index) => {
-                const icons = ['fa-award', 'fa-medal', 'fa-star', 'fa-film', 'fa-trophy', 'fa-film', 'fa-star', 'fa-film'];
+                const icons = ['fa-award', 'fa-medal', 'fa-star', 'fa-music', 'fa-trophy', 'fa-film', 'fa-camera', 'fa-pen'];
                 const icon = icons[index] || 'fa-trophy';
 
                 return (
@@ -396,40 +459,44 @@
                     key={category.id}
                     onClick={() => setSelectedCategory(category)}
                     style={{
-                      background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                      border: '2px solid rgba(251, 191, 36, 0.3)',
+                      background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                      borderRadius: '0.5rem',
+                      padding: 'clamp(1.25rem, 3vw, 2rem)',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                      border: '1px solid rgba(212, 175, 55, 0.2)',
                       cursor: 'pointer',
                       transition: 'all 0.3s',
                       textAlign: 'center'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
-                      e.currentTarget.style.borderColor = '#fbbf24';
+                      e.currentTarget.style.transform = 'translateY(-5px)';
+                      e.currentTarget.style.borderColor = '#D4AF37';
+                      e.currentTarget.style.boxShadow = '0 8px 30px rgba(212, 175, 55, 0.3)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                      e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.2)';
+                      e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
                     }}
                   >
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(0.75rem, 2vw, 1rem)'}}>
                       <div style={{
-                        width: '5rem',
-                        height: '5rem',
-                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        width: 'clamp(3.5rem, 12vw, 5rem)',
+                        height: 'clamp(3.5rem, 12vw, 5rem)',
+                        background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)',
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.5)'
+                        boxShadow: '0 6px 20px rgba(212, 175, 55, 0.4)'
                       }}>
-                        <i className={`fas ${icon}`} style={{fontSize: '2.5rem', color: 'black'}}></i>
+                        <i className={`fas ${icon}`} style={{fontSize: 'clamp(1.75rem, 6vw, 2.5rem)', color: '#000'}}></i>
                       </div>
-                      <h3 style={{fontSize: '1.5rem', fontWeight: 'bold', textAlign: 'center', color: 'white', margin: 0}}>{category.name}</h3>
-                      <div style={{width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%)', borderRadius: '1rem'}} />
-                      <span style={{color: '#fbbf24', fontWeight: '600', transition: 'color 0.2s'}}>
+                      <h3 className="oscar-title" style={{fontSize: 'clamp(1.125rem, 3vw, 1.5rem)', fontWeight: '700', textAlign: 'center', color: '#ffffff', margin: 0, lineHeight: 1.3}}>
+                        {category.name}
+                      </h3>
+                      <div style={{width: '60%', height: '1px', background: 'linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)'}} />
+                      <span style={{color: '#D4AF37', fontWeight: '600', fontSize: 'clamp(0.875rem, 2vw, 1rem)', letterSpacing: '0.05em'}}>
                         לחץ להצבעה
                       </span>
                     </div>
