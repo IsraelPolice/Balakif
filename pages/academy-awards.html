@@ -173,13 +173,18 @@
         setVoting(true);
 
         try {
-          const { data: hasVoted } = await supabase.rpc('has_voted_in_category', {
-            p_email: email,
-            p_category_id: selectedCategory.id
-          });
+          const { data: existingVote, error: checkError } = await supabase
+            .from('award_votes')
+            .select('id')
+            .eq('voter_phone', normalizedPhone)
+            .maybeSingle();
 
-          if (hasVoted) {
-            setMessage({ type: 'error', text: 'כבר הצבעת בקטגוריה זו' });
+          if (checkError && checkError.code !== 'PGRST116') {
+            throw checkError;
+          }
+
+          if (existingVote) {
+            setMessage({ type: 'error', text: 'מספר הטלפון הזה כבר הצביע' });
             setVoting(false);
             setTimeout(() => setMessage(null), 3000);
             return;
@@ -191,7 +196,7 @@
               category_id: selectedCategory.id,
               nominee_id: selectedNominee,
               voter_email: email,
-              voter_phone: phone
+              voter_phone: normalizedPhone
             });
 
           if (error) throw error;
