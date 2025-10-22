@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>פרסי האקדמיה - החבר'ה הטובים</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.10"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #fbbf24; font-size: 1.5rem;">
+      טוען...
+    </div>
+  </div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const supabase = window.supabase.createClient(
+      'https://hzixitruvlsagrzqjrbw.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6aXhpdHJ1dmxzYWdyenFqcmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExMzY4ODYsImV4cCI6MjA3NjcxMjg4Nn0.rwOdyWdWTuY55hs-ctOnD43Kz9drXusbDlfyMTyzrHI'
+    );
+
+    function extractYouTubeId(url) {
+      const match = url.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/watch\?.+&v=))([\w-]{11})/);
+      return match ? match[1] : null;
+    }
+
+    function AcademyAwards() {
+      const [categories, setCategories] = useState([]);
+      const [nominees, setNominees] = useState({});
+      const [selectedCategory, setSelectedCategory] = useState(null);
+      const [email, setEmail] = useState('');
+      const [phone, setPhone] = useState('');
+      const [selectedNominee, setSelectedNominee] = useState(null);
+      const [adminCode, setAdminCode] = useState('');
+      const [showAdmin, setShowAdmin] = useState(false);
+      const [voteCounts, setVoteCounts] = useState({});
+      const [loading, setLoading] = useState(true);
+      const [voting, setVoting] = useState(false);
+      const [message, setMessage] = useState(null);
+
+      useEffect(() => {
+        loadCategories();
+      }, []);
+
+      const loadCategories = async () => {
+        try {
+          const { data: categoriesData } = await supabase
+            .from('award_categories')
+            .select('*')
+            .order('display_order');
+
+          const { data: nomineesData } = await supabase
+            .from('award_nominees')
+            .select('*')
+            .order('display_order');
+
+          setCategories(categoriesData || []);
+
+          const nomineesByCategory = {};
+          (nomineesData || []).forEach(nominee => {
+            if (!nomineesByCategory[nominee.category_id]) {
+              nomineesByCategory[nominee.category_id] = [];
+            }
+            nomineesByCategory[nominee.category_id].push(nominee);
+          });
+          setNominees(nomineesByCategory);
+
+          setLoading(false);
+        } catch (error) {
+          console.error('Error loading categories:', error);
+          setLoading(false);
+        }
+      };
+
+      const checkAdminCode = async () => {
+        if (adminCode === '316439249') {
+          setShowAdmin(true);
+          await loadVoteCounts();
+        } else {
+          setMessage({ type: 'error', text: 'קוד שגוי' });
+          setTimeout(() => setMessage(null), 3000);
+        }
+      };
+
+      const loadVoteCounts = async () => {
+        try {
+          const { data, error } = await supabase.rpc('get_vote_counts');
+          if (error) throw error;
+
+          const counts = {};
+          (data || []).forEach(vote => {
+            if (!counts[vote.category_id]) {
+              counts[vote.category_id] = {};
+            }
+            counts[vote.category_id][vote.nominee_id] = vote.vote_count;
+          });
+          setVoteCounts(counts);
+        } catch (error) {
+          console.error('Error loading vote counts:', error);
+        }
+      };
+
+      const handleVote = async () => {
+        if (!email || !phone || !selectedNominee) {
+          setMessage({ type: 'error', text: 'נא למלא את כל השדות' });
+          setTimeout(() => setMessage(null), 3000);
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          setMessage({ type: 'error', text: 'כתובת מייל לא תקינה' });
+          setTimeout(() => setMessage(null), 3000);
+          return;
+        }
+
+        setVoting(true);
+
+        try {
+          const { data: hasVoted } = await supabase.rpc('has_voted_in_category', {
+            p_email: email,
+            p_category_id: selectedCategory.id
+          });
+
+          if (hasVoted) {
+            setMessage({ type: 'error', text: 'כבר הצבעת בקטגוריה זו' });
+            setVoting(false);
+            setTimeout(() => setMessage(null), 3000);
+            return;
+          }
+
+          const { error } = await supabase
+            .from('award_votes')
+            .insert({
+              category_id: selectedCategory.id,
+              nominee_id: selectedNominee,
+              voter_email: email,
+              voter_phone: phone
+            });
+
+          if (error) throw error;
+
+          setMessage({ type: 'success', text: 'ההצבעה נשלחה בהצלחה!' });
+          setTimeout(() => {
+            setSelectedCategory(null);
+            setEmail('');
+            setPhone('');
+            setSelectedNominee(null);
+            setMessage(null);
+          }, 2000);
+        } catch (error) {
+          console.error('Error voting:', error);
+          setMessage({ type: 'error', text: 'שגיאה בשליחת ההצבעה' });
+          setTimeout(() => setMessage(null), 3000);
+        } finally {
+          setVoting(false);
+        }
+      };
+
+      if (loading) {
+        return (
+          <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #78350f 0%, #92400e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <div style={{color: '#fde68a', fontSize: '1.5rem'}}>טוען...</div>
+          </div>
+        );
+      }
+
+      if (selectedCategory) {
+        const videoId = extractYouTubeId(selectedCategory.video_url);
+        const categoryNominees = nominees[selectedCategory.id] || [];
+        const categoryVotes = voteCounts[selectedCategory.id] || {};
+
+        return (
+          <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #111827 0%, #000000 100%)', color: 'white', padding: '2rem 1rem'}}>
+            <div style={{maxWidth: '1280px', margin: '0 auto'}}>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fbbf24', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', marginBottom: '1.5rem'}}
+              >
+                <i className="fas fa-arrow-right"></i>
+                <span>חזרה לכל הקטגוריות</span>
+              </button>
+
+              <div style={{background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', borderRadius: '1rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', overflow: 'hidden', border: '1px solid rgba(251, 191, 36, 0.3)'}}>
+                <div style={{background: 'linear-gradient(90deg, #d97706 0%, #f59e0b 100%)', padding: '2rem', textAlign: 'center'}}>
+                  <h2 style={{fontSize: '2rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', margin: 0}}>
+                    <i className="fas fa-trophy" style={{fontSize: '2.5rem'}}></i>
+                    {selectedCategory.name}
+                  </h2>
+                </div>
+
+                {videoId && (
+                  <div style={{aspectRatio: '16/9', width: '100%'}}>
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${videoId}`}
+                      title={selectedCategory.name}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{width: '100%', height: '100%'}}
+                    />
+                  </div>
+                )}
+
+                <div style={{padding: '2rem'}}>
+                  <h3 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', color: '#fbbf24'}}>המועמדים</h3>
+
+                  <div style={{display: 'grid', gap: '1rem', marginBottom: '2rem'}}>
+                    {categoryNominees.map((nominee) => {
+                      const voteCount = categoryVotes[nominee.id] || 0;
+                      const totalVotes = Object.values(categoryVotes).reduce((a, b) => a + b, 0);
+                      const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(1) : 0;
+
+                      return (
+                        <button
+                          key={nominee.id}
+                          onClick={() => setSelectedNominee(nominee.id)}
+                          style={{
+                            padding: '1.5rem',
+                            borderRadius: '0.75rem',
+                            border: selectedNominee === nominee.id ? '2px solid #fbbf24' : '2px solid #374151',
+                            background: selectedNominee === nominee.id ? 'rgba(251, 191, 36, 0.2)' : 'rgba(31, 41, 55, 0.5)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: selectedNominee === nominee.id ? '0 0 20px rgba(251, 191, 36, 0.3)' : 'none'
+                          }}
+                        >
+                          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                              <div style={{
+                                width: '1.5rem',
+                                height: '1.5rem',
+                                borderRadius: '50%',
+                                border: '2px solid ' + (selectedNominee === nominee.id ? '#fbbf24' : '#4b5563'),
+                                background: selectedNominee === nominee.id ? '#fbbf24' : 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}>
+                                {selectedNominee === nominee.id && (
+                                  <div style={{width: '0.75rem', height: '0.75rem', background: 'white', borderRadius: '50%'}} />
+                                )}
+                              </div>
+                              <span style={{fontSize: '1.25rem', fontWeight: '600'}}>{nominee.name}</span>
+                            </div>
+                            {showAdmin && (
+                              <div style={{textAlign: 'left'}}>
+                                <div style={{color: '#fbbf24', fontWeight: 'bold', fontSize: '1.125rem'}}>{voteCount} קולות</div>
+                                <div style={{color: '#9ca3af', fontSize: '0.875rem'}}>{percentage}%</div>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {message && (
+                    <div style={{
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      marginBottom: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      background: message.type === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                      color: message.type === 'success' ? '#10b981' : '#ef4444',
+                      border: '1px solid ' + (message.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)')
+                    }}>
+                      {message.text}
+                    </div>
+                  )}
+
+                  <div style={{display: 'grid', gap: '1rem'}}>
+                    <input
+                      type="email"
+                      placeholder="המייל שלך"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={{width: '100%', padding: '1rem', borderRadius: '0.75rem', background: '#1f2937', border: '1px solid #374151', color: 'white', fontSize: '1rem'}}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="מספר הטלפון שלך"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      style={{width: '100%', padding: '1rem', borderRadius: '0.75rem', background: '#1f2937', border: '1px solid #374151', color: 'white', fontSize: '1rem'}}
+                    />
+                    <button
+                      onClick={handleVote}
+                      disabled={voting || !selectedNominee}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'black',
+                        fontWeight: 'bold',
+                        fontSize: '1.25rem',
+                        borderRadius: '0.75rem',
+                        border: 'none',
+                        cursor: voting || !selectedNominee ? 'not-allowed' : 'pointer',
+                        opacity: voting || !selectedNominee ? 0.5 : 1,
+                        boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.3)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {voting ? 'שולח...' : 'הצבע עכשיו'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #111827 0%, #000000 100%)', color: 'white', padding: '2rem 1rem'}}>
+          <div style={{maxWidth: '1536px', margin: '0 auto'}}>
+            <button
+              onClick={() => window.location.href = 'main.html'}
+              style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fbbf24', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', marginBottom: '1.5rem'}}
+            >
+              <i className="fas fa-arrow-right"></i>
+              <span>חזרה לתפריט הראשי</span>
+            </button>
+
+            <div style={{textAlign: 'center', marginBottom: '3rem'}}>
+              <img
+                src="https://i.ibb.co/C3zyqv4F/Chat-GPT-Image-Oct-22-2025-04-33-19-PM.png"
+                alt="פרסי האקדמיה"
+                style={{width: '100%', maxWidth: '1024px', margin: '0 auto 2rem', borderRadius: '1rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'}}
+              />
+
+              <h1 style={{fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 'bold', marginBottom: '1rem', background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>
+                פרסי האקדמיה
+              </h1>
+              <p style={{fontSize: 'clamp(1.25rem, 3vw, 1.5rem)', color: '#d1d5db'}}>
+                החבר'ה הטובים
+              </p>
+            </div>
+
+            <div style={{marginBottom: '2rem', display: 'flex', justifyContent: 'center'}}>
+              <div style={{background: '#1f2937', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)', border: '1px solid #374151', maxWidth: '28rem', width: '100%'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem'}}>
+                  <i className="fas fa-eye" style={{color: '#f59e0b'}}></i>
+                  <span style={{fontWeight: '600', color: '#d1d5db'}}>יש לך קוד מנהל?</span>
+                </div>
+                <div style={{display: 'flex', gap: '0.5rem'}}>
+                  <input
+                    type="password"
+                    placeholder="הזן קוד"
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    style={{flex: 1, padding: '0.75rem', borderRadius: '0.5rem', background: '#111827', border: '1px solid #374151', color: 'white'}}
+                  />
+                  <button
+                    onClick={checkAdminCode}
+                    style={{padding: '0.75rem 1.5rem', background: '#f59e0b', color: 'black', fontWeight: 'bold', borderRadius: '0.5rem', border: 'none', cursor: 'pointer'}}
+                  >
+                    בדוק
+                  </button>
+                </div>
+                {showAdmin && (
+                  <div style={{marginTop: '1rem', padding: '0.75rem', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.5rem', textAlign: 'center', color: '#10b981', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                    <i className="fas fa-eye-slash"></i>
+                    מצב מנהל פעיל - תוצאות גלויות
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem'}}>
+              {categories.map((category, index) => {
+                const icons = ['fa-award', 'fa-medal', 'fa-star', 'fa-film', 'fa-trophy', 'fa-film', 'fa-star', 'fa-film'];
+                const icon = icons[index] || 'fa-trophy';
+
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category)}
+                    style={{
+                      background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                      border: '2px solid rgba(251, 191, 36, 0.3)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                      e.currentTarget.style.borderColor = '#fbbf24';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                    }}
+                  >
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem'}}>
+                      <div style={{
+                        width: '5rem',
+                        height: '5rem',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.5)'
+                      }}>
+                        <i className={`fas ${icon}`} style={{fontSize: '2.5rem', color: 'black'}}></i>
+                      </div>
+                      <h3 style={{fontSize: '1.5rem', fontWeight: 'bold', textAlign: 'center', color: 'white', margin: 0}}>{category.name}</h3>
+                      <div style={{width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%)', borderRadius: '1rem'}} />
+                      <span style={{color: '#fbbf24', fontWeight: '600', transition: 'color 0.2s'}}>
+                        לחץ להצבעה
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AcademyAwards />);
+  </script>
+</body>
+</html>
