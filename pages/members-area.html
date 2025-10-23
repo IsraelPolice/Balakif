@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>איזור מנויים - החבר'ה הטובים</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.10"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      margin: 0;
+      color: #1a1a1a;
+    }
+    .social-container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem;
+    }
+    .social-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e5e7eb;
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .post-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-left: 0.75rem;
+      flex-shrink: 0;
+    }
+    .post-author-info {
+      flex: 1;
+    }
+    .post-author-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #1a1a1a;
+    }
+    .post-time {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+    .post-content {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #1f2937;
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+    .post-actions {
+      display: flex;
+      gap: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .post-action-btn {
+      flex: 1;
+      padding: 0.625rem;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .post-action-btn:hover {
+      background: #f3f4f6;
+    }
+    .post-action-btn.liked {
+      color: #ef4444;
+    }
+    .create-post-input {
+      width: 100%;
+      padding: 0.875rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Inter', sans-serif;
+    }
+    .create-post-input:focus {
+      outline: none;
+      border-color: #2c5282;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .tab {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover {
+      color: #2c5282;
+    }
+    .tab.active {
+      color: #2c5282;
+      border-bottom-color: #2c5282;
+    }
+    .friend-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .friend-list-item:last-child {
+      border-bottom: none;
+    }
+    .friend-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .friend-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .friend-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .friend-btn-primary {
+      background: #2c5282;
+      color: white;
+    }
+    .friend-btn-primary:hover {
+      background: #1a365d;
+    }
+    .friend-btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+      margin-left: 0.5rem;
+    }
+    .friend-btn-secondary:hover {
+      background: #d1d5db;
+    }
+    .comment-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .comment-item {
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+    }
+    .comment-author {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      margin-bottom: 0.25rem;
+    }
+    .comment-content {
+      font-size: 0.9rem;
+      color: #374151;
+    }
+    .comment-input {
+      width: 100%;
+      padding: 0.625rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+    }
+    .nav-bar {
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .nav-content {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #e5e7eb;
+      color: #374151;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background: #d1d5db;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const supabase = window.supabase.createClient(
+      'https://hzixitruvlsagrzqjrbw.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6aXhpdHJ1dmxzYWdyenFqcmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExMzY4ODYsImV4cCI6MjA3NjcxMjg4Nn0.rwOdyWdWTuY55hs-ctOnD43Kz9drXusbDlfyMTyzrHI'
+    );
+
+    const MembersArea = () => {
+      const [user, setUser] = React.useState(null);
+      const [activeTab, setActiveTab] = React.useState('feed');
+      const [posts, setPosts] = React.useState([]);
+      const [users, setUsers] = React.useState([]);
+      const [friends, setFriends] = React.useState([]);
+      const [friendRequests, setFriendRequests] = React.useState([]);
+      const [newPost, setNewPost] = React.useState('');
+      const [commentInputs, setCommentInputs] = React.useState({});
+      const [postComments, setPostComments] = React.useState({});
+
+      React.useEffect(() => {
+        const savedUser = localStorage.getItem('hevre_user');
+        if (!savedUser) {
+          window.location.href = 'main.html';
+          return;
+        }
+        setUser(JSON.parse(savedUser));
+      }, []);
+
+      React.useEffect(() => {
+        if (user) {
+          loadPosts();
+          loadUsers();
+          loadFriends();
+          loadFriendRequests();
+        }
+      }, [user]);
+
+      const loadPosts = async () => {
+        const { data } = await supabase
+          .from('social_posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (data) setPosts(data);
+      };
+
+      const loadUsers = async () => {
+        const { data } = await supabase
+          .from('user_sessions')
+          .select('phone, name');
+        if (data) setUsers(data.filter(u => u.phone !== user.phone));
+      };
+
+      const loadFriends = async () => {
+        const { data } = await supabase
+          .from('friendships')
+          .select('*')
+          .or(`user1_phone.eq.${user.phone},user2_phone.eq.${user.phone}`);
+        if (data) setFriends(data);
+      };
+
+      const loadFriendRequests = async () => {
+        const { data } = await supabase
+          .from('friend_requests')
+          .select('*')
+          .or(`requester_phone.eq.${user.phone},recipient_phone.eq.${user.phone}`)
+          .eq('status', 'pending');
+        if (data) setFriendRequests(data);
+      };
+
+      const createPost = async () => {
+        if (!newPost.trim()) return;
+        await supabase.from('social_posts').insert([{
+          author_phone: user.phone,
+          author_name: user.name,
+          content: newPost
+        }]);
+        setNewPost('');
+        loadPosts();
+      };
+
+      const toggleLike = async (post) => {
+        const likes = post.likes || [];
+        const hasLiked = likes.includes(user.phone);
+        const newLikes = hasLiked
+          ? likes.filter(p => p !== user.phone)
+          : [...likes, user.phone];
+
+        await supabase
+          .from('social_posts')
+          .update({ likes: newLikes })
+          .eq('id', post.id);
+        loadPosts();
+      };
+
+      const addComment = async (postId) => {
+        const content = commentInputs[postId];
+        if (!content?.trim()) return;
+
+        await supabase.from('post_comments').insert([{
+          post_id: postId,
+          author_phone: user.phone,
+          author_name: user.name,
+          content
+        }]);
+
+        setCommentInputs({ ...commentInputs, [postId]: '' });
+        loadComments(postId);
+      };
+
+      const loadComments = async (postId) => {
+        const { data } = await supabase
+          .from('post_comments')
+          .select('*')
+          .eq('post_id', postId)
+          .order('created_at', { ascending: true });
+
+        if (data) {
+          setPostComments({ ...postComments, [postId]: data });
+        }
+      };
+
+      const sendFriendRequest = async (recipientPhone) => {
+        await supabase.from('friend_requests').insert([{
+          requester_phone: user.phone,
+          recipient_phone: recipientPhone
+        }]);
+        loadFriendRequests();
+      };
+
+      const acceptFriendRequest = async (request) => {
+        const [phone1, phone2] = [request.requester_phone, request.recipient_phone].sort();
+
+        await supabase.from('friendships').insert([{
+          user1_phone: phone1,
+          user2_phone: phone2
+        }]);
+
+        await supabase
+          .from('friend_requests')
+          .update({ status: 'accepted' })
+          .eq('id', request.id);
+
+        loadFriends();
+        loadFriendRequests();
+      };
+
+      const isFriend = (phone) => {
+        return friends.some(f => f.user1_phone === phone || f.user2_phone === phone);
+      };
+
+      const hasPendingRequest = (phone) => {
+        return friendRequests.some(r =>
+          (r.requester_phone === user.phone && r.recipient_phone === phone) ||
+          (r.requester_phone === phone && r.recipient_phone === user.phone)
+        );
+      };
+
+      const getInitials = (name) => {
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      };
+
+      const formatTime = (timestamp) => {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (minutes < 60) return `לפני ${minutes} דקות`;
+        if (hours < 24) return `לפני ${hours} שעות`;
+        return `לפני ${days} ימים`;
+      };
+
+      const handleLogout = () => {
+        localStorage.removeItem('hevre_user');
+        window.location.href = 'main.html';
+      };
+
+      if (!user) return <div>טוען...</div>;
+
+      return (
+        <div>
+          <div className="nav-bar">
+            <div className="nav-content">
+              <div className="page-title">החבר'ה הטובים</div>
+              <button onClick={handleLogout} className="logout-btn">
+                התנתק
+              </button>
+            </div>
+          </div>
+
+          <div className="social-container">
+            <div className="tabs">
+              <button
+                className={`tab ${activeTab === 'feed' ? 'active' : ''}`}
+                onClick={() => setActiveTab('feed')}
+              >
+                <i className="fas fa-home"></i> פיד
+              </button>
+              <button
+                className={`tab ${activeTab === 'friends' ? 'active' : ''}`}
+                onClick={() => setActiveTab('friends')}
+              >
+                <i className="fas fa-users"></i> חברים
+              </button>
+              <button
+                className={`tab ${activeTab === 'discover' ? 'active' : ''}`}
+                onClick={() => setActiveTab('discover')}
+              >
+                <i className="fas fa-user-plus"></i> גלה אנשים
+              </button>
+            </div>
+
+            {activeTab === 'feed' && (
+              <>
+                <div className="social-card">
+                  <div className="post-header">
+                    <div className="post-avatar">{getInitials(user.name)}</div>
+                    <div className="post-author-info">
+                      <div className="post-author-name">{user.name}</div>
+                    </div>
+                  </div>
+                  <textarea
+                    className="create-post-input"
+                    placeholder="מה עובר עליך?"
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
+                  />
+                  <div style={{ marginTop: '1rem', textAlign: 'left' }}>
+                    <button onClick={createPost} className="btn-primary">
+                      פרסם
+                    </button>
+                  </div>
+                </div>
+
+                {posts.map(post => (
+                  <div key={post.id} className="social-card">
+                    <div className="post-header">
+                      <div className="post-avatar">{getInitials(post.author_name)}</div>
+                      <div className="post-author-info">
+                        <div className="post-author-name">{post.author_name}</div>
+                        <div className="post-time">{formatTime(post.created_at)}</div>
+                      </div>
+                    </div>
+                    <div className="post-content">{post.content}</div>
+                    <div className="post-actions">
+                      <button
+                        className={`post-action-btn ${(post.likes || []).includes(user.phone) ? 'liked' : ''}`}
+                        onClick={() => toggleLike(post)}
+                      >
+                        <i className="fas fa-heart"></i> {(post.likes || []).length} אהבתי
+                      </button>
+                      <button
+                        className="post-action-btn"
+                        onClick={() => loadComments(post.id)}
+                      >
+                        <i className="fas fa-comment"></i> תגובות
+                      </button>
+                    </div>
+
+                    {postComments[post.id] && (
+                      <div className="comment-section">
+                        {postComments[post.id].map(comment => (
+                          <div key={comment.id} className="comment-item">
+                            <div className="comment-author">{comment.author_name}</div>
+                            <div className="comment-content">{comment.content}</div>
+                          </div>
+                        ))}
+                        <input
+                          type="text"
+                          className="comment-input"
+                          placeholder="כתוב תגובה..."
+                          value={commentInputs[post.id] || ''}
+                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                          onKeyPress={(e) => e.key === 'Enter' && addComment(post.id)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+
+            {activeTab === 'friends' && (
+              <div className="social-card">
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>החברים שלי</h3>
+                {friendRequests.filter(r => r.recipient_phone === user.phone).map(request => (
+                  <div key={request.id} className="friend-list-item">
+                    <div className="friend-info">
+                      <div className="friend-avatar">{getInitials(request.requester_phone)}</div>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>בקשת חברות</div>
+                        <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>מ-{request.requester_phone}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => acceptFriendRequest(request)} className="friend-btn friend-btn-primary">
+                      אשר
+                    </button>
+                  </div>
+                ))}
+                {friends.map(friendship => {
+                  const friendPhone = friendship.user1_phone === user.phone ? friendship.user2_phone : friendship.user1_phone;
+                  const friendUser = users.find(u => u.phone === friendPhone);
+                  return (
+                    <div key={friendship.id} className="friend-list-item">
+                      <div className="friend-info">
+                        <div className="friend-avatar">{getInitials(friendUser?.name || friendPhone)}</div>
+                        <div style={{ fontWeight: 600 }}>{friendUser?.name || friendPhone}</div>
+                      </div>
+                      <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
+                        <i className="fas fa-check-circle"></i> חברים
+                      </div>
+                    </div>
+                  );
+                })}
+                {friends.length === 0 && friendRequests.filter(r => r.recipient_phone === user.phone).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                    עדיין אין לך חברים. עבור ל"גלה אנשים" כדי להתחיל!
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'discover' && (
+              <div className="social-card">
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>גלה אנשים</h3>
+                {users.map(otherUser => (
+                  <div key={otherUser.phone} className="friend-list-item">
+                    <div className="friend-info">
+                      <div className="friend-avatar">{getInitials(otherUser.name)}</div>
+                      <div style={{ fontWeight: 600 }}>{otherUser.name}</div>
+                    </div>
+                    {isFriend(otherUser.phone) ? (
+                      <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
+                        <i className="fas fa-check-circle"></i> חברים
+                      </div>
+                    ) : hasPendingRequest(otherUser.phone) ? (
+                      <div style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 600 }}>
+                        ממתין...
+                      </div>
+                    ) : (
+                      <button onClick={() => sendFriendRequest(otherUser.phone)} className="friend-btn friend-btn-primary">
+                        <i className="fas fa-user-plus"></i> הוסף חבר
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<MembersArea />);
+  </script>
+</body>
+</html>

@@ -428,84 +428,189 @@
       background: #2c5282;
       color: white;
     }
-    .news-ticker {
-      background: linear-gradient(135deg, #c41e3a 0%, #a01628 100%);
-      color: white;
-      padding: 0.75rem 0;
-      overflow: hidden;
-      position: relative;
-      border-bottom: 2px solid #8b1320;
-    }
-    .news-ticker-container {
-      display: flex;
-      align-items: center;
-      max-width: 7xl;
+    .social-container {
+      max-width: 680px;
       margin: 0 auto;
-      padding: 0 1rem;
+      padding: 1.5rem 1rem;
     }
-    .news-ticker-label {
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      font-size: 1rem;
+    .social-card {
       background: white;
-      color: #c41e3a;
-      padding: 0.375rem 0.875rem;
-      border-radius: 4px;
-      margin-left: 1rem;
-      flex-shrink: 0;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e5e7eb;
     }
-    .news-ticker-content {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-      height: 1.5rem;
-    }
-    .news-ticker-scroll {
+    .post-header {
       display: flex;
-      animation: scroll-news 30s linear infinite;
-      white-space: nowrap;
-    }
-    .news-ticker-scroll:hover {
-      animation-play-state: paused;
-    }
-    .news-item {
-      display: inline-flex;
       align-items: center;
-      margin-left: 3rem;
-      font-size: 0.95rem;
-      font-weight: 500;
+      margin-bottom: 1rem;
     }
-    .news-item::before {
-      content: '•';
+    .post-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.25rem;
       margin-left: 0.75rem;
-      font-size: 1.2rem;
-      opacity: 0.7;
     }
-    .news-item:first-child::before {
-      display: none;
+    .post-author-info {
+      flex: 1;
     }
-    @keyframes scroll-news {
-      0% {
-        transform: translateX(0);
-      }
-      100% {
-        transform: translateX(-50%);
-      }
+    .post-author-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #1a1a1a;
     }
-    @media (max-width: 639px) {
-      .news-ticker {
-        padding: 0.625rem 0;
-      }
-      .news-ticker-label {
-        font-size: 0.85rem;
-        padding: 0.25rem 0.625rem;
-        margin-left: 0.5rem;
-      }
-      .news-item {
-        font-size: 0.85rem;
-        margin-left: 2rem;
-      }
+    .post-time {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+    .post-content {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #1f2937;
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+    .post-image {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .post-actions {
+      display: flex;
+      gap: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .post-action-btn {
+      flex: 1;
+      padding: 0.625rem;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .post-action-btn:hover {
+      background: #f3f4f6;
+    }
+    .post-action-btn.liked {
+      color: #ef4444;
+    }
+    .create-post-input {
+      width: 100%;
+      padding: 0.875rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Inter', sans-serif;
+    }
+    .create-post-input:focus {
+      outline: none;
+      border-color: #2c5282;
+    }
+    .friend-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .friend-list-item:last-child {
+      border-bottom: none;
+    }
+    .friend-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .friend-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .friend-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .friend-btn-primary {
+      background: #2c5282;
+      color: white;
+    }
+    .friend-btn-primary:hover {
+      background: #1a365d;
+    }
+    .friend-btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .friend-btn-secondary:hover {
+      background: #d1d5db;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .tab {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover {
+      color: #2c5282;
+    }
+    .tab.active {
+      color: #2c5282;
+      border-bottom-color: #2c5282;
+    }
+    .comment-item {
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+    }
+    .comment-author {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1a1a1a;
+      margin-bottom: 0.25rem;
+    }
+    .comment-content {
+      font-size: 0.9rem;
+      color: #374151;
     }
     .forum-header {
       display: flex;
@@ -1042,124 +1147,6 @@
       );
     };
 
-    const NewsTicker = () => {
-      const [news, setNews] = React.useState([]);
-      const [loading, setLoading] = React.useState(true);
-
-      React.useEffect(() => {
-        const fetchNews = async () => {
-          try {
-            let articles = [];
-
-            // Try NewsAPI with multiple approaches
-            try {
-              // First try: everything endpoint with Israel keyword in Hebrew
-              const response1 = await fetch('https://newsapi.org/v2/everything?q=ישראל&language=he&sortBy=publishedAt&pageSize=15&apiKey=78be590a441842a181c8a57b5bfee766');
-              const data1 = await response1.json();
-              console.log('Hebrew search response:', data1);
-              if (data1.status === 'ok' && data1.articles && data1.articles.length > 0) {
-                articles = data1.articles;
-              }
-            } catch (e) {
-              console.error('Hebrew NewsAPI failed:', e);
-            }
-
-            // Second try: English search
-            if (articles.length === 0) {
-              try {
-                const response2 = await fetch('https://newsapi.org/v2/everything?q=israel&language=en&sortBy=publishedAt&pageSize=15&apiKey=78be590a441842a181c8a57b5bfee766');
-                const data2 = await response2.json();
-                console.log('English search response:', data2);
-                if (data2.status === 'ok' && data2.articles && data2.articles.length > 0) {
-                  articles = data2.articles;
-                }
-              } catch (e) {
-                console.error('English NewsAPI failed:', e);
-              }
-            }
-
-            // Third try: top headlines from US sources about Israel
-            if (articles.length === 0) {
-              try {
-                const response3 = await fetch('https://newsapi.org/v2/top-headlines?q=israel&apiKey=78be590a441842a181c8a57b5bfee766');
-                const data3 = await response3.json();
-                console.log('Top headlines response:', data3);
-                if (data3.status === 'ok' && data3.articles && data3.articles.length > 0) {
-                  articles = data3.articles;
-                }
-              } catch (e) {
-                console.error('Top headlines failed:', e);
-              }
-            }
-
-            // If still no articles, use fallback
-            if (articles.length === 0) {
-              console.log('No articles found from any source, using fallback');
-              articles = [
-                { title: '🔴 חדשות אחרונות מישראל - עדכונים שוטפים' },
-                { title: '📰 מבזקים מהארץ והעולם' },
-                { title: '⚡ הידיעות החמות ביותר כעת' },
-                { title: '🌍 אירועים מרכזיים בישראל' },
-                { title: '📢 מעקב אחר החדשות העדכניות' },
-                { title: '🔥 מה קורה עכשיו בארץ' },
-                { title: '💬 עדכוני חדשות בזמן אמת' }
-              ];
-            }
-
-            console.log('Final news count:', articles.length);
-            setNews(articles.slice(0, 12));
-          } catch (error) {
-            console.error('Error fetching news:', error);
-            setNews([
-              { title: '🔴 חדשות אחרונות מישראל' },
-              { title: '📰 מבזקים מהארץ והעולם' },
-              { title: '⚡ הידיעות החמות ביותר' }
-            ]);
-          } finally {
-            setLoading(false);
-          }
-        };
-
-        fetchNews();
-        const interval = setInterval(fetchNews, 180000);
-        return () => clearInterval(interval);
-      }, []);
-
-      if (loading) {
-        return (
-          <div className="news-ticker">
-            <div className="news-ticker-container">
-              <div className="news-ticker-label">מבזקים</div>
-              <div className="news-ticker-content">
-                <div className="news-ticker-scroll">
-                  <span className="news-item">טוען חדשות...</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      const doubledNews = [...news, ...news];
-
-      return (
-        <div className="news-ticker">
-          <div className="news-ticker-container">
-            <div className="news-ticker-label">מבזקים</div>
-            <div className="news-ticker-content">
-              <div className="news-ticker-scroll">
-                {doubledNews.map((item, index) => (
-                  <span key={index} className="news-item">
-                    {item.title}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    };
-
     const Nav = ({ user, onShowAuth, onLogout }) => (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1170,6 +1157,9 @@
             <div className="flex items-center gap-3">
               {user ? (
                 <>
+                  <a href="members-area.html" className="nav-button nav-button-primary">
+                    איזור מנויים
+                  </a>
                   <span className="text-gray-700 font-medium hidden sm:inline">{user.name}</span>
                   <button onClick={onLogout} className="nav-button nav-button-secondary">
                     התנתק
@@ -2104,7 +2094,6 @@
         <div>
           <AuthPopup />
           <Nav user={user} onShowAuth={handleShowAuth} onLogout={handleLogout} />
-          <NewsTicker />
           {showAuthModal && (
             <AuthModal
               mode={authMode}
