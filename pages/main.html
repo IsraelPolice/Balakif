@@ -723,7 +723,7 @@
         try {
           const { data, error } = await supabase
             .from('forum_posts')
-            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url')
+            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,img_url')
             .is('parent_id', null)
             .order('created_at', { ascending: false });
 
@@ -735,7 +735,7 @@
           for (let post of (data || [])) {
             const { data: replies } = await supabase
               .from('forum_posts')
-              .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url')
+              .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,img_url')
               .eq('parent_id', post.id)
               .order('created_at', { ascending: true });
             post.replies = replies || [];
@@ -803,13 +803,13 @@
             is_poll: isPoll,
             poll_options: isPoll ? pollOptions.filter(opt => opt.trim()).map(opt => ({ text: opt.trim(), votes: 0 })) : null,
             poll_votes: isPoll ? [] : null,
-            image_url: imageUrl
+            img_url: imageUrl
           };
 
           const { data, error } = await supabase
             .from('forum_posts')
             .insert(postData)
-            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url');
+            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,img_url');
 
           if (error) {
             console.error('❌ Insert error details:', error);
@@ -848,7 +848,7 @@
           const { error } = await supabase
             .from('forum_posts')
             .insert(replyData)
-            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url');
+            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,img_url');
 
           if (error) throw error;
 
@@ -1153,10 +1153,10 @@
                       <p className="forum-post-content">{post.content}</p>
                     </div>
 
-                    {post.image_url && (
+                    {post.img_url && (
                       <div>
                         <img
-                          src={post.image_url}
+                          src={post.img_url}
                           alt="Post image"
                           className="w-full"
                           style={{maxHeight: '600px', objectFit: 'cover'}}
