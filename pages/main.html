@@ -11,13 +11,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Impact&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background-color: #F0F2F5; 
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       margin: 0;
+      color: #1a1a1a;
     }
     #loading { 
       display: flex; 
@@ -31,16 +32,19 @@
       padding: 2rem; 
       color: #DC2626; 
     }
-    .custom-button { 
-      background-color: #1877F2; 
-      color: white; 
-      padding: 0.5rem 1.5rem; 
-      border-radius: 6px; 
-      font-weight: 600; 
-      transition: background-color 0.2s ease; 
+    .custom-button {
+      background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+      color: white;
+      padding: 0.625rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
     }
-    .custom-button:hover { 
-      background-color: #1659C7; 
+    .custom-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(44, 82, 130, 0.3);
     }
     .card { 
       background: white; 
@@ -56,17 +60,19 @@
     .card:hover { 
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
     }
-    .card-title { 
-      font-size: 1.25rem; 
-      font-weight: 600; 
-      color: #1C2526; 
-      margin-bottom: 0.5rem; 
-      height: 4rem; 
-      overflow: hidden; 
-      display: -webkit-box; 
-      -webkit-line-clamp: 2; 
-      -webkit-box-orient: vertical; 
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 0.5rem;
+      height: 4rem;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       text-align: center;
+      letter-spacing: -0.01em;
     }
     .game-card {
       background: linear-gradient(135deg, #1877F2 0%, #34D399 100%);
@@ -116,23 +122,32 @@
     #auth-popup.hidden { 
       display: none; 
     }
-    .leadership-section { 
-      background-color: white; 
+    .leadership-section {
+      background: white; 
       padding: 2rem 1rem; 
       border-top: 1px solid #E4E6EB; 
     }
-    .leadership-title { 
-      font-size: 1.5rem; 
-      font-weight: 700; 
-      color: #1C2526; 
-      margin-bottom: 1.5rem; 
-      text-align: center; 
+    .leadership-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 2rem;
+      text-align: center;
+      letter-spacing: -0.02em;
     }
-    .leadership-card { 
-      background: white; 
-      border-radius: 8px; 
-      padding: 1rem; 
-      text-align: center; 
+    .leadership-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+    .leadership-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
     .leader-image { 
       border-radius: 50%; 
@@ -170,10 +185,23 @@
         width: 80px;
         height: 80px;
       }
+      .leadership-title {
+        font-size: 1.75rem;
+      }
+      .nav-button {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.85rem;
+      }
+      .auth-modal-content {
+        padding: 1.5rem;
+        margin: 0 1rem;
+      }
+      .auth-title {
+        font-size: 1.5rem;
+      }
     }
     @media (min-width: 640px) {
       .leadership-section { padding: 3rem 1.5rem; }
-      .leadership-title { font-size: 1.75rem; }
       .leadership-card { padding: 1.5rem; }
     }
     .forum-section {
@@ -266,6 +294,139 @@
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
+    }
+    .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .auth-modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .auth-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .auth-input:focus {
+      outline: none;
+      border-color: #2c5282;
+      box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+    }
+    .auth-button {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .auth-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(44, 82, 130, 0.3);
+    }
+    .auth-button:active {
+      transform: translateY(0);
+    }
+    .auth-link {
+      text-align: center;
+      margin-top: 1.25rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .auth-link button {
+      color: #2c5282;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .auth-error {
+      background: #fee;
+      color: #c33;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .auth-success {
+      background: #efe;
+      color: #3c3;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .nav-button {
+      padding: 0.625rem 1.25rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .nav-button-primary {
+      background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
+      color: white;
+    }
+    .nav-button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+    }
+    .nav-button-secondary {
+      background: transparent;
+      color: #2c5282;
+      border: 2px solid #2c5282;
+    }
+    .nav-button-secondary:hover {
+      background: #2c5282;
+      color: white;
     }
     .forum-header {
       display: flex;
@@ -509,9 +670,191 @@
     console.log('Babel script loaded, attempting to render React app...');
 
     const supabase = window.supabase.createClient(
-      'https://qhgdwgosximyouysmupq.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZ2R3Z29zeGlteW91eXNtdXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1OTU0ODgsImV4cCI6MjA3NjE3MTQ4OH0.o94wxtUyvqF44FWazC10nM39uMAeHiLpXveoSmX4NbM'
+      'https://hzixitruvlsagrzqjrbw.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6aXhpdHJ1dmxzYWdyenFqcmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExMzY4ODYsImV4cCI6MjA3NjcxMjg4Nn0.rwOdyWdWTuY55hs-ctOnD43Kz9drXusbDlfyMTyzrHI'
     );
+
+    // Hash function for password (simple client-side hash - in production use proper backend)
+    const hashPassword = async (password) => {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+
+    // Auth Modal Component
+    const AuthModal = ({ mode, onClose, onSuccess, onToggleMode }) => {
+      const [name, setName] = React.useState('');
+      const [phone, setPhone] = React.useState('');
+      const [password, setPassword] = React.useState('');
+      const [error, setError] = React.useState('');
+      const [success, setSuccess] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+
+      const handleRegister = async () => {
+        setError('');
+        setSuccess('');
+        setLoading(true);
+
+        try {
+          // Validate approved user
+          const { data: approvedUser, error: checkError } = await supabase
+            .from('approved_users')
+            .select('*')
+            .eq('name', name)
+            .eq('phone', phone)
+            .maybeSingle();
+
+          if (checkError) throw checkError;
+
+          if (!approvedUser) {
+            setError('שם או מספר טלפון לא מאושרים');
+            setLoading(false);
+            return;
+          }
+
+          // Check if already registered
+          const { data: existingUser } = await supabase
+            .from('user_sessions')
+            .select('*')
+            .eq('phone', phone)
+            .maybeSingle();
+
+          if (existingUser) {
+            setError('משתמש זה כבר רשום במערכת');
+            setLoading(false);
+            return;
+          }
+
+          // Hash password and create session
+          const passwordHash = await hashPassword(password);
+          const { error: insertError } = await supabase
+            .from('user_sessions')
+            .insert([{ name, phone, password_hash: passwordHash }]);
+
+          if (insertError) throw insertError;
+
+          setSuccess('נרשמת בהצלחה! כעת תוכל להתחבר');
+          setTimeout(() => {
+            onToggleMode();
+          }, 1500);
+        } catch (err) {
+          setError('שגיאה בהרשמה: ' + err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleLogin = async () => {
+        setError('');
+        setLoading(true);
+
+        try {
+          const passwordHash = await hashPassword(password);
+          const { data: user, error } = await supabase
+            .from('user_sessions')
+            .select('*')
+            .eq('phone', phone)
+            .eq('password_hash', passwordHash)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (!user) {
+            setError('מספר טלפון או סיסמה שגויים');
+            setLoading(false);
+            return;
+          }
+
+          // Update last login
+          await supabase
+            .from('user_sessions')
+            .update({ last_login: new Date().toISOString() })
+            .eq('phone', phone);
+
+          // Store in localStorage
+          localStorage.setItem('hevre_user', JSON.stringify(user));
+          setSuccess('התחברת בהצלחה!');
+          setTimeout(() => {
+            onSuccess(user);
+          }, 1000);
+        } catch (err) {
+          setError('שגיאה בהתחברות: ' + err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (mode === 'register') {
+          if (!name || !phone || !password) {
+            setError('יש למלא את כל השדות');
+            return;
+          }
+          handleRegister();
+        } else {
+          if (!phone || !password) {
+            setError('יש למלא את כל השדות');
+            return;
+          }
+          handleLogin();
+        }
+      };
+
+      return (
+        <div className="auth-modal" onClick={onClose}>
+          <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2 className="auth-title">{mode === 'register' ? 'הרשמה' : 'התחברות'}</h2>
+            {error && <div className="auth-error">{error}</div>}
+            {success && <div className="auth-success">{success}</div>}
+            <form onSubmit={handleSubmit}>
+              {mode === 'register' && (
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="שם מלא"
+                  className="auth-input"
+                  disabled={loading}
+                />
+              )}
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="מספר טלפון"
+                className="auth-input"
+                disabled={loading}
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="סיסמה"
+                className="auth-input"
+                disabled={loading}
+              />
+              <button type="submit" className="auth-button" disabled={loading}>
+                {loading ? 'מעבד...' : (mode === 'register' ? 'הירשם' : 'התחבר')}
+              </button>
+            </form>
+            <div className="auth-link">
+              {mode === 'register' ? (
+                <>
+                  כבר רשום? <button onClick={onToggleMode}>התחבר כאן</button>
+                </>
+              ) : (
+                <>
+                  עדיין לא רשום? <button onClick={onToggleMode}>הירשם כאן</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
 
     const AuthPopup = () => {
       const [question, setQuestion] = React.useState(null);
@@ -620,17 +963,31 @@
       );
     };
 
-    const Nav = () => (
+    const Nav = ({ user, onShowAuth, onLogout }) => (
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src="https://i.ibb.co/wNDsz0FB/output-onlinepngtools.png" alt="The Hevre Hatovim Inc." className="logo" />
             </div>
-            <div className="flex items-center space-x-4">
-              <a href="#home" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium transition">בית</a>
-              <a href="#about" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium transition">אודות</a>
-              <a href="#contact" className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium transition">צור קשר</a>
+            <div className="flex items-center gap-3">
+              {user ? (
+                <>
+                  <span className="text-gray-700 font-medium hidden sm:inline">{user.name}</span>
+                  <button onClick={onLogout} className="nav-button nav-button-secondary">
+                    התנתק
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => onShowAuth('login')} className="nav-button nav-button-secondary">
+                    התחבר
+                  </button>
+                  <button onClick={() => onShowAuth('register')} className="nav-button nav-button-primary">
+                    הירשם
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1514,18 +1871,59 @@
       </footer>
     );
 
-    const App = () => (
-      <div>
-        <AuthPopup />
-        <Nav />
-        <AdBanner />
-        <Leadership />
-        <Forum />
-        <Hero />
-        <Sections />
-        <Footer />
-      </div>
-    );
+    const App = () => {
+      const [user, setUser] = React.useState(null);
+      const [showAuthModal, setShowAuthModal] = React.useState(false);
+      const [authMode, setAuthMode] = React.useState('login');
+
+      React.useEffect(() => {
+        // Check if user is logged in
+        const savedUser = localStorage.getItem('hevre_user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+      }, []);
+
+      const handleShowAuth = (mode) => {
+        setAuthMode(mode);
+        setShowAuthModal(true);
+      };
+
+      const handleAuthSuccess = (userData) => {
+        setUser(userData);
+        setShowAuthModal(false);
+      };
+
+      const handleLogout = () => {
+        localStorage.removeItem('hevre_user');
+        setUser(null);
+      };
+
+      const handleToggleAuthMode = () => {
+        setAuthMode(authMode === 'login' ? 'register' : 'login');
+      };
+
+      return (
+        <div>
+          <AuthPopup />
+          <Nav user={user} onShowAuth={handleShowAuth} onLogout={handleLogout} />
+          {showAuthModal && (
+            <AuthModal
+              mode={authMode}
+              onClose={() => setShowAuthModal(false)}
+              onSuccess={handleAuthSuccess}
+              onToggleMode={handleToggleAuthMode}
+            />
+          )}
+          <AdBanner />
+          <Leadership />
+          <Forum />
+          <Hero />
+          <Sections />
+          <Footer />
+        </div>
+      );
+    };
 
     try {
       console.log('Attempting to create React root...');
