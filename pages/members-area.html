@@ -616,9 +616,24 @@
       };
 
       const loadPosts = async () => {
+        // Get friend phones
+        const { data: friendships } = await supabase
+          .from('friendships')
+          .select('*')
+          .or(`user1_phone.eq.${user.phone},user2_phone.eq.${user.phone}`);
+
+        const friendPhones = friendships ? friendships.map(f =>
+          f.user1_phone === user.phone ? f.user2_phone : f.user1_phone
+        ) : [];
+
+        // Add own phone to see own posts
+        friendPhones.push(user.phone);
+
+        // Load posts only from friends and self
         const { data } = await supabase
           .from('social_posts')
           .select('*')
+          .in('author_phone', friendPhones)
           .order('created_at', { ascending: false });
         if (data) setPosts(data);
       };
@@ -717,28 +732,54 @@
       };
 
       const sendFriendRequest = async (recipientPhone) => {
-        await supabase.from('friend_requests').insert([{
-          requester_phone: user.phone,
-          recipient_phone: recipientPhone
-        }]);
-        loadFriendRequests();
+        try {
+          // Check if request already exists
+          const { data: existing } = await supabase
+            .from('friend_requests')
+            .select('*')
+            .or(`requester_phone.eq.${user.phone},recipient_phone.eq.${user.phone}`)
+            .or(`requester_phone.eq.${recipientPhone},recipient_phone.eq.${recipientPhone}`)
+            .maybeSingle();
+
+          if (existing) {
+            alert('בקשת חברות כבר נשלחה');
+            return;
+          }
+
+          await supabase.from('friend_requests').insert([{
+            requester_phone: user.phone,
+            recipient_phone: recipientPhone,
+            status: 'pending'
+          }]);
+
+          loadFriendRequests();
+          alert('בקשת החברות נשלחה בהצלחה!');
+        } catch (err) {
+          alert('שגיאה בשליחת בקשת חברות: ' + err.message);
+        }
       };
 
       const acceptFriendRequest = async (request) => {
-        const [phone1, phone2] = [request.requester_phone, request.recipient_phone].sort();
+        try {
+          const [phone1, phone2] = [request.requester_phone, request.recipient_phone].sort();
 
-        await supabase.from('friendships').insert([{
-          user1_phone: phone1,
-          user2_phone: phone2
-        }]);
+          await supabase.from('friendships').insert([{
+            user1_phone: phone1,
+            user2_phone: phone2
+          }]);
 
-        await supabase
-          .from('friend_requests')
-          .update({ status: 'accepted' })
-          .eq('id', request.id);
+          await supabase
+            .from('friend_requests')
+            .update({ status: 'accepted' })
+            .eq('id', request.id);
 
-        loadFriends();
-        loadFriendRequests();
+          loadFriends();
+          loadFriendRequests();
+          loadPosts();
+          alert('בקשת חברות אושרה!');
+        } catch (err) {
+          alert('שגיאה באישור בקשת חברות: ' + err.message);
+        }
       };
 
       const updateProfile = async (updates) => {
@@ -925,6 +966,20 @@
                     </div>
                   </div>
 
+                  {posts.length === 0 && (
+                    <div className="card">
+                      <div className="card-body">
+                        <div className="empty-state">
+                          <i className="fas fa-newspaper"></i>
+                          <div>אין פוסטים להצגה</div>
+                          <div style={{fontSize: '0.9rem', marginTop: '0.5rem'}}>
+                            הוסף חברים כדי לראות את הפוסטים שלהם
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {posts.map(post => (
                     <div key={post.id} className="card">
                       <div className="post">
@@ -1011,18 +1066,21 @@
                 <div className="card">
                   <div className="card-header">חברים</div>
                   <div className="card-body">
-                    {friendRequests.filter(r => r.recipient_phone === user.phone).map(request => (
-                      <div key={request.id} className="friend-card">
-                        <div className="avatar">{getInitials(request.requester_phone)}</div>
-                        <div className="friend-info">
-                          <div className="friend-name">בקשת חברות</div>
-                          <div style={{fontSize: '0.85rem', color: '#65676b'}}>מ-{request.requester_phone}</div>
+                    {friendRequests.filter(r => r.recipient_phone === user.phone).map(request => {
+                      const requester = users.find(u => u.phone === request.requester_phone);
+                      return (
+                        <div key={request.id} className="friend-card">
+                          <div className="avatar">{getInitials(requester?.name || request.requester_phone)}</div>
+                          <div className="friend-info">
+                            <div className="friend-name">{requester?.name || request.requester_phone}</div>
+                            <div style={{fontSize: '0.85rem', color: '#65676b'}}>רוצה להתחבר אליך</div>
+                          </div>
+                          <button onClick={() => acceptFriendRequest(request)} className="btn btn-primary btn-small">
+                            אשר
+                          </button>
                         </div>
-                        <button onClick={() => acceptFriendRequest(request)} className="btn btn-primary btn-small">
-                          אשר
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {friends.map(friendship => {
                       const friendPhone = friendship.user1_phone === user.phone ? friendship.user2_phone : friendship.user1_phone;
                       const friendUser = users.find(u => u.phone === friendPhone);
@@ -1035,6 +1093,13 @@
                         </div>
                       );
                     })}
+                    {friendRequests.filter(r => r.recipient_phone === user.phone).length === 0 && friends.length === 0 && (
+                      <div className="empty-state">
+                        <i className="fas fa-user-friends"></i>
+                        <div>עדיין אין לך חברים</div>
+                        <div style={{fontSize: '0.9rem', marginTop: '0.5rem'}}>חפש חברים ושלח להם בקשת חברות!</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

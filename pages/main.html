@@ -924,6 +924,16 @@
 
           if (insertError) throw insertError;
 
+          // Create user profile
+          await supabase.from('user_profiles').insert([{
+            phone: phone,
+            name: name,
+            bio: null,
+            location: null,
+            work: null,
+            education: null
+          }]);
+
           setSuccess('נרשמת בהצלחה! כעת תוכל להתחבר');
           setTimeout(() => {
             onToggleMode();
