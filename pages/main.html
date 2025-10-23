@@ -787,7 +787,11 @@
       };
 
       const handleSubmitPost = async () => {
-        if (!newPost.trim() || posting) return;
+        if (posting) return;
+        if (!newPost.trim() && !selectedImage) {
+          alert('נא להוסיף טקסט או תמונה');
+          return;
+        }
         if (isPoll && pollOptions.filter(opt => opt.trim()).length < 2) {
           alert('סקר חייב לכלול לפחות 2 אופציות');
           return;
@@ -798,7 +802,9 @@
         try {
           let imageUrl = null;
           if (selectedImage) {
+            console.log('📸 Starting image upload...');
             imageUrl = await uploadImage(selectedImage);
+            console.log('✅ Image uploaded, size:', imageUrl.length);
           }
 
           const postData = {
