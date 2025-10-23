@@ -802,9 +802,12 @@
             author_name: selectedAuthor || null,
             is_poll: isPoll,
             poll_options: isPoll ? pollOptions.filter(opt => opt.trim()).map(opt => ({ text: opt.trim(), votes: 0 })) : null,
-            poll_votes: isPoll ? [] : null,
-            img_url: imageUrl
+            poll_votes: isPoll ? [] : null
           };
+
+          if (imageUrl) {
+            postData.img_url = imageUrl;
+          }
 
           const { data, error } = await supabase
             .from('forum_posts')
