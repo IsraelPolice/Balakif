@@ -721,6 +721,7 @@
 
       const loadPosts = async () => {
         try {
+          console.log('📥 Starting to load posts...');
           const { data, error } = await supabase
             .from('forum_posts')
             .select('*')
@@ -729,8 +730,11 @@
 
           if (error) {
             console.error('❌ Load posts error:', error);
+            console.error('❌ Error details:', JSON.stringify(error, null, 2));
             throw error;
           }
+
+          console.log('✅ Loaded posts:', data);
 
           for (let post of (data || [])) {
             const { data: replies } = await supabase
@@ -744,6 +748,7 @@
           setPosts(data || []);
         } catch (error) {
           console.error('Error loading posts:', error);
+          console.error('Error stack:', error.stack);
         } finally {
           setLoading(false);
         }
@@ -809,6 +814,7 @@
             postData.img_url = imageUrl;
           }
 
+          console.log('📤 Submitting post data:', postData);
           const { data, error } = await supabase
             .from('forum_posts')
             .insert(postData)
@@ -816,9 +822,13 @@
 
           if (error) {
             console.error('❌ Insert error details:', error);
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error code:', error.code);
             console.error('❌ Post data:', postData);
             throw error;
           }
+
+          console.log('✅ Post created successfully:', data);
 
           setNewPost('');
           setSelectedAuthor('');
