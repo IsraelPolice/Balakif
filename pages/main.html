@@ -794,7 +794,7 @@
           }
 
           const postData = {
-            content: newPost.trim(),
+            content: newPost.trim() || (imageUrl ? '📷' : ''),
             topic: postTopic,
             author_name: selectedAuthor || null,
             is_poll: isPoll,
@@ -803,9 +803,10 @@
             image_url: imageUrl
           };
 
-          const { error } = await supabase
+          const { data, error } = await supabase
             .from('forum_posts')
-            .insert([postData]);
+            .insert(postData)
+            .select();
 
           if (error) throw error;
 
@@ -1097,7 +1098,7 @@
                   </button>
                   <button
                     onClick={handleSubmitPost}
-                    disabled={!newPost.trim() || posting}
+                    disabled={(!newPost.trim() && !selectedImage) || posting}
                     className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {uploading ? 'מעלה...' : posting ? 'מפרסם...' : isPoll ? 'פרסם סקר' : 'פרסם'}
