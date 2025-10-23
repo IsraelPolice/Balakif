@@ -203,13 +203,20 @@
     .forum-post {
       background: white;
       border: 1px solid #E4E6EB;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      border-radius: 12px;
+      padding: 0;
+      margin-bottom: 1.5rem;
       transition: box-shadow 0.2s ease;
+      overflow: hidden;
     }
     .forum-post:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+    .forum-post-header-padding {
+      padding: 1rem;
+    }
+    .forum-post-content-padding {
+      padding: 0 1rem 1rem 1rem;
     }
     .forum-textarea {
       width: 100%;
@@ -665,6 +672,9 @@
       const [pollOptions, setPollOptions] = React.useState(['', '']);
       const [likedReplies, setLikedReplies] = React.useState(new Set());
       const [postsToShow, setPostsToShow] = React.useState(5);
+      const [selectedImage, setSelectedImage] = React.useState(null);
+      const [imagePreview, setImagePreview] = React.useState(null);
+      const [uploading, setUploading] = React.useState(false);
 
       const AUTHORS = [
         'Liav Ben Yaakov',
@@ -734,6 +744,38 @@
         }
       };
 
+      const handleImageSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          alert('נא להעלות קובץ תמונה בלבד');
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert('גודל התמונה חייב להיות קטן מ-5MB');
+          return;
+        }
+
+        setSelectedImage(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      };
+
+      const uploadImage = async (file) => {
+        const reader = new FileReader();
+        return new Promise((resolve) => {
+          reader.onloadend = () => {
+            resolve(reader.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
       const handleSubmitPost = async () => {
         if (!newPost.trim() || posting) return;
         if (isPoll && pollOptions.filter(opt => opt.trim()).length < 2) {
@@ -742,14 +784,21 @@
         }
 
         setPosting(true);
+        setUploading(true);
         try {
+          let imageUrl = null;
+          if (selectedImage) {
+            imageUrl = await uploadImage(selectedImage);
+          }
+
           const postData = {
             content: newPost.trim(),
             topic: postTopic,
             author_name: selectedAuthor || null,
             is_poll: isPoll,
             poll_options: isPoll ? pollOptions.filter(opt => opt.trim()).map(opt => ({ text: opt.trim(), votes: 0 })) : null,
-            poll_votes: isPoll ? [] : null
+            poll_votes: isPoll ? [] : null,
+            image_url: imageUrl
           };
 
           const { error } = await supabase
@@ -763,12 +812,15 @@
           setPostTopic('כללי');
           setIsPoll(false);
           setPollOptions(['', '']);
+          setSelectedImage(null);
+          setImagePreview(null);
           await loadPosts();
         } catch (error) {
           console.error('Error posting:', error);
           alert('שגיאה בפרסום ההודעה. נסה שוב.');
         } finally {
           setPosting(false);
+          setUploading(false);
         }
       };
 
@@ -1007,6 +1059,17 @@
                   )}
                 </div>
               )}
+              {imagePreview && (
+                <div className="mt-3 relative">
+                  <img src={imagePreview} alt="Preview" className="w-full max-w-md rounded-lg" style={{maxHeight: '300px', objectFit: 'cover'}} />
+                  <button
+                    onClick={() => { setSelectedImage(null); setImagePreview(null); }}
+                    className="absolute top-2 left-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              )}
               <div className="flex justify-between items-center mt-3 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">{newPost.length}/1000 תווים</span>
@@ -1018,6 +1081,11 @@
                   )}
                 </div>
                 <div className="flex gap-2">
+                  <label className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold cursor-pointer">
+                    <i className="fas fa-image ml-1"></i>
+                    תמונה
+                    <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+                  </label>
                   <button
                     onClick={() => setShowPasscodePopup(true)}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-semibold"
@@ -1030,7 +1098,7 @@
                     disabled={!newPost.trim() || posting}
                     className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {posting ? 'מפרסם...' : isPoll ? 'פרסם סקר' : 'פרסם'}
+                    {uploading ? 'מעלה...' : posting ? 'מפרסם...' : isPoll ? 'פרסם סקר' : 'פרסם'}
                   </button>
                 </div>
               </div>
@@ -1047,33 +1115,46 @@
               <div>
                 {filteredPosts.map(post => (
                   <div key={post.id} className="forum-post">
-                    <div className="forum-header">
-                      <div className="flex items-center gap-2">
-                        {post.author_name ? (
-                          <span className="author-badge">
-                            <i className="fas fa-user ml-1"></i>
-                            {post.author_name}
-                          </span>
-                        ) : (
+                    <div className="forum-post-header-padding">
+                      <div className="forum-header">
+                        <div className="flex items-center gap-2">
+                          {post.author_name ? (
+                            <span className="author-badge">
+                              <i className="fas fa-user ml-1"></i>
+                              {post.author_name}
+                            </span>
+                          ) : (
+                            <span className="forum-meta">
+                              <i className="fas fa-user-secret ml-1"></i>
+                              אנונימי
+                            </span>
+                          )}
                           <span className="forum-meta">
-                            <i className="fas fa-user-secret ml-1"></i>
-                            אנונימי
+                            <i className="fas fa-tag ml-1"></i>
+                            {post.topic}
                           </span>
-                        )}
+                        </div>
                         <span className="forum-meta">
-                          <i className="fas fa-tag ml-1"></i>
-                          {post.topic}
+                          <i className="far fa-clock ml-1"></i>
+                          {formatDate(post.created_at)}
                         </span>
                       </div>
-                      <span className="forum-meta">
-                        <i className="far fa-clock ml-1"></i>
-                        {formatDate(post.created_at)}
-                      </span>
+                      <p className="forum-post-content">{post.content}</p>
                     </div>
-                    <p className="forum-post-content mb-4">{post.content}</p>
+
+                    {post.image_url && (
+                      <div>
+                        <img
+                          src={post.image_url}
+                          alt="Post image"
+                          className="w-full"
+                          style={{maxHeight: '600px', objectFit: 'cover'}}
+                        />
+                      </div>
+                    )}
 
                     {post.is_poll && post.poll_options && (
-                      <div className="mb-4">
+                      <div className="forum-post-content-padding mb-4">
                         {post.poll_options.map((option, index) => {
                           const totalVotes = post.poll_options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
                           const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
@@ -1106,27 +1187,28 @@
                       </div>
                     )}
 
-                    <div className="flex items-center gap-3">
-                      {!post.is_poll && (
+                    <div className="forum-post-content-padding">
+                      <div className="flex items-center gap-3">
+                        {!post.is_poll && (
+                          <button
+                            onClick={() => handleLike(post.id, post.likes)}
+                            className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
+                          >
+                            <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
+                            <span>{post.likes || 0}</span>
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleLike(post.id, post.likes)}
-                          className={`like-button ${likedPosts.has(post.id) ? 'liked' : ''}`}
+                          onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+                          className="like-button"
                         >
-                          <i className={`fa${likedPosts.has(post.id) ? 's' : 'r'} fa-heart`}></i>
-                          <span>{post.likes || 0}</span>
+                          <i className="fas fa-reply"></i>
+                          <span>{post.replies?.length || 0}</span>
                         </button>
-                      )}
-                      <button
-                        onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-                        className="like-button"
-                      >
-                        <i className="fas fa-reply"></i>
-                        <span>{post.replies?.length || 0}</span>
-                      </button>
-                    </div>
+                      </div>
 
-                    {post.replies && post.replies.length > 0 && (
-                      <div className="reply-section">
+                      {post.replies && post.replies.length > 0 && (
+                        <div className="reply-section">
                         {post.replies.map(reply => (
                           <div key={reply.id} className="reply-item">
                             <div className="forum-header" style={{borderBottom: 'none', paddingBottom: 0, marginBottom: '0.5rem'}}>
@@ -1188,6 +1270,7 @@
                           </button>
                         </div>
                       </div>
+                    </div>
                     </div>
                   </div>
                 ))}
