@@ -727,7 +727,10 @@
             .is('parent_id', null)
             .order('created_at', { ascending: false });
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Load posts error:', error);
+            throw error;
+          }
 
           for (let post of (data || [])) {
             const { data: replies } = await supabase
@@ -808,7 +811,11 @@
             .insert(postData)
             .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url');
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Insert error details:', error);
+            console.error('❌ Post data:', postData);
+            throw error;
+          }
 
           setNewPost('');
           setSelectedAuthor('');
