@@ -9,160 +9,136 @@
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      margin: 0;
-      color: #1a1a1a;
+      background: #f0f2f5;
+      color: #1c1e21;
     }
-    .social-container {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 1.5rem 1rem;
-    }
-    .social-card {
+    .nav-bar {
       background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    .post-header {
+    .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
-      margin-bottom: 1rem;
-    }
-    .post-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #2c5282, #1a365d);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 1.25rem;
-      margin-left: 0.75rem;
-      flex-shrink: 0;
-    }
-    .post-author-info {
-      flex: 1;
-    }
-    .post-author-name {
-      font-weight: 600;
-      font-size: 1rem;
-      color: #1a1a1a;
-    }
-    .post-time {
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-    .post-content {
-      font-size: 1rem;
-      line-height: 1.6;
-      color: #1f2937;
-      margin-bottom: 1rem;
-      white-space: pre-wrap;
-    }
-    .post-actions {
-      display: flex;
       gap: 1rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid #e5e7eb;
     }
-    .post-action-btn {
-      flex: 1;
-      padding: 0.625rem;
-      border: none;
-      background: transparent;
-      color: #6b7280;
-      font-weight: 600;
-      border-radius: 6px;
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2c5282;
       cursor: pointer;
-      transition: all 0.2s;
+    }
+    .search-bar {
+      flex: 1;
+      max-width: 400px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 0.625rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 50px;
+      font-size: 0.95rem;
+    }
+    .nav-icons {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .nav-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
-    }
-    .post-action-btn:hover {
-      background: #f3f4f6;
-    }
-    .post-action-btn.liked {
-      color: #ef4444;
-    }
-    .create-post-input {
-      width: 100%;
-      padding: 0.875rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
-      resize: vertical;
-      min-height: 100px;
-      font-family: 'Inter', sans-serif;
-    }
-    .create-post-input:focus {
-      outline: none;
-      border-color: #2c5282;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #2c5282 0%, #1a365d 100%);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
+      background: #f0f2f5;
       cursor: pointer;
-      transition: all 0.3s;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
-    }
-    .tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid #e5e7eb;
-    }
-    .tab {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      background: transparent;
-      color: #6b7280;
-      font-weight: 600;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
       transition: all 0.2s;
+      font-size: 1.25rem;
+      color: #050505;
     }
-    .tab:hover {
-      color: #2c5282;
+    .nav-icon:hover {
+      background: #e4e6e9;
     }
-    .tab.active {
-      color: #2c5282;
-      border-bottom-color: #2c5282;
+    .main-container {
+      max-width: 1200px;
+      margin: 1rem auto;
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      gap: 1rem;
+      padding: 0 1rem;
     }
-    .friend-list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.875rem;
-      border-bottom: 1px solid #e5e7eb;
+    @media (max-width: 1024px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar { display: none; }
     }
-    .friend-list-item:last-child {
-      border-bottom: none;
+    .sidebar {
+      position: sticky;
+      top: 72px;
+      height: fit-content;
     }
-    .friend-info {
+    .sidebar-item {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      padding: 0.625rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-weight: 500;
+      color: #050505;
     }
-    .friend-avatar {
+    .sidebar-item:hover {
+      background: #e4e6e9;
+    }
+    .sidebar-item.active {
+      background: #e7f3ff;
+      color: #1877f2;
+    }
+    .sidebar-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1rem;
+    }
+    .card-header {
+      padding: 1rem;
+      border-bottom: 1px solid #e4e6e9;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .post-create {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -171,93 +147,388 @@
       align-items: center;
       justify-content: center;
       color: white;
-      font-weight: 600;
-      font-size: 1.1rem;
+      font-weight: 700;
+      font-size: 1rem;
       flex-shrink: 0;
+      cursor: pointer;
     }
-    .friend-btn {
-      padding: 0.5rem 1rem;
+    .avatar.large {
+      width: 100px;
+      height: 100px;
+      font-size: 2.5rem;
+    }
+    .post-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      background: #f0f2f5;
+      border-radius: 50px;
+      cursor: pointer;
+      color: #65676b;
+    }
+    .post-content-input {
+      width: 100%;
+      padding: 0.875rem;
+      border: 1px solid #e4e6e9;
+      border-radius: 8px;
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+    }
+    .btn {
+      padding: 0.625rem 1.25rem;
       border: none;
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
-    .friend-btn-primary {
+    .btn-primary {
       background: #2c5282;
       color: white;
     }
-    .friend-btn-primary:hover {
+    .btn-primary:hover {
       background: #1a365d;
     }
-    .friend-btn-secondary {
-      background: #e5e7eb;
-      color: #374151;
-      margin-left: 0.5rem;
+    .btn-secondary {
+      background: #e4e6e9;
+      color: #050505;
     }
-    .friend-btn-secondary:hover {
-      background: #d1d5db;
+    .btn-secondary:hover {
+      background: #d8dadf;
     }
-    .comment-section {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #e5e7eb;
+    .btn-small {
+      padding: 0.375rem 0.875rem;
+      font-size: 0.875rem;
+    }
+    .post {
+      border-bottom: 1px solid #e4e6e9;
+      padding: 1rem;
+    }
+    .post:last-child {
+      border-bottom: none;
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .post-author {
+      flex: 1;
+    }
+    .post-author-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .post-author-name:hover {
+      text-decoration: underline;
+    }
+    .post-time {
+      font-size: 0.8rem;
+      color: #65676b;
+    }
+    .post-content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+      white-space: pre-wrap;
+    }
+    .post-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #e4e6e9;
+    }
+    .post-action {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      background: transparent;
+      color: #65676b;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .post-action:hover {
+      background: #f0f2f5;
+    }
+    .post-action.liked {
+      color: #e74c3c;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 1rem;
+      border-bottom: 1px solid #e4e6e9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #f0f2f5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-close:hover {
+      background: #e4e6e9;
+    }
+    .modal-body {
+      padding: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e4e6e9;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .profile-header {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .cover-photo {
+      height: 250px;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+    }
+    .profile-info {
+      padding: 1rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 1rem;
+    }
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      border: 4px solid white;
+      margin-top: -60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 3rem;
+    }
+    .profile-details {
+      flex: 1;
+      padding-top: 0.5rem;
+    }
+    .profile-name {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .profile-bio {
+      color: #65676b;
+      margin-bottom: 0.5rem;
+    }
+    .profile-stats {
+      display: flex;
+      gap: 1.5rem;
+      color: #65676b;
+      font-size: 0.9rem;
+    }
+    .profile-tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0 1rem;
+      border-bottom: 1px solid #e4e6e9;
+    }
+    .profile-tab {
+      padding: 1rem 1.5rem;
+      border: none;
+      background: transparent;
+      color: #65676b;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .profile-tab:hover {
+      background: #f0f2f5;
+    }
+    .profile-tab.active {
+      color: #2c5282;
+      border-bottom-color: #2c5282;
+    }
+    .friend-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-bottom: 1px solid #e4e6e9;
+    }
+    .friend-card:last-child {
+      border-bottom: none;
+    }
+    .friend-info {
+      flex: 1;
+    }
+    .friend-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .friend-name:hover {
+      text-decoration: underline;
+    }
+    .group-card {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 1px solid #e4e6e9;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .group-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .group-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2c5282, #1a365d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .group-info {
+      flex: 1;
+    }
+    .group-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+    .group-meta {
+      font-size: 0.85rem;
+      color: #65676b;
+    }
+    .comment-list {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e4e6e9;
     }
     .comment-item {
-      padding: 0.75rem;
-      background: #f9fafb;
-      border-radius: 8px;
+      display: flex;
+      gap: 0.5rem;
       margin-bottom: 0.75rem;
+    }
+    .comment-bubble {
+      background: #f0f2f5;
+      padding: 0.5rem 0.75rem;
+      border-radius: 18px;
+      flex: 1;
     }
     .comment-author {
       font-weight: 600;
-      font-size: 0.9rem;
-      color: #1a1a1a;
+      font-size: 0.85rem;
       margin-bottom: 0.25rem;
     }
-    .comment-content {
+    .comment-text {
       font-size: 0.9rem;
-      color: #374151;
+    }
+    .comment-input-container {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
     .comment-input {
-      width: 100%;
-      padding: 0.625rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      margin-top: 0.75rem;
-    }
-    .nav-bar {
-      background: white;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    .nav-content {
-      max-width: 680px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .page-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
-    .logout-btn {
-      padding: 0.5rem 1rem;
-      background: #e5e7eb;
-      color: #374151;
+      flex: 1;
+      padding: 0.5rem 0.75rem;
       border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
+      background: #f0f2f5;
+      border-radius: 18px;
+      font-size: 0.9rem;
     }
-    .logout-btn:hover {
-      background: #d1d5db;
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-admin {
+      background: #fee;
+      color: #c00;
+    }
+    .badge-moderator {
+      background: #fef3cd;
+      color: #856404;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #65676b;
+    }
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
     }
   </style>
 </head>
@@ -272,11 +543,24 @@
 
     const MembersArea = () => {
       const [user, setUser] = React.useState(null);
-      const [activeTab, setActiveTab] = React.useState('feed');
+      const [userProfile, setUserProfile] = React.useState(null);
+      const [activeView, setActiveView] = React.useState('feed');
+      const [selectedProfile, setSelectedProfile] = React.useState(null);
+      const [selectedGroup, setSelectedGroup] = React.useState(null);
+
+      // Data states
       const [posts, setPosts] = React.useState([]);
       const [users, setUsers] = React.useState([]);
       const [friends, setFriends] = React.useState([]);
       const [friendRequests, setFriendRequests] = React.useState([]);
+      const [groups, setGroups] = React.useState([]);
+      const [myGroups, setMyGroups] = React.useState([]);
+      const [searchTerm, setSearchTerm] = React.useState('');
+
+      // Modal states
+      const [showCreatePost, setShowCreatePost] = React.useState(false);
+      const [showEditProfile, setShowEditProfile] = React.useState(false);
+      const [showCreateGroup, setShowCreateGroup] = React.useState(false);
       const [newPost, setNewPost] = React.useState('');
       const [commentInputs, setCommentInputs] = React.useState({});
       const [postComments, setPostComments] = React.useState({});
@@ -287,17 +571,48 @@
           window.location.href = 'main.html';
           return;
         }
-        setUser(JSON.parse(savedUser));
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        loadUserProfile(userData.phone);
       }, []);
 
       React.useEffect(() => {
         if (user) {
-          loadPosts();
-          loadUsers();
-          loadFriends();
-          loadFriendRequests();
+          loadData();
         }
       }, [user]);
+
+      const loadData = () => {
+        loadPosts();
+        loadUsers();
+        loadFriends();
+        loadFriendRequests();
+        loadGroups();
+        loadMyGroups();
+      };
+
+      const loadUserProfile = async (phone) => {
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('phone', phone)
+          .maybeSingle();
+
+        if (data) {
+          setUserProfile(data);
+        } else {
+          const newProfile = {
+            phone: phone,
+            name: user?.name || phone,
+            bio: null,
+            location: null,
+            work: null,
+            education: null
+          };
+          await supabase.from('user_profiles').insert([newProfile]);
+          setUserProfile(newProfile);
+        }
+      };
 
       const loadPosts = async () => {
         const { data } = await supabase
@@ -308,10 +623,10 @@
       };
 
       const loadUsers = async () => {
-        const { data } = await supabase
-          .from('user_sessions')
-          .select('phone, name');
-        if (data) setUsers(data.filter(u => u.phone !== user.phone));
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('*');
+        if (profiles) setUsers(profiles.filter(u => u.phone !== user.phone));
       };
 
       const loadFriends = async () => {
@@ -331,14 +646,31 @@
         if (data) setFriendRequests(data);
       };
 
+      const loadGroups = async () => {
+        const { data } = await supabase
+          .from('groups')
+          .select('*, group_members(count)')
+          .order('created_at', { ascending: false });
+        if (data) setGroups(data);
+      };
+
+      const loadMyGroups = async () => {
+        const { data } = await supabase
+          .from('group_members')
+          .select('*, groups(*)')
+          .eq('user_phone', user.phone);
+        if (data) setMyGroups(data);
+      };
+
       const createPost = async () => {
         if (!newPost.trim()) return;
         await supabase.from('social_posts').insert([{
           author_phone: user.phone,
-          author_name: user.name,
+          author_name: userProfile?.name || user.name,
           content: newPost
         }]);
         setNewPost('');
+        setShowCreatePost(false);
         loadPosts();
       };
 
@@ -363,7 +695,7 @@
         await supabase.from('post_comments').insert([{
           post_id: postId,
           author_phone: user.phone,
-          author_name: user.name,
+          author_name: userProfile?.name || user.name,
           content
         }]);
 
@@ -408,6 +740,53 @@
         loadFriendRequests();
       };
 
+      const updateProfile = async (updates) => {
+        await supabase
+          .from('user_profiles')
+          .update(updates)
+          .eq('phone', user.phone);
+        loadUserProfile(user.phone);
+        setShowEditProfile(false);
+      };
+
+      const createGroup = async (groupData) => {
+        const { data: newGroup } = await supabase
+          .from('groups')
+          .insert([{ ...groupData, creator_phone: user.phone }])
+          .select()
+          .single();
+
+        if (newGroup) {
+          await supabase.from('group_members').insert([{
+            group_id: newGroup.id,
+            user_phone: user.phone,
+            role: 'admin'
+          }]);
+          setShowCreateGroup(false);
+          loadGroups();
+          loadMyGroups();
+        }
+      };
+
+      const joinGroup = async (groupId) => {
+        const group = groups.find(g => g.id === groupId);
+        if (group.privacy === 'private') {
+          await supabase.from('group_join_requests').insert([{
+            group_id: groupId,
+            user_phone: user.phone,
+            user_name: userProfile?.name || user.name
+          }]);
+        } else {
+          await supabase.from('group_members').insert([{
+            group_id: groupId,
+            user_phone: user.phone,
+            role: 'member'
+          }]);
+        }
+        loadGroups();
+        loadMyGroups();
+      };
+
       const isFriend = (phone) => {
         return friends.some(f => f.user1_phone === phone || f.user2_phone === phone);
       };
@@ -419,8 +798,12 @@
         );
       };
 
+      const isGroupMember = (groupId) => {
+        return myGroups.some(m => m.group_id === groupId);
+      };
+
       const getInitials = (name) => {
-        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?';
       };
 
       const formatTime = (timestamp) => {
@@ -431,6 +814,7 @@
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
 
+        if (minutes < 1) return 'עכשיו';
         if (minutes < 60) return `לפני ${minutes} דקות`;
         if (hours < 24) return `לפני ${hours} שעות`;
         return `לפני ${days} ימים`;
@@ -441,177 +825,754 @@
         window.location.href = 'main.html';
       };
 
-      if (!user) return <div>טוען...</div>;
+      const filteredUsers = users.filter(u =>
+        u.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      if (!user || !userProfile) return <div>טוען...</div>;
 
       return (
         <div>
           <div className="nav-bar">
             <div className="nav-content">
-              <div className="page-title">החבר'ה הטובים</div>
-              <button onClick={handleLogout} className="logout-btn">
-                התנתק
-              </button>
+              <div className="logo" onClick={() => setActiveView('feed')}>החבר'ה הטובים</div>
+              <div className="search-bar">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="חפש חברים..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="nav-icons">
+                <div className="nav-icon" onClick={() => setActiveView('feed')} title="בית">
+                  <i className="fas fa-home"></i>
+                </div>
+                <div className="nav-icon" onClick={() => setActiveView('groups')} title="קבוצות">
+                  <i className="fas fa-users"></i>
+                </div>
+                <div className="nav-icon" onClick={() => setSelectedProfile(userProfile)} title="פרופיל">
+                  <div className="avatar" style={{width: '36px', height: '36px', fontSize: '0.9rem'}}>
+                    {getInitials(userProfile.name)}
+                  </div>
+                </div>
+                <button onClick={handleLogout} className="btn btn-secondary btn-small">
+                  התנתק
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="social-container">
-            <div className="tabs">
-              <button
-                className={`tab ${activeTab === 'feed' ? 'active' : ''}`}
-                onClick={() => setActiveTab('feed')}
-              >
-                <i className="fas fa-home"></i> פיד
-              </button>
-              <button
-                className={`tab ${activeTab === 'friends' ? 'active' : ''}`}
-                onClick={() => setActiveTab('friends')}
-              >
-                <i className="fas fa-users"></i> חברים
-              </button>
-              <button
-                className={`tab ${activeTab === 'discover' ? 'active' : ''}`}
-                onClick={() => setActiveTab('discover')}
-              >
-                <i className="fas fa-user-plus"></i> גלה אנשים
-              </button>
+          <div className="main-container">
+            <div className="sidebar">
+              <div className="sidebar-item" onClick={() => setSelectedProfile(userProfile)}>
+                <div className="avatar" style={{width: '36px', height: '36px', fontSize: '0.9rem'}}>
+                  {getInitials(userProfile.name)}
+                </div>
+                <span>{userProfile.name}</span>
+              </div>
+              <div className="sidebar-item" onClick={() => setActiveView('friends')}>
+                <div className="sidebar-icon" style={{background: '#e7f3ff', color: '#1877f2'}}>
+                  <i className="fas fa-user-friends"></i>
+                </div>
+                <span>חברים</span>
+              </div>
+              <div className="sidebar-item" onClick={() => setActiveView('groups')}>
+                <div className="sidebar-icon" style={{background: '#e7f3ff', color: '#1877f2'}}>
+                  <i className="fas fa-users"></i>
+                </div>
+                <span>קבוצות</span>
+              </div>
             </div>
 
-            {activeTab === 'feed' && (
-              <>
-                <div className="social-card">
+            <div>
+              {activeView === 'feed' && !selectedProfile && !selectedGroup && (
+                <>
+                  <div className="card">
+                    <div className="card-body">
+                      <div className="post-create">
+                        <div className="avatar">{getInitials(userProfile.name)}</div>
+                        <div
+                          className="post-input"
+                          onClick={() => setShowCreatePost(true)}
+                        >
+                          מה עובר עליך, {userProfile.name.split(' ')[0]}?
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {posts.map(post => (
+                    <div key={post.id} className="card">
+                      <div className="post">
+                        <div className="post-header">
+                          <div
+                            className="avatar"
+                            onClick={() => {
+                              const author = users.find(u => u.phone === post.author_phone) || userProfile;
+                              setSelectedProfile(author);
+                            }}
+                          >
+                            {getInitials(post.author_name)}
+                          </div>
+                          <div className="post-author">
+                            <div
+                              className="post-author-name"
+                              onClick={() => {
+                                const author = users.find(u => u.phone === post.author_phone) || userProfile;
+                                setSelectedProfile(author);
+                              }}
+                            >
+                              {post.author_name}
+                            </div>
+                            <div className="post-time">{formatTime(post.created_at)}</div>
+                          </div>
+                        </div>
+                        <div className="post-content">{post.content}</div>
+                        <div className="post-actions">
+                          <button
+                            className={`post-action ${(post.likes || []).includes(user.phone) ? 'liked' : ''}`}
+                            onClick={() => toggleLike(post)}
+                          >
+                            <i className="fas fa-heart"></i>
+                            {(post.likes || []).length > 0 && (post.likes || []).length}
+                          </button>
+                          <button
+                            className="post-action"
+                            onClick={() => {
+                              if (!postComments[post.id]) {
+                                loadComments(post.id);
+                              }
+                            }}
+                          >
+                            <i className="fas fa-comment"></i>
+                            תגובה
+                          </button>
+                        </div>
+
+                        {postComments[post.id] && (
+                          <div className="comment-list">
+                            {postComments[post.id].map(comment => (
+                              <div key={comment.id} className="comment-item">
+                                <div className="avatar" style={{width: '32px', height: '32px', fontSize: '0.8rem'}}>
+                                  {getInitials(comment.author_name)}
+                                </div>
+                                <div className="comment-bubble">
+                                  <div className="comment-author">{comment.author_name}</div>
+                                  <div className="comment-text">{comment.content}</div>
+                                </div>
+                              </div>
+                            ))}
+                            <div className="comment-input-container">
+                              <div className="avatar" style={{width: '32px', height: '32px', fontSize: '0.8rem'}}>
+                                {getInitials(userProfile.name)}
+                              </div>
+                              <input
+                                type="text"
+                                className="comment-input"
+                                placeholder="כתוב תגובה..."
+                                value={commentInputs[post.id] || ''}
+                                onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                                onKeyPress={(e) => e.key === 'Enter' && addComment(post.id)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {activeView === 'friends' && (
+                <div className="card">
+                  <div className="card-header">חברים</div>
+                  <div className="card-body">
+                    {friendRequests.filter(r => r.recipient_phone === user.phone).map(request => (
+                      <div key={request.id} className="friend-card">
+                        <div className="avatar">{getInitials(request.requester_phone)}</div>
+                        <div className="friend-info">
+                          <div className="friend-name">בקשת חברות</div>
+                          <div style={{fontSize: '0.85rem', color: '#65676b'}}>מ-{request.requester_phone}</div>
+                        </div>
+                        <button onClick={() => acceptFriendRequest(request)} className="btn btn-primary btn-small">
+                          אשר
+                        </button>
+                      </div>
+                    ))}
+                    {friends.map(friendship => {
+                      const friendPhone = friendship.user1_phone === user.phone ? friendship.user2_phone : friendship.user1_phone;
+                      const friendUser = users.find(u => u.phone === friendPhone);
+                      return (
+                        <div key={friendship.id} className="friend-card" onClick={() => setSelectedProfile(friendUser)}>
+                          <div className="avatar">{getInitials(friendUser?.name || friendPhone)}</div>
+                          <div className="friend-info">
+                            <div className="friend-name">{friendUser?.name || friendPhone}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activeView === 'groups' && !selectedGroup && (
+                <>
+                  <div className="card">
+                    <div className="card-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <span>הקבוצות שלי</span>
+                      <button onClick={() => setShowCreateGroup(true)} className="btn btn-primary btn-small">
+                        <i className="fas fa-plus"></i> צור קבוצה
+                      </button>
+                    </div>
+                    <div className="card-body">
+                      {myGroups.map(member => (
+                        <div key={member.id} className="group-card" onClick={() => setSelectedGroup(member.groups)}>
+                          <div className="group-icon">{getInitials(member.groups.name)}</div>
+                          <div className="group-info">
+                            <div className="group-name">
+                              {member.groups.name}
+                              {member.role === 'admin' && <span className="badge badge-admin" style={{marginRight: '0.5rem'}}>מנהל</span>}
+                            </div>
+                            <div className="group-meta">
+                              {member.groups.type === 'group' ? 'קבוצה' : 'דף'} • {member.groups.privacy === 'public' ? 'ציבורי' : 'פרטי'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="card">
+                    <div className="card-header">גלה קבוצות</div>
+                    <div className="card-body">
+                      {groups.filter(g => !isGroupMember(g.id)).map(group => (
+                        <div key={group.id} className="group-card">
+                          <div className="group-icon">{getInitials(group.name)}</div>
+                          <div className="group-info">
+                            <div className="group-name">{group.name}</div>
+                            <div className="group-meta">
+                              {group.type === 'group' ? 'קבוצה' : 'דף'} • {group.privacy === 'public' ? 'ציבורי' : 'פרטי'}
+                            </div>
+                          </div>
+                          <button onClick={() => joinGroup(group.id)} className="btn btn-primary btn-small">
+                            {group.privacy === 'private' ? 'בקש הצטרפות' : 'הצטרף'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {selectedProfile && (
+                <ProfileView
+                  profile={selectedProfile}
+                  isOwnProfile={selectedProfile.phone === user.phone}
+                  onClose={() => setSelectedProfile(null)}
+                  onEditProfile={() => setShowEditProfile(true)}
+                  isFriend={isFriend(selectedProfile.phone)}
+                  hasPendingRequest={hasPendingRequest(selectedProfile.phone)}
+                  onSendFriendRequest={() => sendFriendRequest(selectedProfile.phone)}
+                  getInitials={getInitials}
+                  user={user}
+                  userProfile={userProfile}
+                />
+              )}
+
+              {selectedGroup && (
+                <GroupView
+                  group={selectedGroup}
+                  onClose={() => setSelectedGroup(null)}
+                  user={user}
+                  userProfile={userProfile}
+                  myGroups={myGroups}
+                  getInitials={getInitials}
+                  formatTime={formatTime}
+                />
+              )}
+            </div>
+
+            <div className="sidebar">
+              <div className="card">
+                <div className="card-header">אנשים שאולי תכיר</div>
+                <div className="card-body">
+                  {filteredUsers.slice(0, 5).map(otherUser => (
+                    <div key={otherUser.phone} className="friend-card" onClick={() => setSelectedProfile(otherUser)}>
+                      <div className="avatar" style={{width: '36px', height: '36px', fontSize: '0.9rem'}}>
+                        {getInitials(otherUser.name)}
+                      </div>
+                      <div className="friend-info">
+                        <div className="friend-name">{otherUser.name}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {showCreatePost && (
+            <div className="modal" onClick={() => setShowCreatePost(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div className="modal-title">צור פוסט</div>
+                  <button className="modal-close" onClick={() => setShowCreatePost(false)}>
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <div className="modal-body">
                   <div className="post-header">
-                    <div className="post-avatar">{getInitials(user.name)}</div>
-                    <div className="post-author-info">
-                      <div className="post-author-name">{user.name}</div>
+                    <div className="avatar">{getInitials(userProfile.name)}</div>
+                    <div className="post-author">
+                      <div className="post-author-name">{userProfile.name}</div>
                     </div>
                   </div>
                   <textarea
-                    className="create-post-input"
+                    className="post-content-input"
                     placeholder="מה עובר עליך?"
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
+                    autoFocus
                   />
-                  <div style={{ marginTop: '1rem', textAlign: 'left' }}>
-                    <button onClick={createPost} className="btn-primary">
+                  <div style={{marginTop: '1rem'}}>
+                    <button onClick={createPost} className="btn btn-primary" style={{width: '100%'}}>
                       פרסם
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
 
-                {posts.map(post => (
-                  <div key={post.id} className="social-card">
+          {showEditProfile && (
+            <EditProfileModal
+              profile={userProfile}
+              onClose={() => setShowEditProfile(false)}
+              onSave={updateProfile}
+            />
+          )}
+
+          {showCreateGroup && (
+            <CreateGroupModal
+              onClose={() => setShowCreateGroup(false)}
+              onCreate={createGroup}
+            />
+          )}
+        </div>
+      );
+    };
+
+    const ProfileView = ({ profile, isOwnProfile, onClose, onEditProfile, isFriend, hasPendingRequest, onSendFriendRequest, getInitials, user, userProfile }) => {
+      const [wallPosts, setWallPosts] = React.useState([]);
+      const [newWallPost, setNewWallPost] = React.useState('');
+      const [activeTab, setActiveTab] = React.useState('timeline');
+
+      React.useEffect(() => {
+        loadWallPosts();
+      }, [profile]);
+
+      const loadWallPosts = async () => {
+        const { data } = await supabase
+          .from('wall_posts')
+          .select('*')
+          .eq('wall_owner_phone', profile.phone)
+          .order('created_at', { ascending: false });
+        if (data) setWallPosts(data);
+      };
+
+      const postToWall = async () => {
+        if (!newWallPost.trim()) return;
+        await supabase.from('wall_posts').insert([{
+          wall_owner_phone: profile.phone,
+          author_phone: user.phone,
+          author_name: userProfile.name,
+          content: newWallPost
+        }]);
+        setNewWallPost('');
+        loadWallPosts();
+      };
+
+      return (
+        <div>
+          <div className="profile-header">
+            <div className="cover-photo">
+              {getInitials(profile.name)}
+            </div>
+            <div className="profile-info">
+              <div className="profile-avatar">{getInitials(profile.name)}</div>
+              <div className="profile-details">
+                <div className="profile-name">{profile.name}</div>
+                {profile.bio && <div className="profile-bio">{profile.bio}</div>}
+                {isOwnProfile && (
+                  <button onClick={onEditProfile} className="btn btn-secondary btn-small">
+                    <i className="fas fa-edit"></i> ערוך פרופיל
+                  </button>
+                )}
+                {!isOwnProfile && !isFriend && !hasPendingRequest && (
+                  <button onClick={onSendFriendRequest} className="btn btn-primary btn-small">
+                    <i className="fas fa-user-plus"></i> הוסף חבר
+                  </button>
+                )}
+                {!isOwnProfile && hasPendingRequest && (
+                  <button className="btn btn-secondary btn-small" disabled>
+                    <i className="fas fa-clock"></i> ממתין...
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="profile-tabs">
+              <button className={`profile-tab ${activeTab === 'timeline' ? 'active' : ''}`} onClick={() => setActiveTab('timeline')}>
+                ציר זמן
+              </button>
+              <button className={`profile-tab ${activeTab === 'about' ? 'active' : ''}`} onClick={() => setActiveTab('about')}>
+                אודות
+              </button>
+            </div>
+          </div>
+
+          {activeTab === 'timeline' && (
+            <>
+              <div className="card">
+                <div className="card-body">
+                  <textarea
+                    className="post-content-input"
+                    placeholder={`כתוב משהו ל${profile.name.split(' ')[0]}...`}
+                    value={newWallPost}
+                    onChange={(e) => setNewWallPost(e.target.value)}
+                  />
+                  <button onClick={postToWall} className="btn btn-primary" style={{marginTop: '0.5rem'}}>
+                    פרסם
+                  </button>
+                </div>
+              </div>
+
+              {wallPosts.map(post => (
+                <div key={post.id} className="card">
+                  <div className="post">
                     <div className="post-header">
-                      <div className="post-avatar">{getInitials(post.author_name)}</div>
-                      <div className="post-author-info">
+                      <div className="avatar">{getInitials(post.author_name)}</div>
+                      <div className="post-author">
+                        <div className="post-author-name">{post.author_name}</div>
+                        <div className="post-time">פרסם בקיר של {profile.name.split(' ')[0]}</div>
+                      </div>
+                    </div>
+                    <div className="post-content">{post.content}</div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {activeTab === 'about' && (
+            <div className="card">
+              <div className="card-body">
+                {profile.work && <div style={{marginBottom: '1rem'}}><strong>עבודה:</strong> {profile.work}</div>}
+                {profile.education && <div style={{marginBottom: '1rem'}}><strong>השכלה:</strong> {profile.education}</div>}
+                {profile.location && <div style={{marginBottom: '1rem'}}><strong>מיקום:</strong> {profile.location}</div>}
+                {profile.relationship_status && <div style={{marginBottom: '1rem'}}><strong>סטטוס:</strong> {profile.relationship_status}</div>}
+                {!profile.work && !profile.education && !profile.location && (
+                  <div className="empty-state">
+                    <i className="fas fa-info-circle"></i>
+                    <div>אין מידע נוסף</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const GroupView = ({ group, onClose, user, userProfile, myGroups, getInitials, formatTime }) => {
+      const [groupPosts, setGroupPosts] = React.useState([]);
+      const [newPost, setNewPost] = React.useState('');
+      const [members, setMembers] = React.useState([]);
+      const [activeTab, setActiveTab] = React.useState('posts');
+
+      const membership = myGroups.find(m => m.group_id === group.id);
+      const isAdmin = membership?.role === 'admin';
+
+      React.useEffect(() => {
+        loadGroupPosts();
+        loadMembers();
+      }, [group]);
+
+      const loadGroupPosts = async () => {
+        const { data } = await supabase
+          .from('group_posts')
+          .select('*')
+          .eq('group_id', group.id)
+          .order('created_at', { ascending: false });
+        if (data) setGroupPosts(data);
+      };
+
+      const loadMembers = async () => {
+        const { data } = await supabase
+          .from('group_members')
+          .select('*')
+          .eq('group_id', group.id);
+        if (data) setMembers(data);
+      };
+
+      const createGroupPost = async () => {
+        if (!newPost.trim()) return;
+        await supabase.from('group_posts').insert([{
+          group_id: group.id,
+          author_phone: user.phone,
+          author_name: userProfile.name,
+          content: newPost
+        }]);
+        setNewPost('');
+        loadGroupPosts();
+      };
+
+      return (
+        <div>
+          <div className="profile-header">
+            <div className="cover-photo">
+              {getInitials(group.name)}
+            </div>
+            <div className="profile-info">
+              <div className="profile-avatar">{getInitials(group.name)}</div>
+              <div className="profile-details">
+                <div className="profile-name">{group.name}</div>
+                <div className="profile-bio">{group.description}</div>
+                <div className="profile-stats">
+                  <span>{members.length} חברים</span>
+                  <span>•</span>
+                  <span>{group.type === 'group' ? 'קבוצה' : 'דף'} {group.privacy === 'public' ? 'ציבורית' : 'פרטית'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="profile-tabs">
+              <button className={`profile-tab ${activeTab === 'posts' ? 'active' : ''}`} onClick={() => setActiveTab('posts')}>
+                פוסטים
+              </button>
+              <button className={`profile-tab ${activeTab === 'members' ? 'active' : ''}`} onClick={() => setActiveTab('members')}>
+                חברים
+              </button>
+            </div>
+          </div>
+
+          {activeTab === 'posts' && (
+            <>
+              <div className="card">
+                <div className="card-body">
+                  <textarea
+                    className="post-content-input"
+                    placeholder="כתוב משהו..."
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
+                  />
+                  <button onClick={createGroupPost} className="btn btn-primary" style={{marginTop: '0.5rem'}}>
+                    פרסם
+                  </button>
+                </div>
+              </div>
+
+              {groupPosts.map(post => (
+                <div key={post.id} className="card">
+                  <div className="post">
+                    <div className="post-header">
+                      <div className="avatar">{getInitials(post.author_name)}</div>
+                      <div className="post-author">
                         <div className="post-author-name">{post.author_name}</div>
                         <div className="post-time">{formatTime(post.created_at)}</div>
                       </div>
                     </div>
                     <div className="post-content">{post.content}</div>
-                    <div className="post-actions">
-                      <button
-                        className={`post-action-btn ${(post.likes || []).includes(user.phone) ? 'liked' : ''}`}
-                        onClick={() => toggleLike(post)}
-                      >
-                        <i className="fas fa-heart"></i> {(post.likes || []).length} אהבתי
-                      </button>
-                      <button
-                        className="post-action-btn"
-                        onClick={() => loadComments(post.id)}
-                      >
-                        <i className="fas fa-comment"></i> תגובות
-                      </button>
-                    </div>
-
-                    {postComments[post.id] && (
-                      <div className="comment-section">
-                        {postComments[post.id].map(comment => (
-                          <div key={comment.id} className="comment-item">
-                            <div className="comment-author">{comment.author_name}</div>
-                            <div className="comment-content">{comment.content}</div>
-                          </div>
-                        ))}
-                        <input
-                          type="text"
-                          className="comment-input"
-                          placeholder="כתוב תגובה..."
-                          value={commentInputs[post.id] || ''}
-                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                          onKeyPress={(e) => e.key === 'Enter' && addComment(post.id)}
-                        />
-                      </div>
-                    )}
                   </div>
-                ))}
-              </>
-            )}
+                </div>
+              ))}
+            </>
+          )}
 
-            {activeTab === 'friends' && (
-              <div className="social-card">
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>החברים שלי</h3>
-                {friendRequests.filter(r => r.recipient_phone === user.phone).map(request => (
-                  <div key={request.id} className="friend-list-item">
+          {activeTab === 'members' && (
+            <div className="card">
+              <div className="card-header">{members.length} חברים</div>
+              <div className="card-body">
+                {members.map(member => (
+                  <div key={member.id} className="friend-card">
+                    <div className="avatar">{getInitials(member.user_phone)}</div>
                     <div className="friend-info">
-                      <div className="friend-avatar">{getInitials(request.requester_phone)}</div>
-                      <div>
-                        <div style={{ fontWeight: 600 }}>בקשת חברות</div>
-                        <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>מ-{request.requester_phone}</div>
-                      </div>
+                      <div className="friend-name">{member.user_phone}</div>
+                      {member.role !== 'member' && (
+                        <span className={`badge badge-${member.role}`}>{member.role === 'admin' ? 'מנהל' : 'מנהל משנה'}</span>
+                      )}
                     </div>
-                    <button onClick={() => acceptFriendRequest(request)} className="friend-btn friend-btn-primary">
-                      אשר
-                    </button>
-                  </div>
-                ))}
-                {friends.map(friendship => {
-                  const friendPhone = friendship.user1_phone === user.phone ? friendship.user2_phone : friendship.user1_phone;
-                  const friendUser = users.find(u => u.phone === friendPhone);
-                  return (
-                    <div key={friendship.id} className="friend-list-item">
-                      <div className="friend-info">
-                        <div className="friend-avatar">{getInitials(friendUser?.name || friendPhone)}</div>
-                        <div style={{ fontWeight: 600 }}>{friendUser?.name || friendPhone}</div>
-                      </div>
-                      <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
-                        <i className="fas fa-check-circle"></i> חברים
-                      </div>
-                    </div>
-                  );
-                })}
-                {friends.length === 0 && friendRequests.filter(r => r.recipient_phone === user.phone).length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-                    עדיין אין לך חברים. עבור ל"גלה אנשים" כדי להתחיל!
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'discover' && (
-              <div className="social-card">
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>גלה אנשים</h3>
-                {users.map(otherUser => (
-                  <div key={otherUser.phone} className="friend-list-item">
-                    <div className="friend-info">
-                      <div className="friend-avatar">{getInitials(otherUser.name)}</div>
-                      <div style={{ fontWeight: 600 }}>{otherUser.name}</div>
-                    </div>
-                    {isFriend(otherUser.phone) ? (
-                      <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 600 }}>
-                        <i className="fas fa-check-circle"></i> חברים
-                      </div>
-                    ) : hasPendingRequest(otherUser.phone) ? (
-                      <div style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 600 }}>
-                        ממתין...
-                      </div>
-                    ) : (
-                      <button onClick={() => sendFriendRequest(otherUser.phone)} className="friend-btn friend-btn-primary">
-                        <i className="fas fa-user-plus"></i> הוסף חבר
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const EditProfileModal = ({ profile, onClose, onSave }) => {
+      const [formData, setFormData] = React.useState({
+        bio: profile.bio || '',
+        location: profile.location || '',
+        work: profile.work || '',
+        education: profile.education || '',
+        relationship_status: profile.relationship_status || ''
+      });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData);
+      };
+
+      return (
+        <div className="modal" onClick={onClose}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">ערוך פרופיל</div>
+              <button className="modal-close" onClick={onClose}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">ביוגרפיה</label>
+                  <textarea
+                    className="form-textarea"
+                    value={formData.bio}
+                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                    placeholder="ספר על עצמך..."
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">מיקום</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.location}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    placeholder="איפה אתה גר?"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">עבודה</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.work}
+                    onChange={(e) => setFormData({...formData, work: e.target.value})}
+                    placeholder="איפה אתה עובד?"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">השכלה</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.education}
+                    onChange={(e) => setFormData({...formData, education: e.target.value})}
+                    placeholder="איפה למדת?"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">סטטוס מערכות יחסים</label>
+                  <select
+                    className="form-select"
+                    value={formData.relationship_status}
+                    onChange={(e) => setFormData({...formData, relationship_status: e.target.value})}
+                  >
+                    <option value="">בחר סטטוס</option>
+                    <option value="רווק/ה">רווק/ה</option>
+                    <option value="במערכת יחסים">במערכת יחסים</option>
+                    <option value="מאורס/ת">מאורס/ת</option>
+                    <option value="נשוי/אה">נשוי/אה</option>
+                  </select>
+                </div>
+                <button type="submit" className="btn btn-primary" style={{width: '100%'}}>
+                  שמור שינויים
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const CreateGroupModal = ({ onClose, onCreate }) => {
+      const [formData, setFormData] = React.useState({
+        name: '',
+        description: '',
+        type: 'group',
+        privacy: 'public'
+      });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (formData.name.trim() && formData.description.trim()) {
+          onCreate(formData);
+        }
+      };
+
+      return (
+        <div className="modal" onClick={onClose}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">צור קבוצה / דף</div>
+              <button className="modal-close" onClick={onClose}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">שם</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="שם הקבוצה או הדף"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">תיאור</label>
+                  <textarea
+                    className="form-textarea"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="תאר את הקבוצה או הדף"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">סוג</label>
+                  <select
+                    className="form-select"
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  >
+                    <option value="group">קבוצה</option>
+                    <option value="page">דף</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">פרטיות</label>
+                  <select
+                    className="form-select"
+                    value={formData.privacy}
+                    onChange={(e) => setFormData({...formData, privacy: e.target.value})}
+                  >
+                    <option value="public">ציבורי</option>
+                    <option value="private">פרטי</option>
+                  </select>
+                </div>
+                <button type="submit" className="btn btn-primary" style={{width: '100%'}}>
+                  צור
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       );
