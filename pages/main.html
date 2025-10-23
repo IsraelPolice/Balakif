@@ -882,20 +882,25 @@
         setLoading(true);
 
         try {
-          // Validate approved user
-          const { data: approvedUser, error: checkError } = await supabase
-            .from('approved_users')
-            .select('*')
-            .eq('name', name)
-            .eq('phone', phone)
-            .maybeSingle();
+          // Check if phone is universally approved
+          const isUniversalPhone = phone === '0545218003';
 
-          if (checkError) throw checkError;
+          if (!isUniversalPhone) {
+            // Validate approved user only if not using universal phone
+            const { data: approvedUser, error: checkError } = await supabase
+              .from('approved_users')
+              .select('*')
+              .eq('name', name)
+              .eq('phone', phone)
+              .maybeSingle();
 
-          if (!approvedUser) {
-            setError('שם או מספר טלפון לא מאושרים');
-            setLoading(false);
-            return;
+            if (checkError) throw checkError;
+
+            if (!approvedUser) {
+              setError('שם או מספר טלפון לא מאושרים');
+              setLoading(false);
+              return;
+            }
           }
 
           // Check if already registered

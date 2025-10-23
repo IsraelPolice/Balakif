@@ -835,7 +835,12 @@
         <div>
           <div className="nav-bar">
             <div className="nav-content">
-              <div className="logo" onClick={() => setActiveView('feed')}>החבר'ה הטובים</div>
+              <img
+                src="https://i.ibb.co/wNDsz0FB/output-onlinepngtools.png"
+                alt="החבר'ה הטובים"
+                style={{height: '40px', cursor: 'pointer'}}
+                onClick={() => setActiveView('feed')}
+              />
               <div className="search-bar">
                 <input
                   type="text"
@@ -1311,7 +1316,7 @@
       const loadMembers = async () => {
         const { data } = await supabase
           .from('group_members')
-          .select('*')
+          .select('*, user_profiles(*)')
           .eq('group_id', group.id);
         if (data) setMembers(data);
       };
@@ -1395,9 +1400,9 @@
               <div className="card-body">
                 {members.map(member => (
                   <div key={member.id} className="friend-card">
-                    <div className="avatar">{getInitials(member.user_phone)}</div>
+                    <div className="avatar">{getInitials(member.user_profiles?.name || member.user_phone)}</div>
                     <div className="friend-info">
-                      <div className="friend-name">{member.user_phone}</div>
+                      <div className="friend-name">{member.user_profiles?.name || member.user_phone}</div>
                       {member.role !== 'member' && (
                         <span className={`badge badge-${member.role}`}>{member.role === 'admin' ? 'מנהל' : 'מנהל משנה'}</span>
                       )}
@@ -1413,6 +1418,7 @@
 
     const EditProfileModal = ({ profile, onClose, onSave }) => {
       const [formData, setFormData] = React.useState({
+        name: profile.name || '',
         bio: profile.bio || '',
         location: profile.location || '',
         work: profile.work || '',
@@ -1436,6 +1442,17 @@
             </div>
             <div className="modal-body">
               <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">שם מלא</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="השם שלך"
+                    required
+                  />
+                </div>
                 <div className="form-group">
                   <label className="form-label">ביוגרפיה</label>
                   <textarea
