@@ -788,8 +788,8 @@
 
       const handleSubmitPost = async () => {
         if (posting) return;
-        if (!newPost.trim() && !selectedImage) {
-          alert('נא להוסיף טקסט או תמונה');
+        if (!newPost.trim()) {
+          alert('נא להוסיף טקסט');
           return;
         }
         if (isPoll && pollOptions.filter(opt => opt.trim()).length < 2) {
@@ -798,27 +798,15 @@
         }
 
         setPosting(true);
-        setUploading(true);
         try {
-          let imageUrl = null;
-          if (selectedImage) {
-            console.log('📸 Starting image upload...');
-            imageUrl = await uploadImage(selectedImage);
-            console.log('✅ Image uploaded, size:', imageUrl.length);
-          }
-
           const postData = {
-            content: newPost.trim() || (imageUrl ? '📷' : ''),
+            content: newPost.trim(),
             topic: postTopic,
             author_name: selectedAuthor || null,
             is_poll: isPoll,
             poll_options: isPoll ? pollOptions.filter(opt => opt.trim()).map(opt => ({ text: opt.trim(), votes: 0 })) : null,
             poll_votes: isPoll ? [] : null
           };
-
-          if (imageUrl) {
-            postData.img_url = imageUrl;
-          }
 
           console.log('📤 Submitting post data:', postData);
           const { data, error } = await supabase
@@ -841,15 +829,12 @@
           setPostTopic('כללי');
           setIsPoll(false);
           setPollOptions(['', '']);
-          setSelectedImage(null);
-          setImagePreview(null);
           await loadPosts();
         } catch (error) {
           console.error('Error posting:', error);
           alert('שגיאה בפרסום ההודעה. נסה שוב.');
         } finally {
           setPosting(false);
-          setUploading(false);
         }
       };
 
@@ -1111,11 +1096,6 @@
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <label className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm font-semibold cursor-pointer">
-                    <i className="fas fa-image ml-1"></i>
-                    תמונה
-                    <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
-                  </label>
                   <button
                     onClick={() => setShowPasscodePopup(true)}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-semibold"
@@ -1125,7 +1105,7 @@
                   </button>
                   <button
                     onClick={handleSubmitPost}
-                    disabled={(!newPost.trim() && !selectedImage) || posting}
+                    disabled={!newPost.trim() || posting}
                     className="custom-button px-6 py-2 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {uploading ? 'מעלה...' : posting ? 'מפרסם...' : isPoll ? 'פרסם סקר' : 'פרסם'}
