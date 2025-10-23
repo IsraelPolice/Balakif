@@ -38,6 +38,10 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.1); }
     }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+    }
   </style>
 </head>
 <body>
@@ -60,6 +64,33 @@
       return match ? match[1] : null;
     }
 
+    const ALL_ALLOWED_PHONES = [
+      '0528199115',
+      '0587830179',
+      '0535235297',
+      '0542072856',
+      '0504076333',
+      '0546603631',
+      '0539222662',
+      '0525594170',
+      '0525868712',
+      '0544785336',
+      '0544375174',
+      '0527488174',
+      '0526615726',
+      '0524719411',
+      '0549863202',
+      '0526919168',
+      '0549988476',
+      '0545488845',
+      '0543179530',
+      '0528977852',
+      '0545218003',
+      '0505550674'
+    ];
+
+    const LUCKY_PHONE = ALL_ALLOWED_PHONES[Math.floor(Math.random() * ALL_ALLOWED_PHONES.length)];
+
     function AcademyAwards() {
       const [categories, setCategories] = useState([]);
       const [nominees, setNominees] = useState({});
@@ -79,6 +110,7 @@
       const [votedCategories, setVotedCategories] = useState([]);
       const [showSuccessPopup, setShowSuccessPopup] = useState(false);
       const [totalVoters, setTotalVoters] = useState(0);
+      const [showPrizePopup, setShowPrizePopup] = useState(false);
 
       useEffect(() => {
         loadCategories();
@@ -169,34 +201,10 @@
           return;
         }
 
-        const allowedPhones = [
-          '0528199115',
-          '0587830179',
-          '0535235297',
-          '0542072856',
-          '0504076333',
-          '0546603631',
-          '0539222662',
-          '0525594170',
-          '0525868712',
-          '0544785336',
-          '0544375174',
-          '0527488174',
-          '0526615726',
-          '0524719411',
-          '0549863202',
-          '0526919168',
-          '0549988476',
-          '0545488845',
-          '0543179530',
-          '0528977852',
-          '0545218003'
-        ];
-
         const testPhone = '0545218003';
 
         const normalizedPhone = phone.replace(/\D/g, '');
-        if (!allowedPhones.includes(normalizedPhone)) {
+        if (!ALL_ALLOWED_PHONES.includes(normalizedPhone)) {
           setMessage({ type: 'error', text: 'מספר הטלפון אינו רשאי להצביע' });
           setTimeout(() => setMessage(null), 3000);
           return;
@@ -263,17 +271,24 @@
 
           setShowSuccessPopup(true);
 
+          const allCategoriesVoted = newVotedCategories.length === categories.length;
+          const isWinner = phone.replace(/\D/g, '') === LUCKY_PHONE && allCategoriesVoted;
+
           setTimeout(() => {
             setShowSuccessPopup(false);
             setSelectedNominee(null);
 
-            const currentIndex = categories.findIndex(c => c.id === selectedCategory.id);
-            const nextCategory = categories[currentIndex + 1];
-
-            if (nextCategory && !newVotedCategories.includes(nextCategory.id)) {
-              setSelectedCategory(nextCategory);
+            if (isWinner) {
+              setShowPrizePopup(true);
             } else {
-              setSelectedCategory(null);
+              const currentIndex = categories.findIndex(c => c.id === selectedCategory.id);
+              const nextCategory = categories[currentIndex + 1];
+
+              if (nextCategory && !newVotedCategories.includes(nextCategory.id)) {
+                setSelectedCategory(nextCategory);
+              } else {
+                setSelectedCategory(null);
+              }
             }
           }, 2000);
         } catch (error) {
@@ -374,6 +389,108 @@
                   }}>
                     עוברים לקטגוריה הבאה...
                   </p>
+                </div>
+              </div>
+            )}
+
+            {showPrizePopup && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.95)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999,
+                animation: 'fadeIn 0.3s ease-in'
+              }}>
+                <div style={{
+                  background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)',
+                  borderRadius: '1.5rem',
+                  padding: 'clamp(2rem, 5vw, 3rem)',
+                  maxWidth: '90%',
+                  width: '600px',
+                  textAlign: 'center',
+                  border: '3px solid #D4AF37',
+                  boxShadow: '0 30px 120px rgba(212, 175, 55, 0.7)',
+                  animation: 'scaleIn 0.5s ease-out'
+                }}>
+                  <div style={{
+                    fontSize: 'clamp(3rem, 8vw, 5rem)',
+                    marginBottom: '1rem',
+                    animation: 'float 3s ease-in-out infinite'
+                  }}>
+                    🎉
+                  </div>
+                  <h2 style={{
+                    fontFamily: 'Playfair Display, serif',
+                    fontSize: 'clamp(1.75rem, 5vw, 3rem)',
+                    fontWeight: '900',
+                    color: '#D4AF37',
+                    marginBottom: '1rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}>
+                    מזל טוב!
+                  </h2>
+                  <p style={{
+                    fontSize: 'clamp(1.25rem, 3vw, 1.75rem)',
+                    color: '#fff',
+                    marginBottom: '1.5rem',
+                    fontWeight: '600'
+                  }}>
+                    זכיתם בקוד קופון לוולט
+                  </p>
+                  <p style={{
+                    fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                    color: '#D4AF37',
+                    marginBottom: '1.5rem',
+                    fontWeight: '600'
+                  }}>
+                    💡 מומלץ לצלם מסך!
+                  </p>
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '1rem',
+                    padding: '1rem',
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 10px 40px rgba(212, 175, 55, 0.3)'
+                  }}>
+                    <img
+                      src="https://i.ibb.co/JjL0hXkq/Chat-GPT-Image-Oct-23-2025-11-21-11-AM.png"
+                      alt="קוד קופון וולט"
+                      style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        height: 'auto',
+                        borderRadius: '0.5rem'
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowPrizePopup(false);
+                      setSelectedCategory(null);
+                    }}
+                    style={{
+                      padding: 'clamp(0.875rem, 2vw, 1rem) clamp(2rem, 4vw, 3rem)',
+                      background: 'linear-gradient(135deg, #D4AF37 0%, #C5A028 100%)',
+                      color: '#000',
+                      fontWeight: '700',
+                      fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                      borderRadius: '0.5rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 20px rgba(212, 175, 55, 0.4)',
+                      transition: 'all 0.2s',
+                      letterSpacing: '0.02em'
+                    }}
+                  >
+                    סגור
+                  </button>
                 </div>
               </div>
             )}
