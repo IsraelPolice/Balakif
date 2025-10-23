@@ -257,8 +257,35 @@
       white-space: pre-wrap;
       word-wrap: break-word;
       line-height: 1.5;
-      color: #1C2526;
-      font-size: 0.875rem;
+    }
+    .ad-banner-container {
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .ad-banner {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .ad-banner img {
+      width: 100%;
+      height: auto;
+      max-height: 300px;
+      object-fit: contain;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .ad-banner img {
+        max-height: 200px;
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .forum-header {
       display: flex;
@@ -583,6 +610,31 @@
             >
               אשר
             </button>
+          </div>
+        </div>
+      );
+    };
+
+    const AdBanner = () => {
+      const [currentAd, setCurrentAd] = React.useState(0);
+
+      const ads = [
+        'https://tpc.googlesyndication.com/simgad/13328862511426700775',
+        'https://tpc.googlesyndication.com/simgad/15096952260665983758'
+      ];
+
+      React.useEffect(() => {
+        const interval = setInterval(() => {
+          setCurrentAd((prev) => (prev + 1) % ads.length);
+        }, 4000);
+
+        return () => clearInterval(interval);
+      }, []);
+
+      return (
+        <div className="ad-banner-container">
+          <div className="ad-banner" key={currentAd}>
+            <img src={ads[currentAd]} alt={`פרסומת ${currentAd + 1}`} />
           </div>
         </div>
       );
@@ -1486,6 +1538,7 @@
       <div>
         <AuthPopup />
         <Nav />
+        <AdBanner />
         <Leadership />
         <Forum />
         <Hero />
