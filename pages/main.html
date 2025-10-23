@@ -723,7 +723,7 @@
         try {
           const { data, error } = await supabase
             .from('forum_posts')
-            .select('*')
+            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url')
             .is('parent_id', null)
             .order('created_at', { ascending: false });
 
@@ -732,7 +732,7 @@
           for (let post of (data || [])) {
             const { data: replies } = await supabase
               .from('forum_posts')
-              .select('*')
+              .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url')
               .eq('parent_id', post.id)
               .order('created_at', { ascending: true });
             post.replies = replies || [];
@@ -806,7 +806,7 @@
           const { data, error } = await supabase
             .from('forum_posts')
             .insert(postData)
-            .select();
+            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url');
 
           if (error) throw error;
 
@@ -840,7 +840,8 @@
 
           const { error } = await supabase
             .from('forum_posts')
-            .insert([replyData]);
+            .insert(replyData)
+            .select('id,content,topic,author_name,parent_id,likes,is_poll,poll_options,poll_votes,created_at,image_url');
 
           if (error) throw error;
 
