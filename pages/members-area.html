@@ -556,6 +556,7 @@
       const [groups, setGroups] = React.useState([]);
       const [myGroups, setMyGroups] = React.useState([]);
       const [searchTerm, setSearchTerm] = React.useState('');
+      const [showSearchResults, setShowSearchResults] = React.useState(false);
 
       // Modal states
       const [showCreatePost, setShowCreatePost] = React.useState(false);
@@ -829,6 +830,15 @@
         u.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
+      const handleSearch = (e) => {
+        if (e.key === 'Enter' && searchTerm.trim()) {
+          setActiveView('search');
+          setShowSearchResults(true);
+          setSelectedProfile(null);
+          setSelectedGroup(null);
+        }
+      };
+
       if (!user || !userProfile) return <div>טוען...</div>;
 
       return (
@@ -839,22 +849,26 @@
                 src="https://i.ibb.co/wNDsz0FB/output-onlinepngtools.png"
                 alt="החבר'ה הטובים"
                 style={{height: '40px', cursor: 'pointer'}}
-                onClick={() => setActiveView('feed')}
+                onClick={() => { setActiveView('feed'); setSelectedProfile(null); setSelectedGroup(null); }}
               />
               <div className="search-bar">
                 <input
                   type="text"
                   className="search-input"
-                  placeholder="חפש חברים..."
+                  placeholder="חפש חברים... (לחץ Enter לחיפוש)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleSearch}
                 />
               </div>
               <div className="nav-icons">
-                <div className="nav-icon" onClick={() => setActiveView('feed')} title="בית">
+                <div className="nav-icon" onClick={() => { setActiveView('feed'); setSelectedProfile(null); setSelectedGroup(null); }} title="בית">
                   <i className="fas fa-home"></i>
                 </div>
-                <div className="nav-icon" onClick={() => setActiveView('groups')} title="קבוצות">
+                <div className="nav-icon" onClick={() => { setActiveView('friends'); setSelectedProfile(null); setSelectedGroup(null); }} title="חברים">
+                  <i className="fas fa-user-friends"></i>
+                </div>
+                <div className="nav-icon" onClick={() => { setActiveView('groups'); setSelectedProfile(null); setSelectedGroup(null); }} title="קבוצות">
                   <i className="fas fa-users"></i>
                 </div>
                 <div className="nav-icon" onClick={() => setSelectedProfile(userProfile)} title="פרופיל">
@@ -862,6 +876,9 @@
                     {getInitials(userProfile.name)}
                   </div>
                 </div>
+                <a href="main.html" className="btn btn-secondary btn-small" style={{textDecoration: 'none'}}>
+                  חזור לאתר
+                </a>
                 <button onClick={handleLogout} className="btn btn-secondary btn-small">
                   התנתק
                 </button>
@@ -877,13 +894,13 @@
                 </div>
                 <span>{userProfile.name}</span>
               </div>
-              <div className="sidebar-item" onClick={() => setActiveView('friends')}>
+              <div className="sidebar-item" onClick={() => { setActiveView('friends'); setSelectedProfile(null); setSelectedGroup(null); }}>
                 <div className="sidebar-icon" style={{background: '#e7f3ff', color: '#1877f2'}}>
                   <i className="fas fa-user-friends"></i>
                 </div>
                 <span>חברים</span>
               </div>
-              <div className="sidebar-item" onClick={() => setActiveView('groups')}>
+              <div className="sidebar-item" onClick={() => { setActiveView('groups'); setSelectedProfile(null); setSelectedGroup(null); }}>
                 <div className="sidebar-icon" style={{background: '#e7f3ff', color: '#1877f2'}}>
                   <i className="fas fa-users"></i>
                 </div>
@@ -1069,6 +1086,48 @@
                     </div>
                   </div>
                 </>
+              )}
+
+              {activeView === 'search' && !selectedProfile && !selectedGroup && (
+                <div className="card">
+                  <div className="card-header">
+                    תוצאות חיפוש עבור "{searchTerm}"
+                    {filteredUsers.length === 0 && <span style={{color: '#65676b', fontWeight: 'normal', marginRight: '0.5rem'}}>- לא נמצאו תוצאות</span>}
+                  </div>
+                  <div className="card-body">
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map(otherUser => (
+                        <div key={otherUser.phone} className="friend-card">
+                          <div className="avatar" onClick={() => setSelectedProfile(otherUser)}>
+                            {getInitials(otherUser.name)}
+                          </div>
+                          <div className="friend-info">
+                            <div className="friend-name" onClick={() => setSelectedProfile(otherUser)}>{otherUser.name}</div>
+                            {otherUser.bio && <div style={{fontSize: '0.85rem', color: '#65676b'}}>{otherUser.bio}</div>}
+                          </div>
+                          {isFriend(otherUser.phone) ? (
+                            <div style={{fontSize: '0.9rem', color: '#10b981', fontWeight: 600}}>
+                              <i className="fas fa-check-circle"></i> חברים
+                            </div>
+                          ) : hasPendingRequest(otherUser.phone) ? (
+                            <div style={{fontSize: '0.9rem', color: '#6b7280', fontWeight: 600}}>
+                              ממתין...
+                            </div>
+                          ) : (
+                            <button onClick={() => sendFriendRequest(otherUser.phone)} className="btn btn-primary btn-small">
+                              <i className="fas fa-user-plus"></i> הוסף חבר
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="empty-state">
+                        <i className="fas fa-search"></i>
+                        <div>לא נמצאו משתמשים התואמים לחיפוש</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {selectedProfile && (
