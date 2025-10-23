@@ -758,6 +758,33 @@
               );
             })()}
 
+            {showAdmin && (
+              <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', maxWidth: '600px', margin: '0 auto clamp(2rem, 4vw, 3rem) auto'}}>
+                <div style={{background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(88, 28, 135, 0.1) 100%)', borderRadius: '0.75rem', padding: 'clamp(1.5rem, 3vw, 2rem)', border: '2px solid rgba(139, 92, 246, 0.4)', boxShadow: '0 10px 40px rgba(139, 92, 246, 0.3)'}}>
+                  <div style={{textAlign: 'center'}}>
+                    <div style={{fontSize: 'clamp(2.5rem, 6vw, 4rem)', marginBottom: '1rem'}}>
+                      🎁
+                    </div>
+                    <h3 className="oscar-title" style={{fontSize: 'clamp(1.25rem, 3vw, 1.75rem)', fontWeight: '700', color: '#a78bfa', marginBottom: '1rem'}}>
+                      <i className="fas fa-crown" style={{marginLeft: '0.5rem'}}></i>
+                      מספר הזוכה בגיפט קארד
+                    </h3>
+                    <div style={{background: 'rgba(0, 0, 0, 0.4)', borderRadius: '0.75rem', padding: 'clamp(1.25rem, 3vw, 1.75rem)', border: '2px solid rgba(139, 92, 246, 0.5)', boxShadow: 'inset 0 2px 20px rgba(139, 92, 246, 0.2)'}}>
+                      <div style={{fontFamily: 'monospace', fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: '800', color: '#c4b5fd', letterSpacing: '0.1em', textShadow: '0 0 20px rgba(139, 92, 246, 0.8)'}}>
+                        {LUCKY_PHONE}
+                      </div>
+                    </div>
+                    <p style={{color: '#a78bfa', fontSize: 'clamp(0.875rem, 2vw, 1rem)', marginTop: '1rem', fontWeight: '500'}}>
+                      מספר זה נבחר באופן רנדומלי בעת טעינת הדף
+                    </p>
+                    <p style={{color: '#9333ea', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', marginTop: '0.5rem', fontStyle: 'italic'}}>
+                      הזוכה יקבל את הפרס רק לאחר הצבעה בכל הקטגוריות
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {!isAuthenticated ? (
               <div style={{marginBottom: 'clamp(2rem, 4vw, 3rem)', display: 'flex', justifyContent: 'center'}}>
                 <div style={{background: 'linear-gradient(180deg, rgba(212, 175, 55, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%)', borderRadius: '0.75rem', padding: 'clamp(1.5rem, 3vw, 2rem)', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)', border: '2px solid rgba(212, 175, 55, 0.3)', maxWidth: '32rem', width: '100%'}}>
