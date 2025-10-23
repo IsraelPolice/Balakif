@@ -1049,22 +1049,71 @@
       React.useEffect(() => {
         const fetchNews = async () => {
           try {
-            const response = await fetch('https://newsapi.org/v2/top-headlines?country=il&apiKey=78be590a441842a181c8a57b5bfee766');
-            const data = await response.json();
+            let articles = [];
 
-            if (data.status === 'ok' && data.articles && data.articles.length > 0) {
-              setNews(data.articles.slice(0, 10));
-            } else {
-              setNews([
-                { title: 'מבזקים עדכניים מישראל' },
-                { title: 'עקבו אחר החדשות האחרונות' }
-              ]);
+            // Try NewsAPI with multiple approaches
+            try {
+              // First try: everything endpoint with Israel keyword in Hebrew
+              const response1 = await fetch('https://newsapi.org/v2/everything?q=ישראל&language=he&sortBy=publishedAt&pageSize=15&apiKey=78be590a441842a181c8a57b5bfee766');
+              const data1 = await response1.json();
+              console.log('Hebrew search response:', data1);
+              if (data1.status === 'ok' && data1.articles && data1.articles.length > 0) {
+                articles = data1.articles;
+              }
+            } catch (e) {
+              console.error('Hebrew NewsAPI failed:', e);
             }
+
+            // Second try: English search
+            if (articles.length === 0) {
+              try {
+                const response2 = await fetch('https://newsapi.org/v2/everything?q=israel&language=en&sortBy=publishedAt&pageSize=15&apiKey=78be590a441842a181c8a57b5bfee766');
+                const data2 = await response2.json();
+                console.log('English search response:', data2);
+                if (data2.status === 'ok' && data2.articles && data2.articles.length > 0) {
+                  articles = data2.articles;
+                }
+              } catch (e) {
+                console.error('English NewsAPI failed:', e);
+              }
+            }
+
+            // Third try: top headlines from US sources about Israel
+            if (articles.length === 0) {
+              try {
+                const response3 = await fetch('https://newsapi.org/v2/top-headlines?q=israel&apiKey=78be590a441842a181c8a57b5bfee766');
+                const data3 = await response3.json();
+                console.log('Top headlines response:', data3);
+                if (data3.status === 'ok' && data3.articles && data3.articles.length > 0) {
+                  articles = data3.articles;
+                }
+              } catch (e) {
+                console.error('Top headlines failed:', e);
+              }
+            }
+
+            // If still no articles, use fallback
+            if (articles.length === 0) {
+              console.log('No articles found from any source, using fallback');
+              articles = [
+                { title: '🔴 חדשות אחרונות מישראל - עדכונים שוטפים' },
+                { title: '📰 מבזקים מהארץ והעולם' },
+                { title: '⚡ הידיעות החמות ביותר כעת' },
+                { title: '🌍 אירועים מרכזיים בישראל' },
+                { title: '📢 מעקב אחר החדשות העדכניות' },
+                { title: '🔥 מה קורה עכשיו בארץ' },
+                { title: '💬 עדכוני חדשות בזמן אמת' }
+              ];
+            }
+
+            console.log('Final news count:', articles.length);
+            setNews(articles.slice(0, 12));
           } catch (error) {
             console.error('Error fetching news:', error);
             setNews([
-              { title: 'מבזקים עדכניים מישראל' },
-              { title: 'עקבו אחר החדשות האחרונות' }
+              { title: '🔴 חדשות אחרונות מישראל' },
+              { title: '📰 מבזקים מהארץ והעולם' },
+              { title: '⚡ הידיעות החמות ביותר' }
             ]);
           } finally {
             setLoading(false);
@@ -1072,7 +1121,7 @@
         };
 
         fetchNews();
-        const interval = setInterval(fetchNews, 300000);
+        const interval = setInterval(fetchNews, 180000);
         return () => clearInterval(interval);
       }, []);
 
