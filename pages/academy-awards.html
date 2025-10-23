@@ -89,8 +89,6 @@
       '0505550674'
     ];
 
-    const LUCKY_PHONE = ALL_ALLOWED_PHONES[Math.floor(Math.random() * ALL_ALLOWED_PHONES.length)];
-
     function AcademyAwards() {
       const [categories, setCategories] = useState([]);
       const [nominees, setNominees] = useState({});
@@ -111,10 +109,29 @@
       const [showSuccessPopup, setShowSuccessPopup] = useState(false);
       const [totalVoters, setTotalVoters] = useState(0);
       const [showPrizePopup, setShowPrizePopup] = useState(false);
+      const [luckyPhone, setLuckyPhone] = useState(null);
 
       useEffect(() => {
         loadCategories();
+        loadLuckyPhone();
       }, []);
+
+      const loadLuckyPhone = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('lucky_winner')
+            .select('phone_number')
+            .eq('id', 1)
+            .maybeSingle();
+
+          if (error) throw error;
+          if (data) {
+            setLuckyPhone(data.phone_number);
+          }
+        } catch (error) {
+          console.error('Error loading lucky phone:', error);
+        }
+      };
 
       const loadCategories = async () => {
         try {
@@ -272,7 +289,7 @@
           setShowSuccessPopup(true);
 
           const allCategoriesVoted = newVotedCategories.length === categories.length;
-          const isWinner = phone.replace(/\D/g, '') === LUCKY_PHONE && allCategoriesVoted;
+          const isWinner = luckyPhone && phone.replace(/\D/g, '') === luckyPhone && allCategoriesVoted;
 
           setTimeout(() => {
             setShowSuccessPopup(false);
@@ -771,11 +788,11 @@
                     </h3>
                     <div style={{background: 'rgba(0, 0, 0, 0.4)', borderRadius: '0.75rem', padding: 'clamp(1.25rem, 3vw, 1.75rem)', border: '2px solid rgba(139, 92, 246, 0.5)', boxShadow: 'inset 0 2px 20px rgba(139, 92, 246, 0.2)'}}>
                       <div style={{fontFamily: 'monospace', fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: '800', color: '#c4b5fd', letterSpacing: '0.1em', textShadow: '0 0 20px rgba(139, 92, 246, 0.8)'}}>
-                        {LUCKY_PHONE}
+                        {luckyPhone || 'טוען...'}
                       </div>
                     </div>
                     <p style={{color: '#a78bfa', fontSize: 'clamp(0.875rem, 2vw, 1rem)', marginTop: '1rem', fontWeight: '500'}}>
-                      מספר זה נבחר באופן רנדומלי בעת טעינת הדף
+                      מספר זה נבחר באופן רנדומלי ושמור במסד הנתונים
                     </p>
                     <p style={{color: '#9333ea', fontSize: 'clamp(0.75rem, 2vw, 0.875rem)', marginTop: '0.5rem', fontStyle: 'italic'}}>
                       הזוכה יקבל את הפרס רק לאחר הצבעה בכל הקטגוריות
