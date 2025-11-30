@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -1904,11 +1905,53 @@
 
                               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem'}}>
                                 <button
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     e.stopPropagation();
-                                    setSelectedStock(stock.member_name);
-                                    setTradeType('buy');
-                                    setStockAmount('1');
+                                    const amount = parseFloat(window.prompt('כמה מניות לקנות?', '1'));
+                                    if (!amount || amount <= 0) return;
+
+                                    const totalCost = amount * stock.current_price;
+                                    if (totalCost > bankBalance) {
+                                      alert('אין לך מספיק כסף');
+                                      return;
+                                    }
+
+                                    try {
+                                      const existingPos = userPortfolio.find(p => p.member_name === stock.member_name);
+                                      if (existingPos) {
+                                        const newShares = existingPos.shares + amount;
+                                        const newAvg = ((existingPos.shares * existingPos.average_buy_price) + (amount * stock.current_price)) / newShares;
+                                        await supabase.from('user_stock_portfolios')
+                                          .update({ shares: newShares, average_buy_price: newAvg, updated_at: new Date().toISOString() })
+                                          .eq('id', existingPos.id);
+                                      } else {
+                                        await supabase.from('user_stock_portfolios').insert([{
+                                          user_phone: user.phone,
+                                          member_name: stock.member_name,
+                                          shares: amount,
+                                          average_buy_price: stock.current_price
+                                        }]);
+                                      }
+
+                                      await supabase.from('stock_transactions').insert([{
+                                        user_phone: user.phone,
+                                        member_name: stock.member_name,
+                                        transaction_type: 'buy',
+                                        shares: amount,
+                                        price_per_share: stock.current_price,
+                                        total_amount: totalCost
+                                      }]);
+
+                                      await supabase.from('user_bank_accounts')
+                                        .update({ balance: bankBalance - totalCost, updated_at: new Date().toISOString() })
+                                        .eq('user_phone', user.phone);
+
+                                      setBankBalance(bankBalance - totalCost);
+                                      loadUserPortfolio();
+                                      alert('קנייה בוצעה בהצלחה!');
+                                    } catch (err) {
+                                      alert('שגיאה בקנייה: ' + err.message);
+                                    }
                                   }}
                                   style={{
                                     padding: '0.6rem',
@@ -1928,11 +1971,51 @@
                                   <i className="fas fa-arrow-up"></i> קנה
                                 </button>
                                 <button
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     e.stopPropagation();
-                                    setSelectedStock(stock.member_name);
-                                    setTradeType('sell');
-                                    setStockAmount('1');
+                                    const userPos = userPortfolio.find(p => p.member_name === stock.member_name);
+                                    if (!userPos || userPos.shares <= 0) {
+                                      alert('אין לך מניות למכור');
+                                      return;
+                                    }
+
+                                    const amount = parseFloat(window.prompt(`יש לך ${userPos.shares.toFixed(2)} מניות. כמה למכור?`, '1'));
+                                    if (!amount || amount <= 0 || amount > userPos.shares) {
+                                      alert('כמות לא תקינה');
+                                      return;
+                                    }
+
+                                    try {
+                                      const totalRevenue = amount * stock.current_price;
+                                      const newShares = userPos.shares - amount;
+
+                                      if (newShares > 0) {
+                                        await supabase.from('user_stock_portfolios')
+                                          .update({ shares: newShares, updated_at: new Date().toISOString() })
+                                          .eq('id', userPos.id);
+                                      } else {
+                                        await supabase.from('user_stock_portfolios').delete().eq('id', userPos.id);
+                                      }
+
+                                      await supabase.from('stock_transactions').insert([{
+                                        user_phone: user.phone,
+                                        member_name: stock.member_name,
+                                        transaction_type: 'sell',
+                                        shares: amount,
+                                        price_per_share: stock.current_price,
+                                        total_amount: totalRevenue
+                                      }]);
+
+                                      await supabase.from('user_bank_accounts')
+                                        .update({ balance: bankBalance + totalRevenue, updated_at: new Date().toISOString() })
+                                        .eq('user_phone', user.phone);
+
+                                      setBankBalance(bankBalance + totalRevenue);
+                                      loadUserPortfolio();
+                                      alert('מכירה בוצעה בהצלחה!');
+                                    } catch (err) {
+                                      alert('שגיאה במכירה: ' + err.message);
+                                    }
                                   }}
                                   style={{
                                     padding: '0.6rem',
@@ -1955,12 +2038,11 @@
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedStock(stock.member_name);
-                                    setTradeType('short');
-                                    setStockAmount('1');
+                                    loadStockHistory(stock.member_name);
                                   }}
                                   style={{
                                     padding: '0.6rem',
-                                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '6px',
@@ -1968,12 +2050,12 @@
                                     fontWeight: '600',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s',
-                                    boxShadow: '0 2px 4px rgba(245, 158, 11, 0.3)'
+                                    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
                                   }}
                                   onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
                                   onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
                                 >
-                                  <i className="fas fa-chart-line"></i> שורט
+                                  <i className="fas fa-chart-line"></i> פרטים
                                 </button>
                               </div>
                             </div>
@@ -1985,33 +2067,140 @@
                         <div style={{padding: '2rem', background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)', borderRadius: '16px', border: '2px solid #3b82f6', boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)'}}>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
                             <h4 style={{fontWeight: '700', fontSize: '1.3rem', color: '#1f2937', margin: 0}}>
-                              <i className="fas fa-exchange-alt" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
-                              מסחר מהיר
+                              <i className="fas fa-chart-area" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
+                              {selectedStock}
                             </h4>
                             <button
                               onClick={() => setSelectedStock(null)}
                               style={{
-                                padding: '0.5rem',
+                                padding: '0.5rem 1rem',
                                 background: '#ef4444',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: '6px',
+                                borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontSize: '0.9rem',
-                                fontWeight: '600'
+                                fontWeight: '600',
+                                transition: 'all 0.2s'
                               }}
+                              onMouseEnter={(e) => e.target.style.background = '#dc2626'}
+                              onMouseLeave={(e) => e.target.style.background = '#ef4444'}
                             >
                               <i className="fas fa-times"></i> סגור
                             </button>
                           </div>
 
-                          <div style={{padding: '1rem', background: 'white', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #e5e7eb'}}>
-                            <div style={{fontWeight: '700', fontSize: '1.2rem', color: '#1f2937', marginBottom: '0.5rem'}}>
-                              {selectedStock}
+                          <div style={{padding: '1.5rem', background: 'white', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #e5e7eb'}}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
+                              <div>
+                                <div style={{fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.25rem'}}>
+                                  {stockPrices.find(s => s.member_name === selectedStock)?.ticker}
+                                </div>
+                                <div style={{fontWeight: '800', fontSize: '2rem', color: '#1f2937'}}>
+                                  ${stockPrices.find(s => s.member_name === selectedStock)?.current_price.toFixed(2)}
+                                </div>
+                              </div>
+                              <div style={{textAlign: 'left'}}>
+                                <div style={{
+                                  fontSize: '1.2rem',
+                                  fontWeight: '700',
+                                  color: stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '#10b981' : '#ef4444',
+                                  background: stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '#d1fae5' : '#fee2e2',
+                                  padding: '0.5rem 1rem',
+                                  borderRadius: '8px'
+                                }}>
+                                  {stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '▲' : '▼'} {Math.abs(stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent || 0).toFixed(2)}%
+                                </div>
+                              </div>
                             </div>
-                            <div style={{fontSize: '0.85rem', color: '#6b7280'}}>
-                              {stockPrices.find(s => s.member_name === selectedStock)?.ticker}
-                            </div>
+
+                            {stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 5 ? (
+                              <div style={{marginTop: '1.5rem'}}>
+                                <canvas
+                                  ref={(canvas) => {
+                                    if (canvas && stockPriceHistory[selectedStock]) {
+                                      const ctx = canvas.getContext('2d');
+                                      if (window.stockChart) window.stockChart.destroy();
+
+                                      const history = stockPriceHistory[selectedStock];
+                                      const prices = history.map(h => parseFloat(h.price));
+                                      const labels = history.map((h, i) => i === 0 ? 'התחלה' : i === history.length - 1 ? 'עכשיו' : '');
+
+                                      const isPositive = prices[prices.length - 1] >= prices[0];
+
+                                      window.stockChart = new Chart(ctx, {
+                                        type: 'line',
+                                        data: {
+                                          labels: labels,
+                                          datasets: [{
+                                            label: 'מחיר',
+                                            data: prices,
+                                            borderColor: isPositive ? '#10b981' : '#ef4444',
+                                            backgroundColor: isPositive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                            borderWidth: 3,
+                                            fill: true,
+                                            tension: 0.4,
+                                            pointRadius: 0,
+                                            pointHoverRadius: 6,
+                                            pointHoverBackgroundColor: isPositive ? '#10b981' : '#ef4444',
+                                            pointHoverBorderColor: '#fff',
+                                            pointHoverBorderWidth: 2
+                                          }]
+                                        },
+                                        options: {
+                                          responsive: true,
+                                          maintainAspectRatio: true,
+                                          aspectRatio: 2,
+                                          interaction: {
+                                            intersect: false,
+                                            mode: 'index'
+                                          },
+                                          plugins: {
+                                            legend: { display: false },
+                                            tooltip: {
+                                              backgroundColor: '#1f2937',
+                                              padding: 12,
+                                              bodyFont: { size: 14, weight: 'bold' },
+                                              displayColors: false,
+                                              callbacks: {
+                                                label: (context) => '$' + context.parsed.y.toFixed(2)
+                                              }
+                                            }
+                                          },
+                                          scales: {
+                                            y: {
+                                              ticks: {
+                                                callback: (value) => '$' + value.toFixed(2),
+                                                font: { size: 11, weight: '600' },
+                                                color: '#6b7280'
+                                              },
+                                              grid: {
+                                                color: '#f3f4f6',
+                                                drawBorder: false
+                                              }
+                                            },
+                                            x: {
+                                              ticks: {
+                                                font: { size: 11, weight: '600' },
+                                                color: '#6b7280'
+                                              },
+                                              grid: { display: false, drawBorder: false }
+                                            }
+                                          }
+                                        }
+                                      });
+                                    }
+                                  }}
+                                  style={{maxHeight: '250px'}}
+                                />
+                              </div>
+                            ) : (
+                              <div style={{padding: '2rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem'}}>
+                                <i className="fas fa-chart-line" style={{fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.3}}></i>
+                                <div>אוסף נתוני גרף...</div>
+                                <div style={{fontSize: '0.8rem', marginTop: '0.25rem'}}>הגרף יופיע לאחר מספר עדכוני מחירים</div>
+                              </div>
+                            )}
                           </div>
 
                           <div style={{marginBottom: '1.5rem'}}>
