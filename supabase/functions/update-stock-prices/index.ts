@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
-// Stock behavior profiles
 const stockProfiles = {
   'דביר ברקת': { type: 'strong', volatility: 0.09, trend: 0.04, cycles: 4 },
   'עמית לסרי': { type: 'strong', volatility: 0.08, trend: 0.038, cycles: 4 },
@@ -47,7 +46,7 @@ Deno.serve(async (req: Request) => {
       let changePercent = 0;
       
       if (profile.type === 'strong') {
-        const cycle = Math.floor(Date.now() / 300000) % (profile.cycles + 1);
+        const cycle = Math.floor(Date.now() / 30000) % (profile.cycles + 1);
         if (cycle < profile.cycles) {
           changePercent = (Math.random() * profile.volatility * 0.8) + (profile.volatility * 0.2);
         } else {

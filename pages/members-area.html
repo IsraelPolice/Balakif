@@ -599,15 +599,16 @@
         if (user) {
           loadData();
 
-          // Auto-refresh stock prices every 5 minutes
+          // Auto-refresh stock prices every 30 seconds
           const stockInterval = setInterval(() => {
             if (activeView === 'stocks') {
               loadStockPrices();
               loadUserPortfolio();
+              loadShortPositions();
             }
-          }, 300000); // 5 minutes
+          }, 30000); // 30 seconds
 
-          // Trigger stock update every 5 minutes
+          // Trigger stock update every 30 seconds
           const updateInterval = setInterval(async () => {
             try {
               await fetch(`${supabase.supabaseUrl}/functions/v1/update-stock-prices`, {
@@ -619,7 +620,7 @@
             } catch (err) {
               console.error('Failed to update stock prices:', err);
             }
-          }, 300000);
+          }, 30000);
 
           return () => {
             clearInterval(stockInterval);
@@ -1580,48 +1581,64 @@
                           </p>
                         </div>
 
-                        <div style={{marginBottom: '1.5rem'}}>
-                          <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151'}}>
-                            בחר דמות:
-                          </label>
-                          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem'}}>
-                            {aiCharacters.map(char => (
-                              <div
-                                key={char.id}
-                                onClick={() => setSelectedCharacter(char)}
-                                style={{
-                                  padding: '0.75rem',
-                                  border: selectedCharacter?.id === char.id ? '2px solid #1877f2' : '1px solid #e5e7eb',
-                                  borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  background: selectedCharacter?.id === char.id ? '#eff6ff' : 'white',
-                                  transition: 'all 0.2s'
-                                }}
-                              >
-                                <div style={{fontWeight: '600', fontSize: '0.95rem', marginBottom: '0.25rem'}}>
-                                  {char.flag} {char.name}
-                                </div>
-                                <div style={{fontSize: '0.8rem', color: '#65676b'}}>
-                                  {char.location}
+                        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem', padding: '1.5rem', background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)'}}>
+                          <div>
+                            <label style={{display: 'block', marginBottom: '0.75rem', fontWeight: '600', color: '#1f2937', fontSize: '1rem'}}>
+                              <i className="fas fa-user-circle" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
+                              בחר דמות
+                            </label>
+                            <select
+                              value={selectedCharacter?.id || ''}
+                              onChange={(e) => {
+                                const char = aiCharacters.find(c => c.id === e.target.value);
+                                setSelectedCharacter(char);
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '0.875rem',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '1rem',
+                                background: 'white',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                outline: 'none'
+                              }}
+                              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                            >
+                              <option value="">-- בחר דמות מהרשימה --</option>
+                              {aiCharacters.map(char => (
+                                <option key={char.id} value={char.id}>
+                                  {char.flag} {char.name} - {char.role} ({char.location})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {selectedCharacter && (
+                            <div style={{padding: '1rem', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', borderRadius: '8px', border: '2px solid #3b82f6'}}>
+                              <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem'}}>
+                                <span style={{fontSize: '2rem'}}>{selectedCharacter.flag}</span>
+                                <div>
+                                  <div style={{fontWeight: '700', fontSize: '1.1rem', color: '#1e40af'}}>{selectedCharacter.name}</div>
+                                  <div style={{fontSize: '0.85rem', color: '#3b82f6'}}>
+                                    {selectedCharacter.role} • {selectedCharacter.location}
+                                  </div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {selectedCharacter && (
-                          <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f3f4f6', borderRadius: '8px'}}>
-                            <div style={{fontWeight: '600', marginBottom: '0.5rem'}}>נבחר: {selectedCharacter.name}</div>
-                            <div style={{fontSize: '0.85rem', color: '#6b7280'}}>
-                              {selectedCharacter.role} • {selectedCharacter.birth_date}
+                              <div style={{fontSize: '0.8rem', color: '#6b7280', marginTop: '0.5rem'}}>
+                                <i className="fas fa-birthday-cake" style={{marginLeft: '0.25rem'}}></i>
+                                {selectedCharacter.birth_date}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        <div style={{marginBottom: '1.5rem'}}>
-                          <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151'}}>
-                            מה הדמות תגיד? (פרומפט)
-                          </label>
+                          <div>
+                            <label style={{display: 'block', marginBottom: '0.75rem', fontWeight: '600', color: '#1f2937', fontSize: '1rem'}}>
+                              <i className="fas fa-comment-dots" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
+                              מה הדמות תגיד?
+                            </label>
                           <textarea
                             value={aiPrompt}
                             onChange={(e) => setAiPrompt(e.target.value)}
@@ -1629,23 +1646,39 @@
                             style={{
                               width: '100%',
                               minHeight: '120px',
-                              padding: '0.75rem',
-                              border: '1px solid #d1d5db',
+                              padding: '0.875rem',
+                              border: '2px solid #e5e7eb',
                               borderRadius: '8px',
                               fontSize: '0.95rem',
-                              resize: 'vertical'
+                              resize: 'vertical',
+                              transition: 'all 0.2s',
+                              outline: 'none'
                             }}
+                            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                           />
-                        </div>
+                          </div>
 
-                        <button
-                          onClick={handleGenerateAI}
-                          disabled={!selectedCharacter || !aiPrompt.trim() || userCredits < 1}
-                          className="btn btn-primary"
-                          style={{width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: '600'}}
-                        >
-                          <i className="fas fa-magic"></i> Generate ({userCredits} קרדיטים נותרו)
-                        </button>
+                          <button
+                            onClick={handleGenerateAI}
+                            disabled={!selectedCharacter || !aiPrompt.trim() || userCredits < 1}
+                            className="btn btn-primary"
+                            style={{
+                              width: '100%',
+                              padding: '1rem',
+                              fontSize: '1.1rem',
+                              fontWeight: '700',
+                              background: (!selectedCharacter || !aiPrompt.trim() || userCredits < 1) ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: (!selectedCharacter || !aiPrompt.trim() || userCredits < 1) ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.2s',
+                              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                            }}
+                          >
+                            <i className="fas fa-magic"></i> Generate ({userCredits} קרדיטים נותרו)
+                          </button>
+                        </div>
 
                         {userCredits < 1 && (
                           <div style={{marginTop: '1rem', padding: '1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', textAlign: 'center'}}>
@@ -1803,48 +1836,145 @@
                       <i className="fas fa-chart-line"></i> שוק המניות
                     </div>
                     <div className="card-body">
+                      <div style={{marginBottom: '1rem', padding: '0.75rem', background: '#f0f9ff', borderRadius: '8px', fontSize: '0.85rem', color: '#3b82f6', textAlign: 'center'}}>
+                        <i className="fas fa-info-circle"></i> המחירים מתעדכנים כל 30 שניות בזמן אמת
+                      </div>
+
                       <div style={{marginBottom: '1.5rem'}}>
                         {stockPrices.map(stock => {
                           const userPos = userPortfolio.find(p => p.member_name === stock.member_name);
                           const isSelected = selectedStock === stock.member_name;
+                          const priceChangeColor = stock.daily_change_percent >= 0 ? '#10b981' : '#ef4444';
+                          const priceChangeBg = stock.daily_change_percent >= 0 ? '#d1fae5' : '#fee2e2';
 
                           return (
                             <div
                               key={stock.member_name}
-                              onClick={() => { setSelectedStock(stock.member_name); loadStockHistory(stock.member_name); }}
                               style={{
                                 padding: '1rem',
                                 marginBottom: '0.75rem',
-                                background: isSelected ? '#eff6ff' : 'white',
-                                border: isSelected ? '2px solid #1877f2' : '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                background: isSelected ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'white',
+                                border: isSelected ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                transition: 'all 0.2s',
+                                boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.2)' : '0 1px 3px rgba(0,0,0,0.05)'
                               }}
                             >
-                              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem'}}>
                                 <div style={{flex: 1}}>
-                                  <div style={{fontWeight: '600', fontSize: '1rem', marginBottom: '0.25rem'}}>
-                                    {stock.member_name}
+                                  <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem'}}>
+                                    <span style={{fontWeight: '700', fontSize: '1.05rem', color: '#1f2937'}}>
+                                      {stock.member_name}
+                                    </span>
+                                    <span style={{
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      color: '#6b7280',
+                                      background: '#f3f4f6',
+                                      padding: '0.15rem 0.4rem',
+                                      borderRadius: '4px'
+                                    }}>
+                                      {stock.ticker}
+                                    </span>
                                   </div>
                                   {userPos && (
-                                    <div style={{fontSize: '0.8rem', color: '#6b7280'}}>
-                                      יש לך {userPos.shares} מניות
+                                    <div style={{fontSize: '0.8rem', color: '#3b82f6', fontWeight: '600'}}>
+                                      <i className="fas fa-briefcase" style={{marginLeft: '0.25rem'}}></i>
+                                      {userPos.shares.toFixed(2)} מניות
                                     </div>
                                   )}
                                 </div>
                                 <div style={{textAlign: 'left'}}>
-                                  <div style={{fontWeight: '700', fontSize: '1.2rem', marginBottom: '0.25rem'}}>
+                                  <div style={{fontWeight: '800', fontSize: '1.3rem', marginBottom: '0.25rem', color: '#1f2937'}}>
                                     ${stock.current_price.toFixed(2)}
                                   </div>
                                   <div style={{
                                     fontSize: '0.85rem',
-                                    fontWeight: '600',
-                                    color: stock.daily_change_percent >= 0 ? '#10b981' : '#ef4444'
+                                    fontWeight: '700',
+                                    color: priceChangeColor,
+                                    background: priceChangeBg,
+                                    padding: '0.2rem 0.5rem',
+                                    borderRadius: '6px',
+                                    display: 'inline-block'
                                   }}>
-                                    {stock.daily_change_percent >= 0 ? '+' : ''}{stock.daily_change_percent.toFixed(2)}%
+                                    {stock.daily_change_percent >= 0 ? '▲' : '▼'} {Math.abs(stock.daily_change_percent).toFixed(2)}%
                                   </div>
                                 </div>
+                              </div>
+
+                              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem'}}>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedStock(stock.member_name);
+                                    setTradeType('buy');
+                                    setStockAmount('1');
+                                  }}
+                                  style={{
+                                    padding: '0.6rem',
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)'
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
+                                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                                >
+                                  <i className="fas fa-arrow-up"></i> קנה
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedStock(stock.member_name);
+                                    setTradeType('sell');
+                                    setStockAmount('1');
+                                  }}
+                                  style={{
+                                    padding: '0.6rem',
+                                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
+                                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                                >
+                                  <i className="fas fa-arrow-down"></i> מכור
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedStock(stock.member_name);
+                                    setTradeType('short');
+                                    setStockAmount('1');
+                                  }}
+                                  style={{
+                                    padding: '0.6rem',
+                                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 2px 4px rgba(245, 158, 11, 0.3)'
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
+                                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                                >
+                                  <i className="fas fa-chart-line"></i> שורט
+                                </button>
                               </div>
                             </div>
                           );
@@ -1852,22 +1982,43 @@
                       </div>
 
                       {selectedStock && (
-                        <div style={{padding: '1.5rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
-                          <h4 style={{marginBottom: '1rem', fontWeight: '600'}}>מסחר ב-{selectedStock}</h4>
+                        <div style={{padding: '2rem', background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)', borderRadius: '16px', border: '2px solid #3b82f6', boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)'}}>
+                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+                            <h4 style={{fontWeight: '700', fontSize: '1.3rem', color: '#1f2937', margin: 0}}>
+                              <i className="fas fa-exchange-alt" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
+                              מסחר מהיר
+                            </h4>
+                            <button
+                              onClick={() => setSelectedStock(null)}
+                              style={{
+                                padding: '0.5rem',
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                fontWeight: '600'
+                              }}
+                            >
+                              <i className="fas fa-times"></i> סגור
+                            </button>
+                          </div>
 
-                          {stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 0 && (
-                            <div style={{marginBottom: '1.5rem', padding: '1rem', background: 'white', borderRadius: '8px'}}>
-                              <div style={{fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem', color: '#374151'}}>
-                                היסטוריית מחירים
-                              </div>
-                              <div style={{fontSize: '0.85rem', color: '#6b7280'}}>
-                                {stockPriceHistory[selectedStock].length} נקודות מחיר נרשמו
-                              </div>
+                          <div style={{padding: '1rem', background: 'white', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #e5e7eb'}}>
+                            <div style={{fontWeight: '700', fontSize: '1.2rem', color: '#1f2937', marginBottom: '0.5rem'}}>
+                              {selectedStock}
                             </div>
-                          )}
+                            <div style={{fontSize: '0.85rem', color: '#6b7280'}}>
+                              {stockPrices.find(s => s.member_name === selectedStock)?.ticker}
+                            </div>
+                          </div>
 
-                          <div style={{marginBottom: '1rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: '600'}}>כמות מניות:</label>
+                          <div style={{marginBottom: '1.5rem'}}>
+                            <label style={{display: 'block', marginBottom: '0.75rem', fontWeight: '700', color: '#1f2937', fontSize: '1rem'}}>
+                              <i className="fas fa-hashtag" style={{marginLeft: '0.25rem', color: '#3b82f6'}}></i>
+                              כמות מניות
+                            </label>
                             <input
                               type="number"
                               min="0.01"
@@ -1877,29 +2028,89 @@
                               placeholder="0.00"
                               style={{
                                 width: '100%',
-                                padding: '0.75rem',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '8px',
-                                fontSize: '1rem'
+                                padding: '1rem',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '10px',
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                outline: 'none',
+                                transition: 'all 0.2s'
                               }}
+                              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                             />
                           </div>
 
-                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem'}}>
-                            <button onClick={buyStock} className="btn btn-primary" style={{width: '100%'}}>
-                              <i className="fas fa-arrow-up"></i> קנה
-                            </button>
-                            <button onClick={sellStock} className="btn btn-secondary" style={{width: '100%'}}>
-                              <i className="fas fa-arrow-down"></i> מכור
-                            </button>
-                          </div>
-
                           {stockAmount && (
-                            <div style={{marginTop: '1rem', padding: '0.75rem', background: '#e0f2fe', borderRadius: '6px', fontSize: '0.9rem'}}>
-                              <strong>סה"כ: </strong>
-                              ${(parseFloat(stockAmount) * stockPrices.find(s => s.member_name === selectedStock)?.current_price || 0).toFixed(2)}
+                            <div style={{marginBottom: '1.5rem', padding: '1rem', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', borderRadius: '10px', border: '2px solid #3b82f6'}}>
+                              <div style={{fontSize: '0.85rem', color: '#1e40af', marginBottom: '0.25rem', fontWeight: '600'}}>
+                                סכום כולל:
+                              </div>
+                              <div style={{fontSize: '1.8rem', fontWeight: '800', color: '#1e40af'}}>
+                                ${(parseFloat(stockAmount) * stockPrices.find(s => s.member_name === selectedStock)?.current_price || 0).toFixed(2)}
+                              </div>
                             </div>
                           )}
+
+                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem'}}>
+                            <button
+                              onClick={buyStock}
+                              style={{
+                                padding: '1rem',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '0.95rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                              }}
+                              onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)'; }}
+                              onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'; }}
+                            >
+                              <i className="fas fa-arrow-up"></i><br/>קנה
+                            </button>
+                            <button
+                              onClick={sellStock}
+                              style={{
+                                padding: '1rem',
+                                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '0.95rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                              }}
+                              onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.4)'; }}
+                              onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)'; }}
+                            >
+                              <i className="fas fa-arrow-down"></i><br/>מכור
+                            </button>
+                            <button
+                              onClick={shortStock}
+                              style={{
+                                padding: '1rem',
+                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '0.95rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                              }}
+                              onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)'; }}
+                              onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)'; }}
+                            >
+                              <i className="fas fa-chart-line"></i><br/>שורט
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
