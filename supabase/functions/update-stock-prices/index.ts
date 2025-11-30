@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
       let changePercent = 0;
       
       if (profile.type === 'strong') {
-        const cycle = Math.floor(Date.now() / 30000) % (profile.cycles + 1);
+        const cycle = Math.floor(Date.now() / 5000) % (profile.cycles + 1);
         if (cycle < profile.cycles) {
           changePercent = (Math.random() * profile.volatility * 0.8) + (profile.volatility * 0.2);
         } else {

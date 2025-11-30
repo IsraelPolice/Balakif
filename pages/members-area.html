@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.0/dist/chartjs-chart-financial.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -578,6 +579,7 @@
       const [selectedStock, setSelectedStock] = React.useState(null);
       const [stockAmount, setStockAmount] = React.useState('');
       const [stockPriceHistory, setStockPriceHistory] = React.useState({});
+      const [chartType, setChartType] = React.useState('line');
       const [showAdminPanel, setShowAdminPanel] = React.useState(false);
       const [adminPassword, setAdminPassword] = React.useState('');
       const [aiRequests, setAiRequests] = React.useState([]);
@@ -600,16 +602,16 @@
         if (user) {
           loadData();
 
-          // Auto-refresh stock prices every 30 seconds
+          // Auto-refresh stock prices every 5 seconds
           const stockInterval = setInterval(() => {
             if (activeView === 'stocks') {
               loadStockPrices();
               loadUserPortfolio();
               loadShortPositions();
             }
-          }, 30000); // 30 seconds
+          }, 5000); // 5 seconds
 
-          // Trigger stock update every 30 seconds
+          // Trigger stock update every 5 seconds
           const updateInterval = setInterval(async () => {
             try {
               await fetch(`${supabase.supabaseUrl}/functions/v1/update-stock-prices`, {
@@ -621,7 +623,7 @@
             } catch (err) {
               console.error('Failed to update stock prices:', err);
             }
-          }, 30000);
+          }, 5000);
 
           return () => {
             clearInterval(stockInterval);
@@ -1837,8 +1839,8 @@
                       <i className="fas fa-chart-line"></i> שוק המניות
                     </div>
                     <div className="card-body">
-                      <div style={{marginBottom: '1rem', padding: '0.75rem', background: '#f0f9ff', borderRadius: '8px', fontSize: '0.85rem', color: '#3b82f6', textAlign: 'center'}}>
-                        <i className="fas fa-info-circle"></i> המחירים מתעדכנים כל 30 שניות בזמן אמת
+                      <div style={{marginBottom: '1rem', padding: '0.75rem', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '8px', fontSize: '0.85rem', color: 'white', textAlign: 'center', fontWeight: '600', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'}}>
+                        <i className="fas fa-bolt" style={{marginLeft: '0.25rem'}}></i> LIVE - המחירים מתעדכנים כל 5 שניות!
                       </div>
 
                       <div style={{marginBottom: '1.5rem'}}>
@@ -1864,7 +1866,21 @@
                               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem'}}>
                                 <div style={{flex: 1}}>
                                   <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem'}}>
-                                    <span style={{fontWeight: '700', fontSize: '1.05rem', color: '#1f2937'}}>
+                                    <span
+                                      onClick={() => {
+                                        setSelectedStock(stock.member_name);
+                                        loadStockHistory(stock.member_name);
+                                      }}
+                                      style={{
+                                        fontWeight: '700',
+                                        fontSize: '1.05rem',
+                                        color: '#3b82f6',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => { e.target.style.color = '#1d4ed8'; e.target.style.textDecoration = 'underline'; }}
+                                      onMouseLeave={(e) => { e.target.style.color = '#3b82f6'; e.target.style.textDecoration = 'none'; }}
+                                    >
                                       {stock.member_name}
                                     </span>
                                     <span style={{
@@ -1903,7 +1919,7 @@
                                 </div>
                               </div>
 
-                              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem'}}>
+                              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem'}}>
                                 <button
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -2034,29 +2050,6 @@
                                 >
                                   <i className="fas fa-arrow-down"></i> מכור
                                 </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedStock(stock.member_name);
-                                    loadStockHistory(stock.member_name);
-                                  }}
-                                  style={{
-                                    padding: '0.6rem',
-                                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    fontSize: '0.85rem',
-                                    fontWeight: '600',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
-                                  }}
-                                  onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
-                                  onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-                                >
-                                  <i className="fas fa-chart-line"></i> פרטים
-                                </button>
                               </div>
                             </div>
                           );
@@ -2116,6 +2109,42 @@
 
                             {stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 5 ? (
                               <div style={{marginTop: '1.5rem'}}>
+                                <div style={{display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem'}}>
+                                  <button
+                                    onClick={() => setChartType('line')}
+                                    style={{
+                                      padding: '0.5rem 1.5rem',
+                                      background: chartType === 'line' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#e5e7eb',
+                                      color: chartType === 'line' ? 'white' : '#6b7280',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      fontSize: '0.85rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s',
+                                      boxShadow: chartType === 'line' ? '0 2px 8px rgba(59, 130, 246, 0.3)' : 'none'
+                                    }}
+                                  >
+                                    <i className="fas fa-chart-line" style={{marginLeft: '0.25rem'}}></i> Line
+                                  </button>
+                                  <button
+                                    onClick={() => setChartType('candlestick')}
+                                    style={{
+                                      padding: '0.5rem 1.5rem',
+                                      background: chartType === 'candlestick' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#e5e7eb',
+                                      color: chartType === 'candlestick' ? 'white' : '#6b7280',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      fontSize: '0.85rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s',
+                                      boxShadow: chartType === 'candlestick' ? '0 2px 8px rgba(59, 130, 246, 0.3)' : 'none'
+                                    }}
+                                  >
+                                    <i className="fas fa-chart-bar" style={{marginLeft: '0.25rem'}}></i> Candles
+                                  </button>
+                                </div>
                                 <canvas
                                   ref={(canvas) => {
                                     if (canvas && stockPriceHistory[selectedStock]) {
@@ -2123,72 +2152,125 @@
                                       if (window.stockChart) window.stockChart.destroy();
 
                                       const history = stockPriceHistory[selectedStock];
-                                      const prices = history.map(h => parseFloat(h.price));
-                                      const labels = history.map((h, i) => i === 0 ? 'התחלה' : i === history.length - 1 ? 'עכשיו' : '');
+                                      const isPositive = parseFloat(history[history.length - 1].price) >= parseFloat(history[0].price);
 
-                                      const isPositive = prices[prices.length - 1] >= prices[0];
+                                      if (chartType === 'line') {
+                                        const prices = history.map(h => parseFloat(h.price));
+                                        const labels = history.map((h, i) => i === 0 ? 'התחלה' : i === history.length - 1 ? 'עכשיו' : '');
 
-                                      window.stockChart = new Chart(ctx, {
-                                        type: 'line',
-                                        data: {
-                                          labels: labels,
-                                          datasets: [{
-                                            label: 'מחיר',
-                                            data: prices,
-                                            borderColor: isPositive ? '#10b981' : '#ef4444',
-                                            backgroundColor: isPositive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                            borderWidth: 3,
-                                            fill: true,
-                                            tension: 0.4,
-                                            pointRadius: 0,
-                                            pointHoverRadius: 6,
-                                            pointHoverBackgroundColor: isPositive ? '#10b981' : '#ef4444',
-                                            pointHoverBorderColor: '#fff',
-                                            pointHoverBorderWidth: 2
-                                          }]
-                                        },
-                                        options: {
-                                          responsive: true,
-                                          maintainAspectRatio: true,
-                                          aspectRatio: 2,
-                                          interaction: {
-                                            intersect: false,
-                                            mode: 'index'
+                                        window.stockChart = new Chart(ctx, {
+                                          type: 'line',
+                                          data: {
+                                            labels: labels,
+                                            datasets: [{
+                                              label: 'מחיר',
+                                              data: prices,
+                                              borderColor: isPositive ? '#10b981' : '#ef4444',
+                                              backgroundColor: isPositive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                              borderWidth: 3,
+                                              fill: true,
+                                              tension: 0.4,
+                                              pointRadius: 0,
+                                              pointHoverRadius: 6,
+                                              pointHoverBackgroundColor: isPositive ? '#10b981' : '#ef4444',
+                                              pointHoverBorderColor: '#fff',
+                                              pointHoverBorderWidth: 2
+                                            }]
                                           },
-                                          plugins: {
-                                            legend: { display: false },
-                                            tooltip: {
-                                              backgroundColor: '#1f2937',
-                                              padding: 12,
-                                              bodyFont: { size: 14, weight: 'bold' },
-                                              displayColors: false,
-                                              callbacks: {
-                                                label: (context) => '$' + context.parsed.y.toFixed(2)
-                                              }
-                                            }
-                                          },
-                                          scales: {
-                                            y: {
-                                              ticks: {
-                                                callback: (value) => '$' + value.toFixed(2),
-                                                font: { size: 11, weight: '600' },
-                                                color: '#6b7280'
-                                              },
-                                              grid: {
-                                                color: '#f3f4f6',
-                                                drawBorder: false
+                                          options: {
+                                            responsive: true,
+                                            maintainAspectRatio: true,
+                                            aspectRatio: 2,
+                                            interaction: { intersect: false, mode: 'index' },
+                                            plugins: {
+                                              legend: { display: false },
+                                              tooltip: {
+                                                backgroundColor: '#1f2937',
+                                                padding: 12,
+                                                bodyFont: { size: 14, weight: 'bold' },
+                                                displayColors: false,
+                                                callbacks: { label: (context) => '$' + context.parsed.y.toFixed(2) }
                                               }
                                             },
-                                            x: {
-                                              ticks: {
-                                                font: { size: 11, weight: '600' },
-                                                color: '#6b7280'
+                                            scales: {
+                                              y: {
+                                                ticks: { callback: (value) => '$' + value.toFixed(2), font: { size: 11, weight: '600' }, color: '#6b7280' },
+                                                grid: { color: '#f3f4f6', drawBorder: false }
                                               },
-                                              grid: { display: false, drawBorder: false }
+                                              x: {
+                                                ticks: { font: { size: 11, weight: '600' }, color: '#6b7280' },
+                                                grid: { display: false, drawBorder: false }
+                                              }
                                             }
                                           }
+                                        });
+                                      } else {
+                                        const candleData = [];
+                                        for (let i = 0; i < history.length; i += 4) {
+                                          const chunk = history.slice(i, i + 4);
+                                          if (chunk.length >= 2) {
+                                            const prices = chunk.map(h => parseFloat(h.price));
+                                            candleData.push({
+                                              x: i / 4,
+                                              o: prices[0],
+                                              h: Math.max(...prices),
+                                              l: Math.min(...prices),
+                                              c: prices[prices.length - 1]
+                                            });
+                                          }
                                         }
-                                      });
+
+                                        window.stockChart = new Chart(ctx, {
+                                          type: 'candlestick',
+                                          data: {
+                                            datasets: [{
+                                              label: 'מחיר',
+                                              data: candleData,
+                                              borderColor: '#6b7280',
+                                              color: {
+                                                up: '#10b981',
+                                                down: '#ef4444',
+                                                unchanged: '#6b7280'
+                                              }
+                                            }]
+                                          },
+                                          options: {
+                                            responsive: true,
+                                            maintainAspectRatio: true,
+                                            aspectRatio: 2,
+                                            plugins: {
+                                              legend: { display: false },
+                                              tooltip: {
+                                                backgroundColor: '#1f2937',
+                                                padding: 12,
+                                                bodyFont: { size: 12, weight: 'bold' },
+                                                displayColors: false,
+                                                callbacks: {
+                                                  label: (context) => {
+                                                    const d = context.raw;
+                                                    return [
+                                                      'Open: $' + d.o.toFixed(2),
+                                                      'High: $' + d.h.toFixed(2),
+                                                      'Low: $' + d.l.toFixed(2),
+                                                      'Close: $' + d.c.toFixed(2)
+                                                    ];
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            scales: {
+                                              y: {
+                                                ticks: { callback: (value) => '$' + value.toFixed(2), font: { size: 11, weight: '600' }, color: '#6b7280' },
+                                                grid: { color: '#f3f4f6', drawBorder: false }
+                                              },
+                                              x: {
+                                                ticks: { display: false },
+                                                grid: { display: false, drawBorder: false }
+                                              }
+                                            }
+                                          }
+                                        });
+                                      }
                                     }
                                   }}
                                   style={{maxHeight: '250px'}}
