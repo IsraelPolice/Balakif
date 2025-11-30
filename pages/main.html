@@ -934,6 +934,17 @@
             education: null
           }]);
 
+          // Initialize credits and bank account
+          await supabase.from('user_credits').insert([{
+            user_phone: phone,
+            credits: 2
+          }]);
+
+          await supabase.from('user_bank_accounts').insert([{
+            user_phone: phone,
+            balance: 10.00
+          }]);
+
           setSuccess('נרשמת בהצלחה! כעת תוכל להתחבר');
           setTimeout(() => {
             onToggleMode();

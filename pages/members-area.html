@@ -566,6 +566,21 @@
       const [commentInputs, setCommentInputs] = React.useState({});
       const [postComments, setPostComments] = React.useState({});
 
+      // AI & Stock states
+      const [aiCharacters, setAiCharacters] = React.useState([]);
+      const [selectedCharacter, setSelectedCharacter] = React.useState(null);
+      const [aiPrompt, setAiPrompt] = React.useState('');
+      const [userCredits, setUserCredits] = React.useState(2);
+      const [bankBalance, setBankBalance] = React.useState(10.00);
+      const [stockPrices, setStockPrices] = React.useState([]);
+      const [userPortfolio, setUserPortfolio] = React.useState([]);
+      const [selectedStock, setSelectedStock] = React.useState(null);
+      const [stockAmount, setStockAmount] = React.useState('');
+      const [stockPriceHistory, setStockPriceHistory] = React.useState({});
+      const [showAdminPanel, setShowAdminPanel] = React.useState(false);
+      const [adminPassword, setAdminPassword] = React.useState('');
+      const [aiRequests, setAiRequests] = React.useState([]);
+
       React.useEffect(() => {
         const savedUser = localStorage.getItem('hevre_user');
         if (!savedUser) {
@@ -580,8 +595,35 @@
       React.useEffect(() => {
         if (user) {
           loadData();
+
+          // Auto-refresh stock prices every 5 minutes
+          const stockInterval = setInterval(() => {
+            if (activeView === 'stocks') {
+              loadStockPrices();
+              loadUserPortfolio();
+            }
+          }, 300000); // 5 minutes
+
+          // Trigger stock update every 5 minutes
+          const updateInterval = setInterval(async () => {
+            try {
+              await fetch(`${supabase.supabaseUrl}/functions/v1/update-stock-prices`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${supabase.supabaseKey}`,
+                }
+              });
+            } catch (err) {
+              console.error('Failed to update stock prices:', err);
+            }
+          }, 300000);
+
+          return () => {
+            clearInterval(stockInterval);
+            clearInterval(updateInterval);
+          };
         }
-      }, [user]);
+      }, [user, activeView]);
 
       const loadData = () => {
         loadPosts();
@@ -590,6 +632,11 @@
         loadFriendRequests();
         loadGroups();
         loadMyGroups();
+        loadAICharacters();
+        loadUserCredits();
+        loadBankAccount();
+        loadStockPrices();
+        loadUserPortfolio();
       };
 
       const loadUserProfile = async (phone) => {
@@ -880,6 +927,205 @@
         }
       };
 
+      // AI & Stock Functions
+      const loadAICharacters = async () => {
+        const { data } = await supabase.from('ai_characters').select('*').order('name');
+        if (data) setAiCharacters(data);
+      };
+
+      const loadUserCredits = async () => {
+        let { data } = await supabase.from('user_credits').select('*').eq('user_phone', user.phone).maybeSingle();
+        if (!data) {
+          await supabase.from('user_credits').insert([{ user_phone: user.phone, credits: 2 }]);
+          data = { credits: 2 };
+        }
+        setUserCredits(data.credits);
+      };
+
+      const loadBankAccount = async () => {
+        let { data } = await supabase.from('user_bank_accounts').select('*').eq('user_phone', user.phone).maybeSingle();
+        if (!data) {
+          await supabase.from('user_bank_accounts').insert([{ user_phone: user.phone, balance: 10.00 }]);
+          data = { balance: 10.00 };
+        }
+        setBankBalance(parseFloat(data.balance));
+      };
+
+      const loadStockPrices = async () => {
+        const { data } = await supabase.from('stock_prices').select('*').order('current_price', { ascending: false });
+        if (data) setStockPrices(data);
+      };
+
+      const loadUserPortfolio = async () => {
+        const { data } = await supabase.from('user_stock_portfolios').select('*').eq('user_phone', user.phone);
+        if (data) setUserPortfolio(data);
+      };
+
+      const loadStockHistory = async (memberName) => {
+        const { data } = await supabase
+          .from('stock_price_history')
+          .select('*')
+          .eq('member_name', memberName)
+          .order('timestamp', { ascending: true })
+          .limit(50);
+        if (data) {
+          setStockPriceHistory({ ...stockPriceHistory, [memberName]: data });
+        }
+      };
+
+      const handleGenerateAI = async () => {
+        if (!selectedCharacter) {
+          alert('אנא בחר דמות');
+          return;
+        }
+        if (!aiPrompt.trim()) {
+          alert('אנא כתוב פרומפט');
+          return;
+        }
+        if (userCredits < 1) {
+          alert('אין לך מספיק קרדיטים');
+          return;
+        }
+
+        if (selectedCharacter.special_action === 'blacklist') {
+          alert('הפרטים שלך נשלחו לדביר ברקת, נכנסת לרשימה השחורה. בהתחייבות');
+        }
+
+        try {
+          await supabase.from('ai_requests').insert([{
+            user_phone: user.phone,
+            character_name: selectedCharacter.name,
+            prompt: aiPrompt,
+            status: 'pending'
+          }]);
+
+          await supabase.from('user_credits').update({ credits: userCredits - 1 }).eq('user_phone', user.phone);
+
+          setUserCredits(userCredits - 1);
+          setAiPrompt('');
+          setSelectedCharacter(null);
+          alert('ההקלטה תגיע בוואטסאפ בקרוב');
+        } catch (err) {
+          alert('שגיאה ביצירת בקשה: ' + err.message);
+        }
+      };
+
+      const loadAIRequests = async () => {
+        const { data } = await supabase.from('ai_requests').select('*').order('created_at', { ascending: false });
+        if (data) setAiRequests(data);
+      };
+
+      const handleAdminLogin = () => {
+        if (adminPassword === '316439249') {
+          setShowAdminPanel(true);
+          loadAIRequests();
+        } else {
+          alert('סיסמה שגויה');
+        }
+      };
+
+      const buyStock = async () => {
+        if (!selectedStock || !stockAmount || stockAmount <= 0) {
+          alert('אנא בחר מניה וכמות');
+          return;
+        }
+
+        const stock = stockPrices.find(s => s.member_name === selectedStock);
+        const totalCost = stock.current_price * parseFloat(stockAmount);
+
+        if (totalCost > bankBalance) {
+          alert('אין לך מספיק כסף');
+          return;
+        }
+
+        try {
+          await supabase.from('stock_transactions').insert([{
+            user_phone: user.phone,
+            member_name: selectedStock,
+            transaction_type: 'buy',
+            shares: parseFloat(stockAmount),
+            price_per_share: stock.current_price,
+            total_amount: totalCost
+          }]);
+
+          const existingPosition = userPortfolio.find(p => p.member_name === selectedStock);
+          if (existingPosition) {
+            const newShares = parseFloat(existingPosition.shares) + parseFloat(stockAmount);
+            const newAvgPrice = ((existingPosition.shares * existingPosition.average_buy_price) + totalCost) / newShares;
+            await supabase.from('user_stock_portfolios')
+              .update({ shares: newShares, average_buy_price: newAvgPrice, updated_at: new Date().toISOString() })
+              .eq('id', existingPosition.id);
+          } else {
+            await supabase.from('user_stock_portfolios').insert([{
+              user_phone: user.phone,
+              member_name: selectedStock,
+              shares: parseFloat(stockAmount),
+              average_buy_price: stock.current_price
+            }]);
+          }
+
+          await supabase.from('user_bank_accounts')
+            .update({ balance: bankBalance - totalCost, updated_at: new Date().toISOString() })
+            .eq('user_phone', user.phone);
+
+          setBankBalance(bankBalance - totalCost);
+          loadUserPortfolio();
+          setStockAmount('');
+          setSelectedStock(null);
+          alert('רכישה בוצעה בהצלחה!');
+        } catch (err) {
+          alert('שגיאה ברכישה: ' + err.message);
+        }
+      };
+
+      const sellStock = async () => {
+        if (!selectedStock || !stockAmount || stockAmount <= 0) {
+          alert('אנא בחר מניה וכמות');
+          return;
+        }
+
+        const position = userPortfolio.find(p => p.member_name === selectedStock);
+        if (!position || position.shares < parseFloat(stockAmount)) {
+          alert('אין לך מספיק מניות');
+          return;
+        }
+
+        const stock = stockPrices.find(s => s.member_name === selectedStock);
+        const totalRevenue = stock.current_price * parseFloat(stockAmount);
+
+        try {
+          await supabase.from('stock_transactions').insert([{
+            user_phone: user.phone,
+            member_name: selectedStock,
+            transaction_type: 'sell',
+            shares: parseFloat(stockAmount),
+            price_per_share: stock.current_price,
+            total_amount: totalRevenue
+          }]);
+
+          const newShares = parseFloat(position.shares) - parseFloat(stockAmount);
+          if (newShares > 0) {
+            await supabase.from('user_stock_portfolios')
+              .update({ shares: newShares, updated_at: new Date().toISOString() })
+              .eq('id', position.id);
+          } else {
+            await supabase.from('user_stock_portfolios').delete().eq('id', position.id);
+          }
+
+          await supabase.from('user_bank_accounts')
+            .update({ balance: bankBalance + totalRevenue, updated_at: new Date().toISOString() })
+            .eq('user_phone', user.phone);
+
+          setBankBalance(bankBalance + totalRevenue);
+          loadUserPortfolio();
+          setStockAmount('');
+          setSelectedStock(null);
+          alert('מכירה בוצעה בהצלחה!');
+        } catch (err) {
+          alert('שגיאה במכירה: ' + err.message);
+        }
+      };
+
       if (!user || !userProfile) return <div>טוען...</div>;
 
       return (
@@ -952,6 +1198,18 @@
                   <i className="fas fa-users"></i>
                 </div>
                 <span>קבוצות</span>
+              </div>
+              <div className="sidebar-item" onClick={() => { setActiveView('hevre-ai'); setSelectedProfile(null); setSelectedGroup(null); }}>
+                <div className="sidebar-icon" style={{background: '#f0f9ff', color: '#3b82f6'}}>
+                  <i className="fas fa-robot"></i>
+                </div>
+                <span>החבר'ה AI</span>
+              </div>
+              <div className="sidebar-item" onClick={() => { setActiveView('stocks'); setSelectedProfile(null); setSelectedGroup(null); }}>
+                <div className="sidebar-icon" style={{background: '#d1fae5', color: '#059669'}}>
+                  <i className="fas fa-chart-line"></i>
+                </div>
+                <span>שוק ההון</span>
               </div>
             </div>
 
@@ -1199,6 +1457,319 @@
                     )}
                   </div>
                 </div>
+              )}
+
+              {activeView === 'hevre-ai' && !selectedProfile && !selectedGroup && (
+                <div className="card">
+                  <div className="card-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <span><i className="fas fa-robot"></i> החבר'ה AI</span>
+                    <div>
+                      <span style={{fontSize: '0.9rem', color: '#65676b', marginLeft: '1rem'}}>קרדיטים: {userCredits}</span>
+                      <button onClick={() => { setAdminPassword(''); setShowAdminPanel(false); if (window.prompt('הכנס סיסמת אדמין:') === '316439249') { setShowAdminPanel(true); loadAIRequests(); } }} className="btn btn-secondary btn-small">
+                        <i className="fas fa-user-shield"></i> אדמין
+                      </button>
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    {!showAdminPanel ? (
+                      <>
+                        <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bfdbfe'}}>
+                          <p style={{fontSize: '0.95rem', color: '#1e40af', marginBottom: '0.5rem'}}>
+                            <strong>ברוכים הבאים למחולל הקול של החבר'ה!</strong>
+                          </p>
+                          <p style={{fontSize: '0.85rem', color: '#3b82f6'}}>
+                            בחר דמות מהחבר'ה, כתוב מה תרצה שהיא תגיד, והקלטה תגיע לך בוואטסאפ בקרוב
+                          </p>
+                        </div>
+
+                        <div style={{marginBottom: '1.5rem'}}>
+                          <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151'}}>
+                            בחר דמות:
+                          </label>
+                          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem'}}>
+                            {aiCharacters.map(char => (
+                              <div
+                                key={char.id}
+                                onClick={() => setSelectedCharacter(char)}
+                                style={{
+                                  padding: '0.75rem',
+                                  border: selectedCharacter?.id === char.id ? '2px solid #1877f2' : '1px solid #e5e7eb',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  background: selectedCharacter?.id === char.id ? '#eff6ff' : 'white',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                <div style={{fontWeight: '600', fontSize: '0.95rem', marginBottom: '0.25rem'}}>
+                                  {char.flag} {char.name}
+                                </div>
+                                <div style={{fontSize: '0.8rem', color: '#65676b'}}>
+                                  {char.location}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {selectedCharacter && (
+                          <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#f3f4f6', borderRadius: '8px'}}>
+                            <div style={{fontWeight: '600', marginBottom: '0.5rem'}}>נבחר: {selectedCharacter.name}</div>
+                            <div style={{fontSize: '0.85rem', color: '#6b7280'}}>
+                              {selectedCharacter.role} • {selectedCharacter.birth_date}
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{marginBottom: '1.5rem'}}>
+                          <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151'}}>
+                            מה הדמות תגיד? (פרומפט)
+                          </label>
+                          <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            placeholder="לדוגמה: תגיד שלום לכולם ותברך אותם ביום הולדת..."
+                            style={{
+                              width: '100%',
+                              minHeight: '120px',
+                              padding: '0.75rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '8px',
+                              fontSize: '0.95rem',
+                              resize: 'vertical'
+                            }}
+                          />
+                        </div>
+
+                        <button
+                          onClick={handleGenerateAI}
+                          disabled={!selectedCharacter || !aiPrompt.trim() || userCredits < 1}
+                          className="btn btn-primary"
+                          style={{width: '100%', padding: '0.875rem', fontSize: '1rem', fontWeight: '600'}}
+                        >
+                          <i className="fas fa-magic"></i> Generate ({userCredits} קרדיטים נותרו)
+                        </button>
+
+                        {userCredits < 1 && (
+                          <div style={{marginTop: '1rem', padding: '0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', textAlign: 'center'}}>
+                            אין לך מספיק קרדיטים
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div style={{marginBottom: '1.5rem', padding: '1rem', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24'}}>
+                          <strong>פאנל אדמין</strong> - רשימת כל בקשות ה-AI
+                        </div>
+                        {aiRequests.length === 0 ? (
+                          <div className="empty-state">
+                            <i className="fas fa-inbox"></i>
+                            <div>אין בקשות</div>
+                          </div>
+                        ) : (
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                            {aiRequests.map(req => (
+                              <div key={req.id} style={{padding: '1rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
+                                <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem'}}>
+                                  <strong style={{color: '#1f2937'}}>{req.user_phone}</strong>
+                                  <span style={{fontSize: '0.85rem', color: '#6b7280'}}>
+                                    {new Date(req.created_at).toLocaleString('he-IL')}
+                                  </span>
+                                </div>
+                                <div style={{marginBottom: '0.5rem'}}>
+                                  <span style={{fontSize: '0.9rem', color: '#3b82f6', fontWeight: '600'}}>
+                                    דמות: {req.character_name}
+                                  </span>
+                                </div>
+                                <div style={{padding: '0.75rem', background: 'white', borderRadius: '6px', fontSize: '0.9rem', color: '#374151'}}>
+                                  {req.prompt}
+                                </div>
+                                <div style={{marginTop: '0.5rem', fontSize: '0.85rem'}}>
+                                  <span style={{
+                                    padding: '0.25rem 0.5rem',
+                                    background: req.status === 'pending' ? '#fef3c7' : '#d1fae5',
+                                    color: req.status === 'pending' ? '#d97706' : '#059669',
+                                    borderRadius: '4px',
+                                    fontWeight: '600'
+                                  }}>
+                                    {req.status === 'pending' ? 'ממתין' : 'הושלם'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeView === 'stocks' && !selectedProfile && !selectedGroup && (
+                <>
+                  <div className="card" style={{marginBottom: '1.5rem'}}>
+                    <div className="card-header">
+                      <i className="fas fa-wallet"></i> חשבון הבנק שלי
+                    </div>
+                    <div className="card-body" style={{textAlign: 'center'}}>
+                      <div style={{fontSize: '2.5rem', fontWeight: '700', color: '#10b981', marginBottom: '0.5rem'}}>
+                        ${bankBalance.toFixed(2)}
+                      </div>
+                      <div style={{fontSize: '0.9rem', color: '#6b7280'}}>יתרה זמינה</div>
+                    </div>
+                  </div>
+
+                  <div className="card" style={{marginBottom: '1.5rem'}}>
+                    <div className="card-header">
+                      <i className="fas fa-briefcase"></i> התיק שלי
+                    </div>
+                    <div className="card-body">
+                      {userPortfolio.length === 0 ? (
+                        <div className="empty-state">
+                          <i className="fas fa-chart-pie"></i>
+                          <div>אין לך מניות עדיין</div>
+                          <div style={{fontSize: '0.9rem', marginTop: '0.5rem'}}>התחל להשקיע במניות של החבר'ה!</div>
+                        </div>
+                      ) : (
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+                          {userPortfolio.map(pos => {
+                            const stock = stockPrices.find(s => s.member_name === pos.member_name);
+                            const currentValue = stock ? pos.shares * stock.current_price : 0;
+                            const totalInvested = pos.shares * pos.average_buy_price;
+                            const profitLoss = currentValue - totalInvested;
+                            const profitLossPercent = ((profitLoss / totalInvested) * 100).toFixed(2);
+
+                            return (
+                              <div key={pos.id} style={{padding: '1rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem'}}>
+                                  <div>
+                                    <div style={{fontWeight: '600', fontSize: '1rem', marginBottom: '0.25rem'}}>{pos.member_name}</div>
+                                    <div style={{fontSize: '0.85rem', color: '#6b7280'}}>{pos.shares} מניות</div>
+                                  </div>
+                                  <div style={{textAlign: 'left'}}>
+                                    <div style={{fontWeight: '600', fontSize: '1.1rem'}}>${currentValue.toFixed(2)}</div>
+                                    <div style={{fontSize: '0.85rem', color: profitLoss >= 0 ? '#10b981' : '#ef4444', fontWeight: '600'}}>
+                                      {profitLoss >= 0 ? '+' : ''}{profitLossPercent}%
+                                    </div>
+                                  </div>
+                                </div>
+                                <div style={{fontSize: '0.8rem', color: '#9ca3af'}}>
+                                  מחיר ממוצע: ${pos.average_buy_price.toFixed(2)} | מחיר נוכחי: ${stock?.current_price.toFixed(2)}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="card">
+                    <div className="card-header">
+                      <i className="fas fa-chart-line"></i> שוק המניות
+                    </div>
+                    <div className="card-body">
+                      <div style={{marginBottom: '1.5rem'}}>
+                        {stockPrices.map(stock => {
+                          const userPos = userPortfolio.find(p => p.member_name === stock.member_name);
+                          const isSelected = selectedStock === stock.member_name;
+
+                          return (
+                            <div
+                              key={stock.member_name}
+                              onClick={() => { setSelectedStock(stock.member_name); loadStockHistory(stock.member_name); }}
+                              style={{
+                                padding: '1rem',
+                                marginBottom: '0.75rem',
+                                background: isSelected ? '#eff6ff' : 'white',
+                                border: isSelected ? '2px solid #1877f2' : '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                <div style={{flex: 1}}>
+                                  <div style={{fontWeight: '600', fontSize: '1rem', marginBottom: '0.25rem'}}>
+                                    {stock.member_name}
+                                  </div>
+                                  {userPos && (
+                                    <div style={{fontSize: '0.8rem', color: '#6b7280'}}>
+                                      יש לך {userPos.shares} מניות
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{textAlign: 'left'}}>
+                                  <div style={{fontWeight: '700', fontSize: '1.2rem', marginBottom: '0.25rem'}}>
+                                    ${stock.current_price.toFixed(2)}
+                                  </div>
+                                  <div style={{
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600',
+                                    color: stock.daily_change_percent >= 0 ? '#10b981' : '#ef4444'
+                                  }}>
+                                    {stock.daily_change_percent >= 0 ? '+' : ''}{stock.daily_change_percent.toFixed(2)}%
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {selectedStock && (
+                        <div style={{padding: '1.5rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
+                          <h4 style={{marginBottom: '1rem', fontWeight: '600'}}>מסחר ב-{selectedStock}</h4>
+
+                          {stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 0 && (
+                            <div style={{marginBottom: '1.5rem', padding: '1rem', background: 'white', borderRadius: '8px'}}>
+                              <div style={{fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem', color: '#374151'}}>
+                                היסטוריית מחירים
+                              </div>
+                              <div style={{fontSize: '0.85rem', color: '#6b7280'}}>
+                                {stockPriceHistory[selectedStock].length} נקודות מחיר נרשמו
+                              </div>
+                            </div>
+                          )}
+
+                          <div style={{marginBottom: '1rem'}}>
+                            <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: '600'}}>כמות מניות:</label>
+                            <input
+                              type="number"
+                              min="0.01"
+                              step="0.01"
+                              value={stockAmount}
+                              onChange={(e) => setStockAmount(e.target.value)}
+                              placeholder="0.00"
+                              style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '8px',
+                                fontSize: '1rem'
+                              }}
+                            />
+                          </div>
+
+                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem'}}>
+                            <button onClick={buyStock} className="btn btn-primary" style={{width: '100%'}}>
+                              <i className="fas fa-arrow-up"></i> קנה
+                            </button>
+                            <button onClick={sellStock} className="btn btn-secondary" style={{width: '100%'}}>
+                              <i className="fas fa-arrow-down"></i> מכור
+                            </button>
+                          </div>
+
+                          {stockAmount && (
+                            <div style={{marginTop: '1rem', padding: '0.75rem', background: '#e0f2fe', borderRadius: '6px', fontSize: '0.9rem'}}>
+                              <strong>סה"כ: </strong>
+                              ${(parseFloat(stockAmount) * stockPrices.find(s => s.member_name === selectedStock)?.current_price || 0).toFixed(2)}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
 
               {selectedProfile && (
