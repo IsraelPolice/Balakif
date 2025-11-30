@@ -7,15 +7,15 @@ const corsHeaders = {
 };
 
 const stockProfiles = {
-  'דביר ברקת': { type: 'strong', volatility: 0.09, trend: 0.04, cycles: 4 },
-  'עמית לסרי': { type: 'strong', volatility: 0.08, trend: 0.038, cycles: 4 },
-  'יוסף קחלר': { type: 'strong', volatility: 0.075, trend: 0.035, cycles: 4 },
-  'איתי אוחנה': { type: 'strong', volatility: 0.07, trend: 0.033, cycles: 4 },
-  'דביר אוחנה': { type: 'strong', volatility: 0.072, trend: 0.031, cycles: 4 },
-  'אריאל שרביט': { type: 'weak', volatility: 0.17, trend: -0.025, cycles: 3 },
-  'אריאל עין גל': { type: 'weak', volatility: 0.15, trend: -0.022, cycles: 3 },
-  'קורן נאגר': { type: 'weak', volatility: 0.16, trend: -0.023, cycles: 3 },
-  'חיים מרקס': { type: 'weak', volatility: 0.14, trend: -0.020, cycles: 3 },
+  'דביר ברקת': { type: 'strong', volatility: 0.15, trend: 0.02, upChance: 0.65 },
+  'עמית לסרי': { type: 'strong', volatility: 0.14, trend: 0.018, upChance: 0.63 },
+  'יוסף קחלר': { type: 'strong', volatility: 0.13, trend: 0.015, upChance: 0.62 },
+  'איתי אוחנה': { type: 'strong', volatility: 0.12, trend: 0.012, upChance: 0.60 },
+  'דביר אוחנה': { type: 'medium', volatility: 0.18, trend: 0, upChance: 0.50 },
+  'אריאל שרביט': { type: 'weak', volatility: 0.20, trend: -0.015, upChance: 0.38 },
+  'אריאל עין גל': { type: 'weak', volatility: 0.19, trend: -0.012, upChance: 0.40 },
+  'קורן נאגר': { type: 'weak', volatility: 0.21, trend: -0.018, upChance: 0.35 },
+  'חיים מרקס': { type: 'weak', volatility: 0.17, trend: -0.010, upChance: 0.42 },
 };
 
 Deno.serve(async (req: Request) => {
@@ -41,26 +41,15 @@ Deno.serve(async (req: Request) => {
     const updates = [];
 
     for (const stock of stocks) {
-      const profile = stockProfiles[stock.member_name] || { type: 'medium', volatility: 0.05, trend: 0.01, cycles: 4 };
+      const profile = stockProfiles[stock.member_name] || { type: 'medium', volatility: 0.15, trend: 0, upChance: 0.50 };
       
       let changePercent = 0;
+      const rand = Math.random();
       
-      if (profile.type === 'strong') {
-        const cycle = Math.floor(Date.now() / 5000) % (profile.cycles + 1);
-        if (cycle < profile.cycles) {
-          changePercent = (Math.random() * profile.volatility * 0.8) + (profile.volatility * 0.2);
-        } else {
-          changePercent = -(Math.random() * profile.volatility * 0.9);
-        }
-      } else if (profile.type === 'weak') {
-        const rand = Math.random();
-        if (rand < 0.3) {
-          changePercent = Math.random() * profile.volatility * 0.5;
-        } else {
-          changePercent = -(Math.random() * profile.volatility);
-        }
+      if (rand < profile.upChance) {
+        changePercent = Math.random() * profile.volatility;
       } else {
-        changePercent = (Math.random() - 0.5) * profile.volatility;
+        changePercent = -(Math.random() * profile.volatility);
       }
 
       changePercent += profile.trend / 100;

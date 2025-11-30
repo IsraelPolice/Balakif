@@ -2056,337 +2056,267 @@
                         })}
                       </div>
 
-                      {selectedStock && (
-                        <div style={{padding: '2rem', background: 'linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)', borderRadius: '16px', border: '2px solid #3b82f6', boxShadow: '0 8px 24px rgba(59, 130, 246, 0.15)'}}>
-                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                            <h4 style={{fontWeight: '700', fontSize: '1.3rem', color: '#1f2937', margin: 0}}>
-                              <i className="fas fa-chart-area" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
-                              {selectedStock}
-                            </h4>
-                            <button
-                              onClick={() => setSelectedStock(null)}
-                              style={{
-                                padding: '0.5rem 1rem',
-                                background: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '0.9rem',
-                                fontWeight: '600',
-                                transition: 'all 0.2s'
-                              }}
-                              onMouseEnter={(e) => e.target.style.background = '#dc2626'}
-                              onMouseLeave={(e) => e.target.style.background = '#ef4444'}
-                            >
-                              <i className="fas fa-times"></i> סגור
-                            </button>
-                          </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
-                          <div style={{padding: '1.5rem', background: 'white', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #e5e7eb'}}>
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
-                              <div>
-                                <div style={{fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.25rem'}}>
-                                  {stockPrices.find(s => s.member_name === selectedStock)?.ticker}
-                                </div>
-                                <div style={{fontWeight: '800', fontSize: '2rem', color: '#1f2937'}}>
-                                  ${stockPrices.find(s => s.member_name === selectedStock)?.current_price.toFixed(2)}
-                                </div>
-                              </div>
-                              <div style={{textAlign: 'left'}}>
-                                <div style={{
-                                  fontSize: '1.2rem',
-                                  fontWeight: '700',
-                                  color: stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '#10b981' : '#ef4444',
-                                  background: stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '#d1fae5' : '#fee2e2',
-                                  padding: '0.5rem 1rem',
-                                  borderRadius: '8px'
-                                }}>
-                                  {stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '▲' : '▼'} {Math.abs(stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent || 0).toFixed(2)}%
-                                </div>
-                              </div>
+              {selectedStock && (
+                <div
+                  onClick={() => setSelectedStock(null)}
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10000,
+                    padding: '1rem',
+                    backdropFilter: 'blur(4px)'
+                  }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: 'white',
+                      borderRadius: '20px',
+                      maxWidth: '1200px',
+                      width: '100%',
+                      maxHeight: '90vh',
+                      overflow: 'auto',
+                      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{position: 'sticky', top: 0, background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)', padding: '1.5rem', borderRadius: '20px 20px 0 0', zIndex: 1}}>
+                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                          <i className="fas fa-chart-area" style={{fontSize: '1.5rem', color: 'white'}}></i>
+                          <div>
+                            <h2 style={{margin: 0, color: 'white', fontSize: '1.8rem', fontWeight: '800'}}>{selectedStock}</h2>
+                            <div style={{color: '#bfdbfe', fontSize: '0.9rem', marginTop: '0.25rem'}}>
+                              {stockPrices.find(s => s.member_name === selectedStock)?.ticker}
                             </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setSelectedStock(null)}
+                          style={{
+                            padding: '0.75rem 1.25rem',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            transition: 'all 0.2s',
+                            backdropFilter: 'blur(10px)'
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
+                          onMouseLeave={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+                        >
+                          <i className="fas fa-times"></i> סגור
+                        </button>
+                      </div>
 
-                            {stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 5 ? (
-                              <div style={{marginTop: '1.5rem'}}>
-                                <div style={{display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem'}}>
-                                  <button
-                                    onClick={() => setChartType('line')}
-                                    style={{
-                                      padding: '0.5rem 1.5rem',
-                                      background: chartType === 'line' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#e5e7eb',
-                                      color: chartType === 'line' ? 'white' : '#6b7280',
-                                      border: 'none',
-                                      borderRadius: '8px',
-                                      fontSize: '0.85rem',
-                                      fontWeight: '600',
-                                      cursor: 'pointer',
-                                      transition: 'all 0.2s',
-                                      boxShadow: chartType === 'line' ? '0 2px 8px rgba(59, 130, 246, 0.3)' : 'none'
-                                    }}
-                                  >
-                                    <i className="fas fa-chart-line" style={{marginLeft: '0.25rem'}}></i> Line
-                                  </button>
-                                  <button
-                                    onClick={() => setChartType('candlestick')}
-                                    style={{
-                                      padding: '0.5rem 1.5rem',
-                                      background: chartType === 'candlestick' ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#e5e7eb',
-                                      color: chartType === 'candlestick' ? 'white' : '#6b7280',
-                                      border: 'none',
-                                      borderRadius: '8px',
-                                      fontSize: '0.85rem',
-                                      fontWeight: '600',
-                                      cursor: 'pointer',
-                                      transition: 'all 0.2s',
-                                      boxShadow: chartType === 'candlestick' ? '0 2px 8px rgba(59, 130, 246, 0.3)' : 'none'
-                                    }}
-                                  >
-                                    <i className="fas fa-chart-bar" style={{marginLeft: '0.25rem'}}></i> Candles
-                                  </button>
-                                </div>
-                                <canvas
-                                  ref={(canvas) => {
-                                    if (canvas && stockPriceHistory[selectedStock]) {
-                                      const ctx = canvas.getContext('2d');
-                                      if (window.stockChart) window.stockChart.destroy();
+                      <div style={{display: 'flex', gap: '2rem', marginTop: '1.5rem', alignItems: 'center'}}>
+                        <div>
+                          <div style={{color: '#bfdbfe', fontSize: '0.8rem', marginBottom: '0.25rem'}}>מחיר נוכחי</div>
+                          <div style={{color: 'white', fontSize: '2.5rem', fontWeight: '900'}}>
+                            ${stockPrices.find(s => s.member_name === selectedStock)?.current_price.toFixed(2)}
+                          </div>
+                        </div>
+                        <div style={{
+                          padding: '1rem 1.5rem',
+                          background: stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                          borderRadius: '12px',
+                          backdropFilter: 'blur(10px)'
+                        }}>
+                          <div style={{color: stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '#d1fae5' : '#fecaca', fontSize: '0.75rem', marginBottom: '0.25rem'}}>
+                            שינוי יומי
+                          </div>
+                          <div style={{
+                            color: 'white',
+                            fontSize: '1.8rem',
+                            fontWeight: '800'
+                          }}>
+                            {stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent >= 0 ? '▲' : '▼'} {Math.abs(stockPrices.find(s => s.member_name === selectedStock)?.daily_change_percent || 0).toFixed(2)}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                                      const history = stockPriceHistory[selectedStock];
-                                      const isPositive = parseFloat(history[history.length - 1].price) >= parseFloat(history[0].price);
+                    <div style={{padding: '2rem'}}>
+                      {stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 5 ? (
+                        <>
+                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem'}}>
+                            <div style={{padding: '1.5rem', background: '#f9fafb', borderRadius: '16px', border: '2px solid #e5e7eb'}}>
+                              <h4 style={{margin: '0 0 1rem 0', fontWeight: '700', fontSize: '1.1rem', color: '#1f2937'}}>
+                                <i className="fas fa-chart-line" style={{marginLeft: '0.5rem', color: '#3b82f6'}}></i>
+                                Line Chart
+                              </h4>
+                              <canvas
+                                ref={(canvas) => {
+                                  if (canvas && stockPriceHistory[selectedStock]) {
+                                    const ctx = canvas.getContext('2d');
+                                    if (window.lineChart) window.lineChart.destroy();
 
-                                      if (chartType === 'line') {
-                                        const prices = history.map(h => parseFloat(h.price));
-                                        const labels = history.map((h, i) => i === 0 ? 'התחלה' : i === history.length - 1 ? 'עכשיו' : '');
+                                    const history = stockPriceHistory[selectedStock];
+                                    const prices = history.map(h => parseFloat(h.price));
+                                    const labels = history.map((h, i) => i === 0 ? 'התחלה' : i === history.length - 1 ? 'עכשיו' : '');
+                                    const isPositive = prices[prices.length - 1] >= prices[0];
 
-                                        window.stockChart = new Chart(ctx, {
-                                          type: 'line',
-                                          data: {
-                                            labels: labels,
-                                            datasets: [{
-                                              label: 'מחיר',
-                                              data: prices,
-                                              borderColor: isPositive ? '#10b981' : '#ef4444',
-                                              backgroundColor: isPositive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                              borderWidth: 3,
-                                              fill: true,
-                                              tension: 0.4,
-                                              pointRadius: 0,
-                                              pointHoverRadius: 6,
-                                              pointHoverBackgroundColor: isPositive ? '#10b981' : '#ef4444',
-                                              pointHoverBorderColor: '#fff',
-                                              pointHoverBorderWidth: 2
-                                            }]
-                                          },
-                                          options: {
-                                            responsive: true,
-                                            maintainAspectRatio: true,
-                                            aspectRatio: 2,
-                                            interaction: { intersect: false, mode: 'index' },
-                                            plugins: {
-                                              legend: { display: false },
-                                              tooltip: {
-                                                backgroundColor: '#1f2937',
-                                                padding: 12,
-                                                bodyFont: { size: 14, weight: 'bold' },
-                                                displayColors: false,
-                                                callbacks: { label: (context) => '$' + context.parsed.y.toFixed(2) }
-                                              }
-                                            },
-                                            scales: {
-                                              y: {
-                                                ticks: { callback: (value) => '$' + value.toFixed(2), font: { size: 11, weight: '600' }, color: '#6b7280' },
-                                                grid: { color: '#f3f4f6', drawBorder: false }
-                                              },
-                                              x: {
-                                                ticks: { font: { size: 11, weight: '600' }, color: '#6b7280' },
-                                                grid: { display: false, drawBorder: false }
-                                              }
-                                            }
+                                    window.lineChart = new Chart(ctx, {
+                                      type: 'line',
+                                      data: {
+                                        labels: labels,
+                                        datasets: [{
+                                          label: 'מחיר',
+                                          data: prices,
+                                          borderColor: isPositive ? '#10b981' : '#ef4444',
+                                          backgroundColor: isPositive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                          borderWidth: 3,
+                                          fill: true,
+                                          tension: 0.4,
+                                          pointRadius: 0,
+                                          pointHoverRadius: 6,
+                                          pointHoverBackgroundColor: isPositive ? '#10b981' : '#ef4444',
+                                          pointHoverBorderColor: '#fff',
+                                          pointHoverBorderWidth: 2
+                                        }]
+                                      },
+                                      options: {
+                                        responsive: true,
+                                        maintainAspectRatio: true,
+                                        aspectRatio: 1.5,
+                                        interaction: { intersect: false, mode: 'index' },
+                                        plugins: {
+                                          legend: { display: false },
+                                          tooltip: {
+                                            backgroundColor: '#1f2937',
+                                            padding: 12,
+                                            bodyFont: { size: 14, weight: 'bold' },
+                                            displayColors: false,
+                                            callbacks: { label: (context) => '$' + context.parsed.y.toFixed(2) }
                                           }
-                                        });
-                                      } else {
-                                        const candleData = [];
-                                        for (let i = 0; i < history.length; i += 4) {
-                                          const chunk = history.slice(i, i + 4);
-                                          if (chunk.length >= 2) {
-                                            const prices = chunk.map(h => parseFloat(h.price));
-                                            candleData.push({
-                                              x: i / 4,
-                                              o: prices[0],
-                                              h: Math.max(...prices),
-                                              l: Math.min(...prices),
-                                              c: prices[prices.length - 1]
-                                            });
+                                        },
+                                        scales: {
+                                          y: {
+                                            ticks: { callback: (value) => '$' + value.toFixed(2), font: { size: 11, weight: '600' }, color: '#6b7280' },
+                                            grid: { color: '#f3f4f6', drawBorder: false }
+                                          },
+                                          x: {
+                                            ticks: { font: { size: 11, weight: '600' }, color: '#6b7280' },
+                                            grid: { display: false, drawBorder: false }
                                           }
                                         }
+                                      }
+                                    });
+                                  }
+                                }}
+                                style={{maxHeight: '300px'}}
+                              />
+                            </div>
 
-                                        window.stockChart = new Chart(ctx, {
-                                          type: 'candlestick',
-                                          data: {
-                                            datasets: [{
-                                              label: 'מחיר',
-                                              data: candleData,
-                                              borderColor: '#6b7280',
-                                              color: {
-                                                up: '#10b981',
-                                                down: '#ef4444',
-                                                unchanged: '#6b7280'
-                                              }
-                                            }]
-                                          },
-                                          options: {
-                                            responsive: true,
-                                            maintainAspectRatio: true,
-                                            aspectRatio: 2,
-                                            plugins: {
-                                              legend: { display: false },
-                                              tooltip: {
-                                                backgroundColor: '#1f2937',
-                                                padding: 12,
-                                                bodyFont: { size: 12, weight: 'bold' },
-                                                displayColors: false,
-                                                callbacks: {
-                                                  label: (context) => {
-                                                    const d = context.raw;
-                                                    return [
-                                                      'Open: $' + d.o.toFixed(2),
-                                                      'High: $' + d.h.toFixed(2),
-                                                      'Low: $' + d.l.toFixed(2),
-                                                      'Close: $' + d.c.toFixed(2)
-                                                    ];
-                                                  }
-                                                }
-                                              }
-                                            },
-                                            scales: {
-                                              y: {
-                                                ticks: { callback: (value) => '$' + value.toFixed(2), font: { size: 11, weight: '600' }, color: '#6b7280' },
-                                                grid: { color: '#f3f4f6', drawBorder: false }
-                                              },
-                                              x: {
-                                                ticks: { display: false },
-                                                grid: { display: false, drawBorder: false }
-                                              }
-                                            }
-                                          }
+                            <div style={{padding: '1.5rem', background: '#f9fafb', borderRadius: '16px', border: '2px solid #e5e7eb'}}>
+                              <h4 style={{margin: '0 0 1rem 0', fontWeight: '700', fontSize: '1.1rem', color: '#1f2937'}}>
+                                <i className="fas fa-chart-bar" style={{marginLeft: '0.5rem', color: '#f59e0b'}}></i>
+                                Candlestick Chart
+                              </h4>
+                              <canvas
+                                ref={(canvas) => {
+                                  if (canvas && stockPriceHistory[selectedStock]) {
+                                    const ctx = canvas.getContext('2d');
+                                    if (window.candleChart) window.candleChart.destroy();
+
+                                    const history = stockPriceHistory[selectedStock];
+                                    const candleData = [];
+                                    for (let i = 0; i < history.length; i += 4) {
+                                      const chunk = history.slice(i, i + 4);
+                                      if (chunk.length >= 2) {
+                                        const prices = chunk.map(h => parseFloat(h.price));
+                                        candleData.push({
+                                          x: i / 4,
+                                          o: prices[0],
+                                          h: Math.max(...prices),
+                                          l: Math.min(...prices),
+                                          c: prices[prices.length - 1]
                                         });
                                       }
                                     }
-                                  }}
-                                  style={{maxHeight: '250px'}}
-                                />
-                              </div>
-                            ) : (
-                              <div style={{padding: '2rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem'}}>
-                                <i className="fas fa-chart-line" style={{fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.3}}></i>
-                                <div>אוסף נתוני גרף...</div>
-                                <div style={{fontSize: '0.8rem', marginTop: '0.25rem'}}>הגרף יופיע לאחר מספר עדכוני מחירים</div>
-                              </div>
-                            )}
-                          </div>
 
-                          <div style={{marginBottom: '1.5rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.75rem', fontWeight: '700', color: '#1f2937', fontSize: '1rem'}}>
-                              <i className="fas fa-hashtag" style={{marginLeft: '0.25rem', color: '#3b82f6'}}></i>
-                              כמות מניות
-                            </label>
-                            <input
-                              type="number"
-                              min="0.01"
-                              step="0.01"
-                              value={stockAmount}
-                              onChange={(e) => setStockAmount(e.target.value)}
-                              placeholder="0.00"
-                              style={{
-                                width: '100%',
-                                padding: '1rem',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '10px',
-                                fontSize: '1.1rem',
-                                fontWeight: '600',
-                                outline: 'none',
-                                transition: 'all 0.2s'
-                              }}
-                              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                            />
-                          </div>
-
-                          {stockAmount && (
-                            <div style={{marginBottom: '1.5rem', padding: '1rem', background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', borderRadius: '10px', border: '2px solid #3b82f6'}}>
-                              <div style={{fontSize: '0.85rem', color: '#1e40af', marginBottom: '0.25rem', fontWeight: '600'}}>
-                                סכום כולל:
-                              </div>
-                              <div style={{fontSize: '1.8rem', fontWeight: '800', color: '#1e40af'}}>
-                                ${(parseFloat(stockAmount) * stockPrices.find(s => s.member_name === selectedStock)?.current_price || 0).toFixed(2)}
-                              </div>
+                                    window.candleChart = new Chart(ctx, {
+                                      type: 'candlestick',
+                                      data: {
+                                        datasets: [{
+                                          label: 'מחיר',
+                                          data: candleData,
+                                          borderColor: '#6b7280',
+                                          color: {
+                                            up: '#10b981',
+                                            down: '#ef4444',
+                                            unchanged: '#6b7280'
+                                          }
+                                        }]
+                                      },
+                                      options: {
+                                        responsive: true,
+                                        maintainAspectRatio: true,
+                                        aspectRatio: 1.5,
+                                        plugins: {
+                                          legend: { display: false },
+                                          tooltip: {
+                                            backgroundColor: '#1f2937',
+                                            padding: 12,
+                                            bodyFont: { size: 12, weight: 'bold' },
+                                            displayColors: false,
+                                            callbacks: {
+                                              label: (context) => {
+                                                const d = context.raw;
+                                                return [
+                                                  'Open: $' + d.o.toFixed(2),
+                                                  'High: $' + d.h.toFixed(2),
+                                                  'Low: $' + d.l.toFixed(2),
+                                                  'Close: $' + d.c.toFixed(2)
+                                                ];
+                                              }
+                                            }
+                                          }
+                                        },
+                                        scales: {
+                                          y: {
+                                            ticks: { callback: (value) => '$' + value.toFixed(2), font: { size: 11, weight: '600' }, color: '#6b7280' },
+                                            grid: { color: '#f3f4f6', drawBorder: false }
+                                          },
+                                          x: {
+                                            ticks: { display: false },
+                                            grid: { display: false, drawBorder: false }
+                                          }
+                                        }
+                                      }
+                                    });
+                                  }
+                                }}
+                                style={{maxHeight: '300px'}}
+                              />
                             </div>
-                          )}
-
-                          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem'}}>
-                            <button
-                              onClick={buyStock}
-                              style={{
-                                padding: '1rem',
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '0.95rem',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                              }}
-                              onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)'; }}
-                              onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)'; }}
-                            >
-                              <i className="fas fa-arrow-up"></i><br/>קנה
-                            </button>
-                            <button
-                              onClick={sellStock}
-                              style={{
-                                padding: '1rem',
-                                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '0.95rem',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
-                              }}
-                              onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.4)'; }}
-                              onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)'; }}
-                            >
-                              <i className="fas fa-arrow-down"></i><br/>מכור
-                            </button>
-                            <button
-                              onClick={shortStock}
-                              style={{
-                                padding: '1rem',
-                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '0.95rem',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                              }}
-                              onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)'; }}
-                              onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)'; }}
-                            >
-                              <i className="fas fa-chart-line"></i><br/>שורט
-                            </button>
                           </div>
+                        </>
+                      ) : (
+                        <div style={{padding: '4rem 2rem', textAlign: 'center', color: '#6b7280'}}>
+                          <i className="fas fa-chart-line" style={{fontSize: '4rem', marginBottom: '1rem', opacity: 0.3}}></i>
+                          <div style={{fontSize: '1.2rem', fontWeight: '600'}}>אוסף נתוני גרף...</div>
+                          <div style={{fontSize: '0.9rem', marginTop: '0.5rem'}}>הגרפים יופיעו לאחר מספר עדכוני מחירים (כל 5 שניות)</div>
                         </div>
                       )}
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
               {selectedProfile && (
