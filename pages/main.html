@@ -1946,56 +1946,43 @@
     const Hero = () => (
       <section className="bg-white py-12 sm:py-20 content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="mb-12 oscar-banner rounded-xl overflow-hidden">
-            <a href="academy-awards.html" className="block oscar-content">
-              <div style={{position: 'relative'}}>
-                <img
-                  src="https://i.ibb.co/C3zyqv4F/Chat-GPT-Image-Oct-22-2025-04-33-19-PM.png"
-                  alt="פרסי האקדמיה - החבר'ה הטובים"
-                  className="w-full"
-                  style={{maxHeight: '500px', objectFit: 'cover', opacity: 0.7}}
-                />
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  padding: '2rem'
-                }}>
-                  <div className="trophy-icon" style={{fontSize: 'clamp(3rem, 8vw, 6rem)', marginBottom: '1rem'}}>
-                    🏆
-                  </div>
-                  <h3 className="oscar-title-text mb-4">
-                    פרסי האקדמיה
-                  </h3>
-                  <div className="oscar-subtitle mb-3">
-                    החבר'ה הטובים
-                  </div>
-                  <div style={{
-                    width: '80%',
-                    maxWidth: '400px',
-                    height: '2px',
-                    background: 'linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)',
+          <div className="mb-12 rounded-xl overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+            <div className="p-8 sm:p-12 text-center">
+              <div style={{fontSize: 'clamp(3rem, 8vw, 5rem)', marginBottom: '1.5rem'}}>
+                💬
+              </div>
+              <h3 style={{
+                fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+                fontWeight: '700',
+                color: '#1e40af',
+                marginBottom: '1rem'
+              }}>
+                הפורום עבר לאיזור המנויים!
+              </h3>
+              <p style={{
+                fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                color: '#1e3a8a',
+                marginBottom: '1.5rem',
+                lineHeight: '1.6'
+              }}>
+                כל הפעילות והדיונים עברו לאזור המנויים המשודרג שלנו
+              </p>
+              <div style={{
+                width: '80%',
+                maxWidth: '400px',
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent 0%, #3b82f6 50%, transparent 100%)',
                     margin: '1.5rem auto'
                   }}></div>
-                  <p className="oscar-cta mb-2">✦ ההצבעה פתוחה עכשיו ✦</p>
                   <p style={{
-                    color: 'rgba(212, 175, 55, 0.8)',
+                    color: '#2563eb',
                     fontSize: 'clamp(0.875rem, 2vw, 1.125rem)',
-                    letterSpacing: '0.1em',
-                    fontFamily: 'Playfair Display, serif'
+                    fontWeight: '600',
+                    marginTop: '1rem'
                   }}>
-                    לחץ להצביע לפרסים היוקרתיים ביותר
+                    היכנסו לאיזור המנויים למעלה כדי לגשת לפורום המשודרג
                   </p>
                 </div>
-              </div>
-            </a>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">ברוכים הבאים להחבר׳ה הטובים בגרסת ה-Web</h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">רשת חברתית ייחודית לחבר׳ה הטובים, המשלבת קהילה, תרבות וחדשנות.</p>
@@ -2119,7 +2106,6 @@
           )}
           <AdBanner />
           <Leadership />
-          <Forum />
           <Hero />
           <Sections />
           <Footer />

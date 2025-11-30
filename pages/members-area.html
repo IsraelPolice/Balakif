@@ -912,6 +912,12 @@
                 <div className="nav-icon" onClick={() => { setActiveView('groups'); setSelectedProfile(null); setSelectedGroup(null); }} title="קבוצות">
                   <i className="fas fa-users"></i>
                 </div>
+                <div className="nav-icon" onClick={() => { setActiveView('hevre-ai'); setSelectedProfile(null); setSelectedGroup(null); }} title="החבר'ה AI">
+                  <i className="fas fa-robot"></i>
+                </div>
+                <div className="nav-icon" onClick={() => { setActiveView('stocks'); setSelectedProfile(null); setSelectedGroup(null); }} title="שוק ההון">
+                  <i className="fas fa-chart-line"></i>
+                </div>
                 <div className="nav-icon" onClick={() => setSelectedProfile(userProfile)} title="פרופיל">
                   <div className="avatar" style={{width: '36px', height: '36px', fontSize: '0.9rem'}}>
                     {getInitials(userProfile.name)}
