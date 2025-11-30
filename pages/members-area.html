@@ -580,6 +580,9 @@
       const [showAdminPanel, setShowAdminPanel] = React.useState(false);
       const [adminPassword, setAdminPassword] = React.useState('');
       const [aiRequests, setAiRequests] = React.useState([]);
+      const [stockIndices, setStockIndices] = React.useState([]);
+      const [shortPositions, setShortPositions] = React.useState([]);
+      const [tradeType, setTradeType] = React.useState('buy');
 
       React.useEffect(() => {
         const savedUser = localStorage.getItem('hevre_user');
@@ -637,6 +640,8 @@
         loadBankAccount();
         loadStockPrices();
         loadUserPortfolio();
+        loadStockIndices();
+        loadShortPositions();
       };
 
       const loadUserProfile = async (phone) => {
@@ -973,6 +978,16 @@
         }
       };
 
+      const loadStockIndices = async () => {
+        const { data } = await supabase.from('stock_indices').select('*');
+        if (data) setStockIndices(data);
+      };
+
+      const loadShortPositions = async () => {
+        const { data } = await supabase.from('user_short_positions').select('*').eq('user_phone', user.phone);
+        if (data) setShortPositions(data);
+      };
+
       const handleGenerateAI = async () => {
         if (!selectedCharacter) {
           alert('אנא בחר דמות');
@@ -1123,6 +1138,63 @@
           alert('מכירה בוצעה בהצלחה!');
         } catch (err) {
           alert('שגיאה במכירה: ' + err.message);
+        }
+      };
+
+      const shortStock = async () => {
+        if (!selectedStock || !stockAmount || stockAmount <= 0) {
+          alert('אנא בחר מניה וכמות');
+          return;
+        }
+
+        const stock = stockPrices.find(s => s.member_name === selectedStock);
+        const collateral = stock.current_price * parseFloat(stockAmount);
+
+        if (collateral > bankBalance) {
+          alert('אין לך מספיק כסף לביטחון');
+          return;
+        }
+
+        try {
+          await supabase.from('user_short_positions').insert([{
+            user_phone: user.phone,
+            member_name: selectedStock,
+            shares: parseFloat(stockAmount),
+            short_price: stock.current_price
+          }]);
+
+          await supabase.from('user_bank_accounts')
+            .update({ balance: bankBalance - collateral, updated_at: new Date().toISOString() })
+            .eq('user_phone', user.phone);
+
+          setBankBalance(bankBalance - collateral);
+          loadShortPositions();
+          setStockAmount('');
+          setSelectedStock(null);
+          alert('שורט בוצע בהצלחה!');
+        } catch (err) {
+          alert('שגיאה בשורט: ' + err.message);
+        }
+      };
+
+      const closeShort = async (shortPos) => {
+        const stock = stockPrices.find(s => s.member_name === shortPos.member_name);
+        const profit = (shortPos.short_price - stock.current_price) * shortPos.shares;
+        const collateral = shortPos.short_price * shortPos.shares;
+        const totalReturn = collateral + profit;
+
+        try {
+          await supabase.from('user_short_positions').delete().eq('id', shortPos.id);
+
+          await supabase.from('user_bank_accounts')
+            .update({ balance: bankBalance + totalReturn, updated_at: new Date().toISOString() })
+            .eq('user_phone', user.phone);
+
+          setBankBalance(bankBalance + totalReturn);
+          loadShortPositions();
+          alert(`שורט נסגר! ${profit >= 0 ? 'רווח' : 'הפסד'}: $${Math.abs(profit).toFixed(2)}`);
+        } catch (err) {
+          alert('שגיאה בסגירת שורט: ' + err.message);
         }
       };
 
