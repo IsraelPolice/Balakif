@@ -1853,6 +1853,10 @@
                           return (
                             <div
                               key={stock.member_name}
+                              onClick={() => {
+                                setSelectedStock(stock.member_name);
+                                loadStockHistory(stock.member_name);
+                              }}
                               style={{
                                 padding: '1rem',
                                 marginBottom: '0.75rem',
@@ -1860,27 +1864,26 @@
                                 border: isSelected ? '2px solid #3b82f6' : '1px solid #e5e7eb',
                                 borderRadius: '12px',
                                 transition: 'all 0.2s',
-                                boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.2)' : '0 1px 3px rgba(0,0,0,0.05)'
+                                boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.2)' : '0 1px 3px rgba(0,0,0,0.05)',
+                                cursor: 'pointer'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.transform = 'translateY(-2px)';
+                                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.15)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                                }
                               }}
                             >
                               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem'}}>
                                 <div style={{flex: 1}}>
                                   <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem'}}>
-                                    <span
-                                      onClick={() => {
-                                        setSelectedStock(stock.member_name);
-                                        loadStockHistory(stock.member_name);
-                                      }}
-                                      style={{
-                                        fontWeight: '700',
-                                        fontSize: '1.05rem',
-                                        color: '#3b82f6',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                      }}
-                                      onMouseEnter={(e) => { e.target.style.color = '#1d4ed8'; e.target.style.textDecoration = 'underline'; }}
-                                      onMouseLeave={(e) => { e.target.style.color = '#3b82f6'; e.target.style.textDecoration = 'none'; }}
-                                    >
+                                    <span style={{fontWeight: '700', fontSize: '1.05rem', color: '#1f2937'}}>
                                       {stock.member_name}
                                     </span>
                                     <span style={{
@@ -2161,17 +2164,23 @@
                                 Line Chart
                               </h4>
                               <canvas
+                                key={`line-${selectedStock}-${stockPriceHistory[selectedStock]?.length || 0}`}
                                 ref={(canvas) => {
-                                  if (canvas && stockPriceHistory[selectedStock]) {
+                                  if (canvas && stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 0) {
                                     const ctx = canvas.getContext('2d');
-                                    if (window.lineChart) window.lineChart.destroy();
+                                    if (window.lineChart) {
+                                      try {
+                                        window.lineChart.destroy();
+                                      } catch (e) {}
+                                    }
 
                                     const history = stockPriceHistory[selectedStock];
                                     const prices = history.map(h => parseFloat(h.price));
                                     const labels = history.map((h, i) => i === 0 ? 'התחלה' : i === history.length - 1 ? 'עכשיו' : '');
                                     const isPositive = prices[prices.length - 1] >= prices[0];
 
-                                    window.lineChart = new Chart(ctx, {
+                                    try {
+                                      window.lineChart = new Chart(ctx, {
                                       type: 'line',
                                       data: {
                                         labels: labels,
@@ -2217,6 +2226,9 @@
                                         }
                                       }
                                     });
+                                    } catch (e) {
+                                      console.error('Line chart error:', e);
+                                    }
                                   }
                                 }}
                                 style={{maxHeight: '300px'}}
@@ -2229,10 +2241,15 @@
                                 Candlestick Chart
                               </h4>
                               <canvas
+                                key={`candle-${selectedStock}-${stockPriceHistory[selectedStock]?.length || 0}`}
                                 ref={(canvas) => {
-                                  if (canvas && stockPriceHistory[selectedStock]) {
+                                  if (canvas && stockPriceHistory[selectedStock] && stockPriceHistory[selectedStock].length > 0) {
                                     const ctx = canvas.getContext('2d');
-                                    if (window.candleChart) window.candleChart.destroy();
+                                    if (window.candleChart) {
+                                      try {
+                                        window.candleChart.destroy();
+                                      } catch (e) {}
+                                    }
 
                                     const history = stockPriceHistory[selectedStock];
                                     const candleData = [];
@@ -2250,7 +2267,8 @@
                                       }
                                     }
 
-                                    window.candleChart = new Chart(ctx, {
+                                    try {
+                                      window.candleChart = new Chart(ctx, {
                                       type: 'candlestick',
                                       data: {
                                         datasets: [{
@@ -2300,6 +2318,9 @@
                                         }
                                       }
                                     });
+                                    } catch (e) {
+                                      console.error('Candlestick chart error:', e);
+                                    }
                                   }
                                 }}
                                 style={{maxHeight: '300px'}}
