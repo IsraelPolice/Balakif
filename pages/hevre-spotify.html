@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hevre Spotify - החבר'ה הטובים</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f1419 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 40px;
+            background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(29, 185, 84, 0.3);
+        }
+
+        /* Artist Section */
+        .artist-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 60px;
+            background: linear-gradient(180deg, rgba(29, 185, 84, 0.15) 0%, transparent 100%);
+            border-radius: 30px;
+        }
+
+        .artist-images {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .artist-image {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #1DB954;
+            box-shadow: 0 20px 60px rgba(29, 185, 84, 0.4);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .artist-image:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 25px 80px rgba(29, 185, 84, 0.6);
+        }
+
+        .artist-name {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #1DB954 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+        }
+
+        .artist-stats {
+            display: flex;
+            gap: 30px;
+            font-size: 16px;
+            color: #b3b3b3;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Tracks Section */
+        .tracks-section {
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            color: #1DB954;
+        }
+
+        .tracks-grid {
+            display: grid;
+            gap: 25px;
+        }
+
+        .track-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .track-card:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+            border-color: #1DB954;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(29, 185, 84, 0.2);
+        }
+
+        .track-info {
+            margin-bottom: 20px;
+        }
+
+        .track-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #1DB954;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .track-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .track-artists {
+            font-size: 15px;
+            color: #b3b3b3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .soundcloud-embed {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .soundcloud-embed iframe {
+            border-radius: 15px;
+        }
+
+        /* Featured Badge */
+        .featured-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* Stats Cards */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+            padding: 0 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(29, 185, 84, 0.1) 0%, rgba(29, 185, 84, 0.05) 100%);
+            border: 1px solid rgba(29, 185, 84, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(29, 185, 84, 0.2);
+        }
+
+        .stat-card i {
+            font-size: 32px;
+            color: #1DB954;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #b3b3b3;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .artist-name {
+                font-size: 42px;
+            }
+
+            .artist-image {
+                width: 140px;
+                height: 140px;
+            }
+
+            .artist-images {
+                gap: 15px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .track-title {
+                font-size: 18px;
+            }
+
+            .logo-text {
+                font-size: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .stats-section {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .artist-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .track-card {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .track-card:nth-child(1) { animation-delay: 0.1s; }
+        .track-card:nth-child(2) { animation-delay: 0.2s; }
+        .track-card:nth-child(3) { animation-delay: 0.3s; }
+
+        /* Playing Animation */
+        .playing-indicator {
+            display: inline-flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 20px;
+            margin-left: 10px;
+        }
+
+        .playing-bar {
+            width: 3px;
+            background: #1DB954;
+            animation: playingAnimation 0.8s ease infinite;
+        }
+
+        .playing-bar:nth-child(1) { animation-delay: 0s; }
+        .playing-bar:nth-child(2) { animation-delay: 0.2s; }
+        .playing-bar:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes playingAnimation {
+            0%, 100% { height: 5px; }
+            50% { height: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span class="logo-text">Hevre Spotify</span>
+            </div>
+            <a href="main.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                חזרה לדף הראשי
+            </a>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <i class="fas fa-fire"></i>
+                <div class="stat-value">3</div>
+                <div class="stat-label">שירים</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div class="stat-value">8</div>
+                <div class="stat-label">אמנים</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div class="stat-value">~12</div>
+                <div class="stat-label">דקות</div>
+            </div>
+        </div>
+
+        <!-- Artist Section -->
+        <div class="artist-section">
+            <div class="featured-badge">
+                <i class="fas fa-star"></i>
+                אמן מוביל
+            </div>
+            <div class="artist-images">
+                <img src="https://i.ibb.co/0pmDBQQQ/Gemini-Generated-Image-uhmvbmuhmvbmuhmv.png" alt="עמית לסרי" class="artist-image">
+                <img src="https://i.ibb.co/d0TVs4t8/Gemini-Generated-Image-4bzqsm4bzqsm4bzq.png" alt="עמית לסרי" class="artist-image">
+                <img src="https://i.ibb.co/RTfmvGjp/Gemini-Generated-Image-dhl0c8dhl0c8dhl0.png" alt="עמית לסרי" class="artist-image">
+            </div>
+            <h1 class="artist-name">עמית לסרי</h1>
+            <div class="artist-stats">
+                <div class="stat-item">
+                    <i class="fas fa-certificate"></i>
+                    <span>מייסד החבר'ה הטובים</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>בן זונה של השנה x5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tracks Section -->
+        <div class="tracks-section">
+            <h2 class="section-title">
+                <i class="fas fa-compact-disc"></i>
+                השירים הפופולריים
+            </h2>
+            <div class="tracks-grid">
+                <!-- Track 1 -->
+                <div class="track-card">
+                    <div class="track-info">
+                        <div class="track-number">1</div>
+                        <h3 class="track-title">ה.ה לנצח טהורים</h3>
+                        <div class="track-artists">
+                            <i class="fas fa-microphone"></i>
+                            עמית לסרי, אור דהן, יוסף קחלר, חיים מרקס, רפי אלגרבלי
+                        </div>
+                    </div>
+                    <div class="soundcloud-embed">
+                        <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/2228760905%3Fsecret_token%3Ds-RrSPry82xf2&color=%231DB954&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+                    </div>
+                </div>
+
+                <!-- Track 2 -->
+                <div class="track-card">
+                    <div class="track-info">
+                        <div class="track-number">2</div>
+                        <h3 class="track-title">ביס לפנים</h3>
+                        <div class="track-artists">
+                            <i class="fas fa-microphone"></i>
+                            עמית לסרי, יוסף קחלר, אור דהן
+                        </div>
+                    </div>
+                    <div class="soundcloud-embed">
+                        <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/2228760899%3Fsecret_token%3Ds-Z8Lc35K84DL&color=%231DB954&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+                    </div>
+                </div>
+
+                <!-- Track 3 -->
+                <div class="track-card">
+                    <div class="track-info">
+                        <div class="track-number">3</div>
+                        <h3 class="track-title">חיים מפחד</h3>
+                        <div class="track-artists">
+                            <i class="fas fa-microphone"></i>
+                            עמית לסרי, איציק מור יוסף, חיים מרקס
+                        </div>
+                    </div>
+                    <div class="soundcloud-embed">
+                        <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/2228760902%3Fsecret_token%3Ds-tRB0kjWrvzw&color=%231DB954&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
