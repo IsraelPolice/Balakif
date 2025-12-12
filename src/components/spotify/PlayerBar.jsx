@@ -1,0 +1,112 @@
+import { useEffect, useRef, useState } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, Repeat, Shuffle } from 'lucide-react';
+
+export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    if (currentTrack) {
+      setIsPlaying(true);
+    }
+  }, [currentTrack]);
+
+  if (!currentTrack) {
+    return (
+      <div className="h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-4 flex items-center justify-center">
+        <p className="text-gray-500 text-sm">בחר שיר להשמעה</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-4 flex items-center justify-between">
+      {/* Track Info */}
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <img
+          src={currentTrack.cover_image}
+          alt={currentTrack.title}
+          className="w-14 h-14 rounded shadow-lg"
+        />
+        <div className="min-w-0 flex-1">
+          <h4 className="text-white font-semibold text-sm truncate">
+            {currentTrack.title}
+          </h4>
+          <p className="text-gray-400 text-xs truncate">
+            {currentTrack.artist_names?.join(', ')}
+          </p>
+        </div>
+        <button
+          onClick={() => setIsLiked(!isLiked)}
+          className="text-gray-400 hover:text-white transition-colors"
+        >
+          <Heart
+            className={`w-5 h-5 ${isLiked ? 'fill-green-500 text-green-500' : ''}`}
+          />
+        </button>
+      </div>
+
+      {/* Player Controls */}
+      <div className="flex flex-col items-center gap-2 flex-1 max-w-2xl">
+        <div className="flex items-center gap-4">
+          <button className="text-gray-400 hover:text-white transition-colors">
+            <Shuffle className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onPrevious}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <SkipBack className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5 text-black" fill="black" />
+            ) : (
+              <Play className="w-5 h-5 text-black ml-0.5" fill="black" />
+            )}
+          </button>
+          <button
+            onClick={onNext}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <SkipForward className="w-5 h-5" />
+          </button>
+          <button className="text-gray-400 hover:text-white transition-colors">
+            <Repeat className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Hidden iframe for SoundCloud playback */}
+        <div className="hidden">
+          {currentTrack && (
+            <iframe
+              ref={iframeRef}
+              width="100%"
+              height="166"
+              scrolling="no"
+              frameBorder="no"
+              allow="autoplay"
+              src={currentTrack.soundcloud_url}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Volume Control */}
+      <div className="flex items-center gap-2 flex-1 justify-end">
+        <Volume2 className="w-5 h-5 text-gray-400" />
+        <input
+          type="range"
+          min="0"
+          max="100"
+          defaultValue="70"
+          className="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+        />
+      </div>
+    </div>
+  );
+}
