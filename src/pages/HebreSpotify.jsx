@@ -113,7 +113,7 @@ export default function HebreSpotify() {
         <Sidebar currentView={currentView} onNavigate={handleNavigate} />
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto pb-24 pt-14 md:pt-0">
+        <div className="flex-1 overflow-y-auto pb-40 md:pb-24 pt-12 md:pt-0">
           {currentView === 'home' && (
             <div className="p-4 md:p-8">
               {/* Header */}
@@ -229,27 +229,27 @@ export default function HebreSpotify() {
           )}
 
           {currentView === 'search' && (
-            <div className="p-8">
-              <h1 className="text-5xl font-bold mb-8">חיפוש</h1>
+            <div className="p-4 md:p-8">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-8">חיפוש</h1>
               <input
                 type="text"
                 placeholder="מה בא לך לשמוע?"
-                className="w-full max-w-2xl px-6 py-4 bg-white text-black rounded-full text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full max-w-2xl px-4 md:px-6 py-3 md:py-4 bg-white text-black rounded-full text-base md:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           )}
 
           {currentView === 'library' && (
-            <div className="p-8">
-              <h1 className="text-5xl font-bold mb-8">הספרייה שלך</h1>
-              <div className="text-gray-400">בקרוב...</div>
+            <div className="p-4 md:p-8">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-8">הספרייה שלך</h1>
+              <div className="text-gray-400 text-sm md:text-base">בקרוב...</div>
             </div>
           )}
 
           {currentView === 'liked' && (
-            <div className="p-8">
-              <h1 className="text-5xl font-bold mb-8">שירים שאהבתי</h1>
-              <div className="text-gray-400">בקרוב...</div>
+            <div className="p-4 md:p-8">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-8">שירים שאהבתי</h1>
+              <div className="text-gray-400 text-sm md:text-base">בקרוב...</div>
             </div>
           )}
         </div>
@@ -264,7 +264,7 @@ export default function HebreSpotify() {
 
       {/* SoundCloud Player Modal */}
       {currentTrack && (
-        <div className="fixed bottom-36 md:bottom-28 right-2 left-2 md:right-4 md:left-auto md:w-96 z-50 bg-gray-900 rounded-lg shadow-2xl border border-green-500 overflow-hidden animate-slide-up">
+        <div className="fixed bottom-24 md:bottom-28 left-2 right-2 md:right-4 md:left-auto md:w-96 z-50 bg-gray-900 rounded-lg shadow-2xl border border-green-500 overflow-hidden animate-slide-up">
           <div className="p-2 md:p-3 bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>

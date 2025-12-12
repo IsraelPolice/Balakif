@@ -14,14 +14,14 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
 
   if (!currentTrack) {
     return (
-      <div className="h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-4 flex items-center justify-center">
+      <div className="h-20 md:h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-4 flex items-center justify-center">
         <p className="text-gray-500 text-sm">בחר שיר להשמעה</p>
       </div>
     );
   }
 
   return (
-    <div className="h-20 md:h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-2 md:px-4 flex items-center justify-between mb-16 md:mb-0">
+    <div className="h-20 md:h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-2 md:px-4 flex items-center justify-between">
       {/* Track Info */}
       <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
         <img
