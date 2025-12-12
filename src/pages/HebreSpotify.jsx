@@ -41,19 +41,24 @@ export default function HebreSpotify() {
   };
 
   const handlePlayTrack = (track, index) => {
-    setCurrentTrack(track);
+    const autoplayUrl = track.soundcloud_url.replace('auto_play=false', 'auto_play=true');
+    setCurrentTrack({ ...track, soundcloud_url: autoplayUrl });
     setCurrentTrackIndex(index);
   };
 
   const handleNext = () => {
     const nextIndex = (currentTrackIndex + 1) % tracks.length;
-    setCurrentTrack(tracks[nextIndex]);
+    const track = tracks[nextIndex];
+    const autoplayUrl = track.soundcloud_url.replace('auto_play=false', 'auto_play=true');
+    setCurrentTrack({ ...track, soundcloud_url: autoplayUrl });
     setCurrentTrackIndex(nextIndex);
   };
 
   const handlePrevious = () => {
     const prevIndex = currentTrackIndex === 0 ? tracks.length - 1 : currentTrackIndex - 1;
-    setCurrentTrack(tracks[prevIndex]);
+    const track = tracks[prevIndex];
+    const autoplayUrl = track.soundcloud_url.replace('auto_play=false', 'auto_play=true');
+    setCurrentTrack({ ...track, soundcloud_url: autoplayUrl });
     setCurrentTrackIndex(prevIndex);
   };
 
@@ -220,17 +225,21 @@ export default function HebreSpotify() {
 
       {/* SoundCloud Player Modal */}
       {currentTrack && (
-        <div className="fixed bottom-24 right-4 left-4 md:left-auto md:w-96 z-50 bg-gray-900 rounded-lg shadow-2xl border border-gray-700 overflow-hidden">
-          <div className="p-3 bg-gray-800 flex items-center justify-between">
-            <span className="text-sm font-semibold text-white">מנגן מוסיקה</span>
+        <div className="fixed bottom-24 right-4 left-4 md:left-auto md:w-96 z-50 bg-gray-900 rounded-lg shadow-2xl border border-green-500 overflow-hidden animate-slide-up">
+          <div className="p-3 bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span className="text-sm font-bold text-white">מנגן עכשיו</span>
+            </div>
             <button
               onClick={() => setCurrentTrack(null)}
-              className="text-gray-400 hover:text-white"
+              className="text-white hover:text-gray-200 font-bold text-lg"
             >
               ✕
             </button>
           </div>
           <iframe
+            key={currentTrack.id}
             width="100%"
             height="166"
             scrolling="no"
