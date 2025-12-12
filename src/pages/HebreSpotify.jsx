@@ -78,6 +78,26 @@ export default function HebreSpotify() {
     return tracks.filter(track => track.artist_names?.includes(artistName));
   };
 
+  const getRelatedArtists = (currentArtist) => {
+    const artistTracks = getArtistTracks(currentArtist.name);
+    const collaborators = new Set();
+
+    artistTracks.forEach(track => {
+      track.artist_names?.forEach(name => {
+        if (name !== currentArtist.name) {
+          collaborators.add(name);
+        }
+      });
+    });
+
+    const related = artists.filter(artist =>
+      artist.name !== currentArtist.name &&
+      (collaborators.has(artist.name) || Math.random() > 0.5)
+    );
+
+    return related.slice(0, 4);
+  };
+
   if (loading) {
     return (
       <div className="h-screen bg-black flex items-center justify-center">
@@ -93,23 +113,23 @@ export default function HebreSpotify() {
         <Sidebar currentView={currentView} onNavigate={handleNavigate} />
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pb-24 pt-14 md:pt-0">
           {currentView === 'home' && (
-            <div className="p-8">
+            <div className="p-4 md:p-8">
               {/* Header */}
-              <div className="mb-8">
-                <h1 className="text-5xl font-bold mb-2">שלום</h1>
-                <p className="text-gray-400">מה בא לך לשמוע היום?</p>
+              <div className="mb-6 md:mb-8">
+                <h1 className="text-3xl md:text-5xl font-bold mb-2">שלום</h1>
+                <p className="text-sm md:text-base text-gray-400">מה בא לך לשמוע היום?</p>
               </div>
 
               {/* Popular Tracks */}
-              <section className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <TrendingUp className="w-8 h-8 text-green-500" />
-                  <h2 className="text-3xl font-bold">השירים הפופולריים</h2>
+              <section className="mb-8 md:mb-12">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                  <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
+                  <h2 className="text-2xl md:text-3xl font-bold">השירים הפופולריים</h2>
                 </div>
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-gray-400 border-b border-gray-800 mb-2">
+                <div className="bg-gray-900 rounded-lg p-2 md:p-4">
+                  <div className="hidden md:grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-gray-400 border-b border-gray-800 mb-2">
                     <div>#</div>
                     <div>שם</div>
                     <div>אלבום</div>
@@ -129,11 +149,11 @@ export default function HebreSpotify() {
 
               {/* Artists */}
               <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <Music2 className="w-8 h-8 text-green-500" />
-                  <h2 className="text-3xl font-bold">האמנים שלנו</h2>
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                  <Music2 className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
+                  <h2 className="text-2xl md:text-3xl font-bold">האמנים שלנו</h2>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                   {artists.map((artist) => (
                     <ArtistCard
                       key={artist.id}
@@ -147,34 +167,37 @@ export default function HebreSpotify() {
           )}
 
           {currentView === 'artist' && selectedArtist && (
-            <div className="min-h-full">
+            <div className="min-h-full pb-32">
               {/* Artist Header */}
               <div
-                className="relative h-80 bg-gradient-to-b from-green-800 to-transparent p-8 flex items-end"
+                className="relative h-64 md:h-80 bg-gradient-to-b from-green-800 to-transparent p-4 md:p-8 flex items-end"
                 style={{
                   backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%), url(${selectedArtist.image_url})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
               >
-                <div className="flex items-end gap-6">
+                <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 w-full">
                   <img
                     src={selectedArtist.image_url}
                     alt={selectedArtist.name}
-                    className="w-48 h-48 rounded-full shadow-2xl border-4 border-white"
+                    className="w-32 h-32 md:w-48 md:h-48 rounded-full shadow-2xl border-4 border-white"
                   />
-                  <div>
-                    <p className="text-sm font-semibold mb-2">אמן</p>
-                    <h1 className="text-7xl font-black mb-4">{selectedArtist.name}</h1>
-                    <p className="text-lg text-gray-200">{selectedArtist.bio}</p>
+                  <div className="text-center md:text-right">
+                    <p className="text-xs md:text-sm font-semibold mb-1 md:mb-2">אמן</p>
+                    <h1 className="text-4xl md:text-7xl font-black mb-2 md:mb-4">{selectedArtist.name}</h1>
+                    <p className="text-sm md:text-lg text-gray-200">{selectedArtist.bio}</p>
+                    {selectedArtist.stats?.awards && (
+                      <p className="text-xs md:text-sm text-green-400 mt-2">{selectedArtist.stats.awards}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Artist Tracks */}
-              <div className="p-8 bg-gradient-to-b from-black/40 to-black">
-                <h2 className="text-2xl font-bold mb-6">שירים פופולריים</h2>
-                <div className="bg-black/30 rounded-lg p-4">
+              <div className="p-4 md:p-8 bg-gradient-to-b from-black/40 to-black">
+                <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">שירים פופולריים</h2>
+                <div className="bg-black/30 rounded-lg p-2 md:p-4">
                   {getArtistTracks(selectedArtist.name).map((track, index) => (
                     <TrackRow
                       key={track.id}
@@ -185,6 +208,22 @@ export default function HebreSpotify() {
                     />
                   ))}
                 </div>
+
+                {/* You May Also Like */}
+                {getRelatedArtists(selectedArtist).length > 0 && (
+                  <div className="mt-8 md:mt-12">
+                    <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">תאהבו גם</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                      {getRelatedArtists(selectedArtist).map((artist) => (
+                        <ArtistCard
+                          key={artist.id}
+                          artist={artist}
+                          onClick={() => handleArtistClick(artist)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -225,15 +264,15 @@ export default function HebreSpotify() {
 
       {/* SoundCloud Player Modal */}
       {currentTrack && (
-        <div className="fixed bottom-24 right-4 left-4 md:left-auto md:w-96 z-50 bg-gray-900 rounded-lg shadow-2xl border border-green-500 overflow-hidden animate-slide-up">
-          <div className="p-3 bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-between">
+        <div className="fixed bottom-36 md:bottom-28 right-2 left-2 md:right-4 md:left-auto md:w-96 z-50 bg-gray-900 rounded-lg shadow-2xl border border-green-500 overflow-hidden animate-slide-up">
+          <div className="p-2 md:p-3 bg-gradient-to-r from-green-600 to-green-500 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-              <span className="text-sm font-bold text-white">מנגן עכשיו</span>
+              <span className="text-xs md:text-sm font-bold text-white">מנגן עכשיו</span>
             </div>
             <button
               onClick={() => setCurrentTrack(null)}
-              className="text-white hover:text-gray-200 font-bold text-lg"
+              className="text-white hover:text-gray-200 font-bold text-base md:text-lg"
             >
               ✕
             </button>

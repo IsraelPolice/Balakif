@@ -21,16 +21,16 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
   }
 
   return (
-    <div className="h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-4 flex items-center justify-between">
+    <div className="h-20 md:h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-2 md:px-4 flex items-center justify-between mb-16 md:mb-0">
       {/* Track Info */}
-      <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
         <img
           src={currentTrack.cover_image}
           alt={currentTrack.title}
-          className="w-14 h-14 rounded shadow-lg"
+          className="w-12 h-12 md:w-14 md:h-14 rounded shadow-lg"
         />
         <div className="min-w-0 flex-1">
-          <h4 className="text-white font-semibold text-sm truncate">
+          <h4 className="text-white font-semibold text-xs md:text-sm truncate">
             {currentTrack.title}
           </h4>
           <p className="text-gray-400 text-xs truncate">
@@ -39,7 +39,7 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
         </div>
         <button
           onClick={() => setIsLiked(!isLiked)}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="hidden md:block text-gray-400 hover:text-white transition-colors"
         >
           <Heart
             className={`w-5 h-5 ${isLiked ? 'fill-green-500 text-green-500' : ''}`}
@@ -49,33 +49,33 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
 
       {/* Player Controls */}
       <div className="flex flex-col items-center gap-2 flex-1 max-w-2xl">
-        <div className="flex items-center gap-4">
-          <button className="text-gray-400 hover:text-white transition-colors">
+        <div className="flex items-center gap-2 md:gap-4">
+          <button className="hidden md:block text-gray-400 hover:text-white transition-colors">
             <Shuffle className="w-4 h-4" />
           </button>
           <button
             onClick={onPrevious}
             className="text-gray-400 hover:text-white transition-colors"
           >
-            <SkipBack className="w-5 h-5" />
+            <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+            className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
           >
             {isPlaying ? (
-              <Pause className="w-5 h-5 text-black" fill="black" />
+              <Pause className="w-4 h-4 md:w-5 md:h-5 text-black" fill="black" />
             ) : (
-              <Play className="w-5 h-5 text-black ml-0.5" fill="black" />
+              <Play className="w-4 h-4 md:w-5 md:h-5 text-black ml-0.5" fill="black" />
             )}
           </button>
           <button
             onClick={onNext}
             className="text-gray-400 hover:text-white transition-colors"
           >
-            <SkipForward className="w-5 h-5" />
+            <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
           </button>
-          <button className="text-gray-400 hover:text-white transition-colors">
+          <button className="hidden md:block text-gray-400 hover:text-white transition-colors">
             <Repeat className="w-4 h-4" />
           </button>
         </div>
@@ -97,7 +97,7 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
       </div>
 
       {/* Volume Control */}
-      <div className="flex items-center gap-2 flex-1 justify-end">
+      <div className="hidden md:flex items-center gap-2 flex-1 justify-end">
         <Volume2 className="w-5 h-5 text-gray-400" />
         <input
           type="range"
