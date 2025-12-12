@@ -18,9 +18,12 @@ export default function Sidebar({ currentView, onNavigate }) {
             <img
               src="https://i.ibb.co/PvgqzZPB/Gemini-Generated-Image-a7xqq1a7xqq1a7xq-1.png"
               alt="Hevre Spotify"
-              className="w-10 h-10 rounded-lg"
+              className="w-12 h-12 rounded-lg object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
             />
-            <h1 className="text-white text-2xl font-bold">Hevre Spotify</h1>
+            <h1 className="text-white text-xl font-bold">Hevre Spotify</h1>
           </div>
         </div>
 
@@ -105,19 +108,22 @@ export default function Sidebar({ currentView, onNavigate }) {
       </div>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-gradient-to-b from-black/98 to-black/95 backdrop-blur-md border-b border-gray-800/50 z-40 px-3 py-2 pt-safe">
-        <div className="flex items-center justify-between h-12">
-          <div className="flex items-center gap-2.5">
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-black/98 backdrop-blur-lg border-b border-gray-800/70 z-40 px-4 py-2.5 safe-top">
+        <div className="flex items-center justify-between h-11">
+          <div className="flex items-center gap-2">
             <img
               src="https://i.ibb.co/PvgqzZPB/Gemini-Generated-Image-a7xqq1a7xqq1a7xq-1.png"
               alt="Hevre Spotify"
-              className="w-9 h-9 rounded-lg shadow-lg"
+              className="w-8 h-8 rounded-md object-cover shadow-lg"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
             />
-            <h1 className="text-white text-lg font-bold tracking-tight">Hevre Spotify</h1>
+            <h1 className="text-white text-base font-bold tracking-tight">Hevre Spotify</h1>
           </div>
           <a
             href="/pages/main.html"
-            className="text-xs px-3.5 py-2 bg-gray-800 hover:bg-gray-700 active:scale-95 text-white rounded-full font-bold transition-all shadow-md"
+            className="text-xs px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 text-white rounded-full font-semibold transition-all shadow-md"
           >
             חזרה
           </a>
