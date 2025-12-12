@@ -15,14 +15,7 @@ export default function Sidebar({ currentView, onNavigate }) {
         {/* Logo */}
         <div className="p-6">
           <div className="flex items-center gap-3">
-            <img
-              src="https://i.ibb.co/PvgqzZPB/Gemini-Generated-Image-a7xqq1a7xqq1a7xq-1.png"
-              alt="Hevre Spotify"
-              className="w-12 h-12 rounded-lg object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
+            <Music className="w-10 h-10 text-green-500" />
             <h1 className="text-white text-xl font-bold">Hevre Spotify</h1>
           </div>
         </div>
@@ -111,14 +104,7 @@ export default function Sidebar({ currentView, onNavigate }) {
       <div className="md:hidden fixed top-0 left-0 right-0 bg-black/98 backdrop-blur-lg border-b border-gray-800/70 z-40 px-4 py-2.5 safe-top">
         <div className="flex items-center justify-between h-11">
           <div className="flex items-center gap-2">
-            <img
-              src="https://i.ibb.co/PvgqzZPB/Gemini-Generated-Image-a7xqq1a7xqq1a7xq-1.png"
-              alt="Hevre Spotify"
-              className="w-8 h-8 rounded-md object-cover shadow-lg"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
+            <Music className="w-7 h-7 text-green-500" />
             <h1 className="text-white text-base font-bold tracking-tight">Hevre Spotify</h1>
           </div>
           <a

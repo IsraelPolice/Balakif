@@ -20,6 +20,7 @@ export default function HebreSpotify() {
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [trackListens, setTrackListens] = useState({});
 
   useEffect(() => {
     loadData();
@@ -27,13 +28,22 @@ export default function HebreSpotify() {
 
   const loadData = async () => {
     try {
-      const [artistsRes, tracksRes] = await Promise.all([
+      const [artistsRes, tracksRes, listensRes] = await Promise.all([
         supabase.from('artists').select('*').order('name'),
-        supabase.from('tracks').select('*').order('created_at', { ascending: false })
+        supabase.from('tracks').select('*').order('created_at', { ascending: false }),
+        supabase.from('track_listens').select('*')
       ]);
 
       if (artistsRes.data) setArtists(artistsRes.data);
       if (tracksRes.data) setTracks(tracksRes.data);
+
+      if (listensRes.data) {
+        const listensMap = {};
+        listensRes.data.forEach(listen => {
+          listensMap[listen.track_id] = listen.listen_count;
+        });
+        setTrackListens(listensMap);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -41,26 +51,37 @@ export default function HebreSpotify() {
     }
   };
 
-  const handlePlayTrack = (track, index) => {
+  const handlePlayTrack = async (track, index) => {
     const autoplayUrl = track.soundcloud_url.replace('auto_play=false', 'auto_play=true');
     setCurrentTrack({ ...track, soundcloud_url: autoplayUrl });
     setCurrentTrackIndex(index);
+
+    try {
+      const { data, error } = await supabase.rpc('increment_track_listens', {
+        p_track_id: track.id
+      });
+
+      if (!error && data) {
+        setTrackListens(prev => ({
+          ...prev,
+          [track.id]: data
+        }));
+      }
+    } catch (error) {
+      console.error('Error incrementing listens:', error);
+    }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const nextIndex = (currentTrackIndex + 1) % tracks.length;
     const track = tracks[nextIndex];
-    const autoplayUrl = track.soundcloud_url.replace('auto_play=false', 'auto_play=true');
-    setCurrentTrack({ ...track, soundcloud_url: autoplayUrl });
-    setCurrentTrackIndex(nextIndex);
+    await handlePlayTrack(track, nextIndex);
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
     const prevIndex = currentTrackIndex === 0 ? tracks.length - 1 : currentTrackIndex - 1;
     const track = tracks[prevIndex];
-    const autoplayUrl = track.soundcloud_url.replace('auto_play=false', 'auto_play=true');
-    setCurrentTrack({ ...track, soundcloud_url: autoplayUrl });
-    setCurrentTrackIndex(prevIndex);
+    await handlePlayTrack(track, prevIndex);
   };
 
   const handleArtistClick = (artist) => {
@@ -161,6 +182,7 @@ export default function HebreSpotify() {
                       index={index}
                       isPlaying={currentTrack?.id === track.id}
                       onPlay={() => handlePlayTrack(track, index)}
+                      listenCount={trackListens[track.id] || 0}
                     />
                   ))}
                 </div>
@@ -224,6 +246,7 @@ export default function HebreSpotify() {
                       index={index}
                       isPlaying={currentTrack?.id === track.id}
                       onPlay={() => handlePlayTrack(track, index)}
+                      listenCount={trackListens[track.id] || 0}
                     />
                   ))}
                 </div>
@@ -288,6 +311,7 @@ export default function HebreSpotify() {
                             index={index}
                             isPlaying={currentTrack?.id === track.id}
                             onPlay={() => handlePlayTrack(track, index)}
+                            listenCount={trackListens[track.id] || 0}
                           />
                         ))}
                       </div>

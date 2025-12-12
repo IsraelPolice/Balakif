@@ -1,13 +1,17 @@
-import { Play, Pause, Clock } from 'lucide-react';
+import { Play, Pause, Clock, Headphones } from 'lucide-react';
 import { useState } from 'react';
 
-export default function TrackRow({ track, index, isPlaying, onPlay }) {
+export default function TrackRow({ track, index, isPlaying, onPlay, listenCount = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
 
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatListenCount = (count) => {
+    return count < 50 ? '<50' : count.toLocaleString('he-IL');
   };
 
   return (
@@ -45,8 +49,12 @@ export default function TrackRow({ track, index, isPlaying, onPlay }) {
           <div className={`text-base md:text-base font-semibold truncate ${isPlaying ? 'text-green-500' : 'text-white'}`}>
             {track.title}
           </div>
-          <div className="text-sm md:text-sm text-gray-400 truncate">
-            {track.artist_names?.join(', ')}
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span className="truncate">{track.artist_names?.join(', ')}</span>
+            <span className="hidden md:inline-flex items-center gap-1 text-xs text-gray-500">
+              <Headphones className="w-3 h-3" />
+              {formatListenCount(listenCount)}
+            </span>
           </div>
         </div>
       </div>
@@ -56,10 +64,17 @@ export default function TrackRow({ track, index, isPlaying, onPlay }) {
         <span className="truncate">Hevre Hits</span>
       </div>
 
-      {/* Duration */}
-      <div className="flex items-center justify-end text-sm text-gray-400">
-        <Clock className="w-4 h-4 mr-1.5 md:hidden" />
-        {formatDuration(track.duration)}
+      {/* Duration & Listens (Mobile) */}
+      <div className="flex flex-col items-end justify-center gap-1">
+        <div className="flex items-center text-sm text-gray-400">
+          <Clock className="w-3.5 h-3.5 mr-1 md:hidden" />
+          <span className="hidden md:inline">{formatDuration(track.duration)}</span>
+          <span className="md:hidden text-xs">{formatDuration(track.duration)}</span>
+        </div>
+        <div className="md:hidden flex items-center gap-1 text-xs text-gray-500">
+          <Headphones className="w-3 h-3" />
+          {formatListenCount(listenCount)}
+        </div>
       </div>
     </div>
   );
