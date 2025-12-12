@@ -77,8 +77,8 @@ export default function Sidebar({ currentView, onNavigate }) {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-950 border-t border-gray-800 z-50">
-        <nav className="flex justify-around items-center h-16">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-gray-800 z-50 pb-safe">
+        <nav className="flex justify-around items-center h-16 px-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -86,18 +86,18 @@ export default function Sidebar({ currentView, onNavigate }) {
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-2 flex-1 transition-colors ${
-                  isActive ? 'text-white' : 'text-gray-400'
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 flex-1 transition-all ${
+                  isActive ? 'text-white' : 'text-gray-400 active:scale-95'
                 }`}
               >
                 {item.id === 'liked' ? (
-                  <div className={`w-6 h-6 bg-gradient-to-br from-purple-600 to-blue-400 rounded flex items-center justify-center ${isActive ? 'scale-110' : ''}`}>
-                    <Heart className="w-4 h-4 text-white" fill="white" />
+                  <div className={`w-6 h-6 bg-gradient-to-br from-purple-600 to-blue-400 rounded flex items-center justify-center transition-transform ${isActive ? 'scale-110' : ''}`}>
+                    <Heart className="w-3.5 h-3.5 text-white" fill="white" />
                   </div>
                 ) : (
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-green-500' : ''}`} />
+                  <Icon className={`w-6 h-6 transition-colors ${isActive ? 'text-white' : ''}`} />
                 )}
-                <span className="text-xs font-medium">{item.label}</span>
+                <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? 'text-white' : 'text-gray-400'}`}>{item.label}</span>
               </button>
             );
           })}
@@ -105,19 +105,19 @@ export default function Sidebar({ currentView, onNavigate }) {
       </div>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-b border-gray-800 z-40 px-4 py-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-gradient-to-b from-black/98 to-black/95 backdrop-blur-md border-b border-gray-800/50 z-40 px-3 py-2 pt-safe">
+        <div className="flex items-center justify-between h-12">
+          <div className="flex items-center gap-2.5">
             <img
               src="https://i.ibb.co/PvgqzZPB/Gemini-Generated-Image-a7xqq1a7xqq1a7xq-1.png"
               alt="Hevre Spotify"
-              className="w-8 h-8 rounded-lg"
+              className="w-9 h-9 rounded-lg shadow-lg"
             />
-            <h1 className="text-white text-base font-bold">Hevre Spotify</h1>
+            <h1 className="text-white text-lg font-bold tracking-tight">Hevre Spotify</h1>
           </div>
           <a
             href="/pages/main.html"
-            className="text-xs px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-full font-semibold transition-colors"
+            className="text-xs px-3.5 py-2 bg-gray-800 hover:bg-gray-700 active:scale-95 text-white rounded-full font-bold transition-all shadow-md"
           >
             חזרה
           </a>

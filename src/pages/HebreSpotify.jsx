@@ -19,6 +19,7 @@ export default function HebreSpotify() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadData();
@@ -98,6 +99,24 @@ export default function HebreSpotify() {
     return related.slice(0, 4);
   };
 
+  const getSearchResults = () => {
+    if (!searchQuery.trim()) return { tracks: [], artists: [] };
+
+    const query = searchQuery.toLowerCase();
+    const filteredTracks = tracks.filter(track =>
+      track.name.toLowerCase().includes(query) ||
+      track.album?.toLowerCase().includes(query) ||
+      track.artist_names?.some(artist => artist.toLowerCase().includes(query))
+    );
+
+    const filteredArtists = artists.filter(artist =>
+      artist.name.toLowerCase().includes(query) ||
+      artist.bio?.toLowerCase().includes(query)
+    );
+
+    return { tracks: filteredTracks, artists: filteredArtists };
+  };
+
   if (loading) {
     return (
       <div className="h-screen bg-black flex items-center justify-center">
@@ -113,22 +132,22 @@ export default function HebreSpotify() {
         <Sidebar currentView={currentView} onNavigate={handleNavigate} />
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto pb-40 md:pb-24 pt-12 md:pt-0">
+        <div className="flex-1 overflow-y-auto pb-20 md:pb-24 pt-14 md:pt-0">
           {currentView === 'home' && (
-            <div className="p-4 md:p-8">
+            <div className="p-3 md:p-8">
               {/* Header */}
-              <div className="mb-6 md:mb-8">
-                <h1 className="text-3xl md:text-5xl font-bold mb-2">שלום</h1>
-                <p className="text-sm md:text-base text-gray-400">מה בא לך לשמוע היום?</p>
+              <div className="mb-5 md:mb-8">
+                <h1 className="text-2xl md:text-5xl font-bold mb-1 md:mb-2">שלום</h1>
+                <p className="text-xs md:text-base text-gray-400">מה בא לך לשמוע היום?</p>
               </div>
 
               {/* Popular Tracks */}
-              <section className="mb-8 md:mb-12">
-                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-                  <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
-                  <h2 className="text-2xl md:text-3xl font-bold">השירים הפופולריים</h2>
+              <section className="mb-6 md:mb-12">
+                <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+                  <TrendingUp className="w-5 h-5 md:w-8 md:h-8 text-green-500" />
+                  <h2 className="text-xl md:text-3xl font-bold">השירים הפופולריים</h2>
                 </div>
-                <div className="bg-gray-900 rounded-lg p-2 md:p-4">
+                <div className="bg-gray-900/50 md:bg-gray-900 rounded-lg p-1 md:p-4">
                   <div className="hidden md:grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-gray-400 border-b border-gray-800 mb-2">
                     <div>#</div>
                     <div>שם</div>
@@ -148,12 +167,12 @@ export default function HebreSpotify() {
               </section>
 
               {/* Artists */}
-              <section>
-                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-                  <Music2 className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
-                  <h2 className="text-2xl md:text-3xl font-bold">האמנים שלנו</h2>
+              <section className="pb-4">
+                <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+                  <Music2 className="w-5 h-5 md:w-8 md:h-8 text-green-500" />
+                  <h2 className="text-xl md:text-3xl font-bold">האמנים שלנו</h2>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                   {artists.map((artist) => (
                     <ArtistCard
                       key={artist.id}
@@ -229,13 +248,59 @@ export default function HebreSpotify() {
           )}
 
           {currentView === 'search' && (
-            <div className="p-4 md:p-8">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-8">חיפוש</h1>
+            <div className="p-3 md:p-8">
+              <h1 className="text-2xl md:text-5xl font-bold mb-4 md:mb-8">חיפוש</h1>
               <input
                 type="text"
                 placeholder="מה בא לך לשמוע?"
-                className="w-full max-w-2xl px-4 md:px-6 py-3 md:py-4 bg-white text-black rounded-full text-base md:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full max-w-2xl px-4 md:px-6 py-2.5 md:py-4 bg-white text-black rounded-full text-sm md:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-lg"
               />
+
+              {searchQuery.trim() && (
+                <div className="mt-8">
+                  {/* Artists Results */}
+                  {getSearchResults().artists.length > 0 && (
+                    <section className="mb-8">
+                      <h2 className="text-xl md:text-2xl font-bold mb-4">אמנים</h2>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                        {getSearchResults().artists.map((artist) => (
+                          <ArtistCard
+                            key={artist.id}
+                            artist={artist}
+                            onClick={() => handleArtistClick(artist)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Tracks Results */}
+                  {getSearchResults().tracks.length > 0 && (
+                    <section>
+                      <h2 className="text-xl md:text-2xl font-bold mb-4">שירים</h2>
+                      <div className="bg-gray-900 rounded-lg p-2 md:p-4">
+                        {getSearchResults().tracks.map((track, index) => (
+                          <TrackRow
+                            key={track.id}
+                            track={track}
+                            index={index}
+                            isPlaying={currentTrack?.id === track.id}
+                            onPlay={() => handlePlayTrack(track, index)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {getSearchResults().artists.length === 0 && getSearchResults().tracks.length === 0 && (
+                    <div className="text-center text-gray-400 mt-12">
+                      <p className="text-lg md:text-xl">לא נמצאו תוצאות עבור "{searchQuery}"</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
