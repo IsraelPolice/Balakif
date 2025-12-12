@@ -6,9 +6,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <!-- Updated: Forum with image uploads and new topics - v2.0 -->
   <title>The Hevre Hatovim Inc.</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -847,10 +847,8 @@
   </style>
 </head>
 <body>
-  <div id="root">
-    <div id="loading" className="text-2xl">טוען...</div>
-  </div>
-  <script type="text/babel" data-presets="env,react">
+  <div id="root"></div>
+  <script type="text/babel">
     console.log('Babel script loaded, attempting to render React app...');
 
     const supabase = window.supabase.createClient(
