@@ -107,20 +107,29 @@ export default function HebreSpotify() {
     artistTracks.forEach(track => {
       track.artist_names?.forEach(name => {
         if (name !== currentArtist.name) {
-          collaboratorScores.set(name, (collaboratorScores.get(name) || 0) + 3);
+          collaboratorScores.set(name, (collaboratorScores.get(name) || 0) + 5);
         }
       });
     });
 
-    const relatedWithScores = artists
-      .filter(artist => artist.name !== currentArtist.name)
-      .map(artist => ({
-        artist,
-        score: collaboratorScores.get(artist.name) || 1
-      }))
-      .sort((a, b) => b.score - a.score);
+    const allArtists = artists.filter(artist => artist.name !== currentArtist.name);
 
-    return relatedWithScores.slice(0, 6).map(item => item.artist);
+    const relatedWithScores = allArtists.map(artist => ({
+      artist,
+      score: collaboratorScores.get(artist.name) || 0
+    }));
+
+    const collaborators = relatedWithScores.filter(item => item.score > 0);
+    const others = relatedWithScores.filter(item => item.score === 0);
+
+    const shuffledOthers = others.sort(() => Math.random() - 0.5);
+
+    const finalList = [
+      ...collaborators.sort((a, b) => b.score - a.score),
+      ...shuffledOthers
+    ];
+
+    return finalList.slice(0, 8).map(item => item.artist);
   };
 
   const getSearchResults = () => {
@@ -128,7 +137,7 @@ export default function HebreSpotify() {
 
     const query = searchQuery.toLowerCase();
     const filteredTracks = tracks.filter(track =>
-      track.name.toLowerCase().includes(query) ||
+      track.title?.toLowerCase().includes(query) ||
       track.album?.toLowerCase().includes(query) ||
       track.artist_names?.some(artist => artist.toLowerCase().includes(query))
     );
@@ -154,7 +163,7 @@ export default function HebreSpotify() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar currentView={currentView} onNavigate={handleNavigate} />
 
-        <div className="flex-1 overflow-y-auto pb-32 md:pb-28 pt-14 md:pt-0">
+        <div className="flex-1 overflow-y-auto pb-24 md:pb-28 pt-12 md:pt-0">
           {currentView === 'home' && (
             <div className="px-4 py-4 md:p-8">
               <div className="mb-5 md:mb-8">
@@ -206,34 +215,34 @@ export default function HebreSpotify() {
           )}
 
           {currentView === 'artist' && selectedArtist && (
-            <div className="min-h-full pb-32">
+            <div className="min-h-full pb-24 md:pb-32">
               <div
-                className="relative h-56 md:h-80 bg-gradient-to-b from-green-800 to-transparent px-4 pt-4 pb-5 md:p-8 flex items-end"
+                className="relative h-48 md:h-80 bg-gradient-to-b from-green-800 to-transparent px-3 pt-3 pb-4 md:p-8 flex items-end"
                 style={{
                   backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%), url(${selectedArtist.image_url})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
               >
-                <div className="flex flex-col md:flex-row items-center md:items-end gap-3 md:gap-6 w-full">
+                <div className="flex flex-col md:flex-row items-center md:items-end gap-2.5 md:gap-6 w-full">
                   <img
                     src={selectedArtist.image_url}
                     alt={selectedArtist.name}
-                    className="w-28 h-28 md:w-48 md:h-48 rounded-full shadow-2xl border-2 md:border-4 border-white"
+                    className="w-24 h-24 md:w-48 md:h-48 rounded-full shadow-2xl border-2 md:border-4 border-white"
                   />
                   <div className="text-center md:text-right">
-                    <p className="text-[10px] md:text-sm font-semibold mb-0.5 md:mb-2">אמן</p>
-                    <h1 className="text-3xl md:text-7xl font-black mb-1 md:mb-4 leading-tight">{selectedArtist.name}</h1>
-                    <p className="text-xs md:text-lg text-gray-200 leading-snug">{selectedArtist.bio}</p>
+                    <p className="text-[9px] md:text-sm font-semibold mb-0.5 md:mb-2 opacity-90">אמן</p>
+                    <h1 className="text-2xl md:text-7xl font-black mb-0.5 md:mb-4 leading-tight">{selectedArtist.name}</h1>
+                    <p className="text-[11px] md:text-lg text-gray-200 leading-snug">{selectedArtist.bio}</p>
                     {selectedArtist.stats?.awards && (
-                      <p className="text-[10px] md:text-sm text-green-400 mt-1 md:mt-2">{selectedArtist.stats.awards}</p>
+                      <p className="text-[9px] md:text-sm text-green-400 mt-0.5 md:mt-2">{selectedArtist.stats.awards}</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="px-4 py-5 md:p-8 bg-gradient-to-b from-black/40 to-black">
-                <h2 className="text-base md:text-2xl font-bold mb-3 md:mb-6">שירים פופולריים</h2>
+              <div className="px-3 py-4 md:p-8 bg-gradient-to-b from-black/40 to-black">
+                <h2 className="text-sm md:text-2xl font-bold mb-2.5 md:mb-6">שירים פופולריים</h2>
                 <div className="bg-transparent md:bg-black/30 md:rounded-lg md:p-4">
                   {getArtistTracks(selectedArtist.name).map((track, index) => (
                     <TrackRow
@@ -248,9 +257,9 @@ export default function HebreSpotify() {
                 </div>
 
                 {getRelatedArtists(selectedArtist).length > 0 && (
-                  <div className="mt-6 md:mt-12">
-                    <h2 className="text-base md:text-2xl font-bold mb-3 md:mb-6">אמנים נוספים</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 md:gap-4">
+                  <div className="mt-5 md:mt-12">
+                    <h2 className="text-sm md:text-2xl font-bold mb-2.5 md:mb-6">אמנים נוספים שאולי תאהבו</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                       {getRelatedArtists(selectedArtist).map((artist) => (
                         <ArtistCard
                           key={artist.id}
