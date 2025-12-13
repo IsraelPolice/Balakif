@@ -72,9 +72,8 @@ export default function Sidebar({ currentView, onNavigate }) {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-gray-800 z-50 pb-safe">
-        <nav className="flex justify-around items-center h-16 px-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/98 backdrop-blur-lg border-t border-gray-800 z-50">
+        <nav className="flex justify-around items-center h-16 px-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -82,7 +81,7 @@ export default function Sidebar({ currentView, onNavigate }) {
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 flex-1 transition-all ${
+                className={`flex flex-col items-center justify-center gap-1 px-1 py-1.5 flex-1 transition-all ${
                   isActive ? 'text-white' : 'text-gray-400 active:scale-95'
                 }`}
               >
@@ -93,23 +92,22 @@ export default function Sidebar({ currentView, onNavigate }) {
                 ) : (
                   <Icon className={`w-6 h-6 transition-colors ${isActive ? 'text-white' : ''}`} />
                 )}
-                <span className={`text-[10px] font-semibold mt-0.5 ${isActive ? 'text-white' : 'text-gray-400'}`}>{item.label}</span>
+                <span className={`text-[9px] md:text-[10px] font-semibold ${isActive ? 'text-white' : 'text-gray-400'}`}>{item.label}</span>
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-black/98 backdrop-blur-lg border-b border-gray-800/70 z-40 px-4 py-2.5 safe-top">
-        <div className="flex items-center justify-between h-11">
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-black/98 backdrop-blur-lg border-b border-gray-800/50 z-40 px-3 py-2">
+        <div className="flex items-center justify-between h-10">
           <div className="flex items-center gap-2">
-            <Music className="w-7 h-7 text-green-500" />
-            <h1 className="text-white text-base font-bold tracking-tight">Hevre Spotify</h1>
+            <Music className="w-6 h-6 text-green-500" />
+            <h1 className="text-white text-sm font-bold">Hevre Spotify</h1>
           </div>
           <a
             href="/pages/main.html"
-            className="text-xs px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 text-white rounded-full font-semibold transition-all shadow-md"
+            className="text-[10px] px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 text-white rounded-full font-semibold transition-all"
           >
             חזרה
           </a>

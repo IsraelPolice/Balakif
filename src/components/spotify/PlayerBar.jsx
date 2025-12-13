@@ -21,19 +21,18 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
   }
 
   return (
-    <div className="h-20 md:h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-2 md:px-4 flex items-center justify-between">
-      {/* Track Info */}
-      <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+    <div className="h-16 md:h-24 bg-gradient-to-r from-gray-900 to-black border-t border-gray-800 px-2 md:px-4 flex items-center justify-between">
+      <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 max-w-[35%] md:max-w-none">
         <img
           src={currentTrack.cover_image}
           alt={currentTrack.title}
-          className="w-12 h-12 md:w-14 md:h-14 rounded shadow-lg"
+          className="w-11 h-11 md:w-14 md:h-14 rounded shadow-lg"
         />
         <div className="min-w-0 flex-1">
-          <h4 className="text-white font-semibold text-xs md:text-sm truncate">
+          <h4 className="text-white font-semibold text-xs md:text-sm truncate leading-tight">
             {currentTrack.title}
           </h4>
-          <p className="text-gray-400 text-xs truncate">
+          <p className="text-gray-400 text-[10px] md:text-xs truncate mt-0.5">
             {currentTrack.artist_names?.join(', ')}
           </p>
         </div>
@@ -47,21 +46,20 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
         </button>
       </div>
 
-      {/* Player Controls */}
-      <div className="flex flex-col items-center gap-2 flex-1 max-w-2xl">
-        <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex flex-col items-center gap-1 md:gap-2 flex-1 max-w-2xl">
+        <div className="flex items-center gap-3 md:gap-4">
           <button className="hidden md:block text-gray-400 hover:text-white transition-colors">
             <Shuffle className="w-4 h-4" />
           </button>
           <button
             onClick={onPrevious}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white active:text-white transition-colors"
           >
             <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+            className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
           >
             {isPlaying ? (
               <Pause className="w-4 h-4 md:w-5 md:h-5 text-black" fill="black" />
@@ -71,7 +69,7 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
           </button>
           <button
             onClick={onNext}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white active:text-white transition-colors"
           >
             <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
           </button>
@@ -80,7 +78,6 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
           </button>
         </div>
 
-        {/* Hidden iframe for SoundCloud playback */}
         <div className="hidden">
           {currentTrack && (
             <iframe
@@ -96,7 +93,6 @@ export default function PlayerBar({ currentTrack, onNext, onPrevious }) {
         </div>
       </div>
 
-      {/* Volume Control */}
       <div className="hidden md:flex items-center gap-2 flex-1 justify-end">
         <Volume2 className="w-5 h-5 text-gray-400" />
         <input
