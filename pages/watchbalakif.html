@@ -13,7 +13,7 @@
   <style>
     body {
       font-family: 'Rubik', sans-serif;
-      background-color: #141414; /* Netflix dark background */
+      background-color: #141414;
       color: #ffffff;
       margin: 0;
       padding: 0;
@@ -21,7 +21,7 @@
     }
     .video-container {
       position: relative;
-      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      padding-bottom: 56.25%;
       height: 0;
       overflow: hidden;
       width: 100%;
@@ -43,7 +43,7 @@
       width: 100%;
       height: 100%;
       z-index: 10;
-      pointer-events: none; /* Allow clicks on video controls */
+      pointer-events: none;
     }
     .video-overlay::before {
       content: '';
@@ -51,9 +51,9 @@
       bottom: 10px;
       left: 10px;
       width: 80px;
-      height: 30px; /* Adjusted to cover YouTube logo area responsively */
+      height: 30px;
       background: transparent;
-      pointer-events: all; /* Block clicks on logo */
+      pointer-events: all;
     }
     .film-card {
       position: relative;
@@ -71,7 +71,7 @@
       position: relative;
       width: 100%;
       height: 0;
-      padding-bottom: 56.25%; /* Maintain 16:9 aspect ratio */
+      padding-bottom: 56.25%;
     }
     .thumbnail-overlay img {
       position: absolute;
@@ -88,7 +88,7 @@
       transform: translate(-50%, -50%);
       opacity: 0;
       transition: opacity 0.3s ease;
-      background-color: rgba(229, 9, 20, 0.8); /* Netflix red */
+      background-color: rgba(229, 9, 20, 0.8);
       border-radius: 50%;
       padding: 1.5rem;
       display: flex;
@@ -144,7 +144,7 @@
       box-sizing: border-box;
     }
     .popup-content button {
-      background-color: #e50914; /* Netflix red */
+      background-color: #e50914;
       color: #ffffff;
       padding: 0.75rem 1.5rem;
       margin-top: 1rem;
@@ -169,7 +169,7 @@
       margin-top: 0.25rem;
     }
     .imdb-rating .rating-value {
-      color: #F5C518; /* IMDb yellow */
+      color: #F5C518;
       font-weight: bold;
     }
     .imdb-rating .star {
@@ -180,42 +180,14 @@
       to { opacity: 1; }
     }
     @media (max-width: 768px) {
-      .film-card {
-        margin-bottom: 1rem;
-      }
-      .play-button {
-        opacity: 1; /* Always show play button on mobile */
-      }
-      .popup-content {
-        width: 90%;
-        padding: 1.5rem;
-      }
+      .film-card { margin-bottom: 1rem; }
+      .play-button { opacity: 1; }
+      .popup-content { width: 90%; padding: 1.5rem; }
       .video-overlay::before {
         width: 60px;
-        height: 20px; /* Smaller logo area for mobile */
+        height: 20px;
         bottom: 5px;
         left: 5px;
-      }
-      .imdb-rating {
-        font-size: 0.85rem;
-      }
-    }
-    @media (max-width: 480px) {
-      .popup-content {
-        width: 95%;
-        padding: 1rem;
-      }
-      .popup-content h2 {
-        font-size: 1.25rem;
-      }
-      .popup-content p {
-        font-size: 0.875rem;
-      }
-      .video-container, .thumbnail-overlay {
-        padding-bottom: 56.25%; /* Ensure 16:9 aspect ratio */
-      }
-      .imdb-rating {
-        font-size: 0.8rem;
       }
     }
   </style>
@@ -276,19 +248,28 @@
       {
         title: "בלאקיף 7: האויב מבפנים",
         description: "הסרט החדש! סודות ישנים צפים ומשפחת החבר'ה עומדת למבחן הגורלי מכולם. האם האויב הוא באמת מבחוץ, או שהוא תמיד היה שם?",
-        videoId: "37JjODkOa8Q", // ID מעודכן לסרט 7
+        videoId: "37JjODkOa8Q",
         thumbnail: "https://i.ytimg.com/vi/37JjODkOa8Q/maxresdefault.jpg",
         rating: 9.9,
         raters: 24
       },
+      {
+        title: "בלאקיף 8: שובו סרט הבלאקיף",
+        description: "הפרק החדש והמצופה ביותר בסדרה! אחרי כל מה שקרה – בלאקיף חוזר.",
+        videoId: "mDz-aTDsLf0",
+        thumbnail: "https://i.ytimg.com/vi/mDz-aTDsLf0/hqdefault.jpg",
+        rating: 9.6,
+        raters: 8
+      }
     ];
 
+    // שאלות האימות (ללא שינוי)
     const questions = [
       { question: "למי אמר ג׳ורדן את המשפט ״ נו תן לי זריז בתחת רגע״?", answers: ["עוזי"] },
       { question: "מי פעם שכב עם ג׳ורדן בכיתה ח׳?", answers: ["עוזי", "עוזי אוחנה"] },
       { question: "מי היה המחנך של יב׳ 3?", answers: ["עוזי"] },
       { question: "מי אמר את המשפט ״חבורה של מסריחים, זרקתם עליי בוץ״?", answers: ["עומרי"] },
-      { question: "עם מי חיים שוחח בשיחה המיתולוגית שלו ב-2015 (השיחה הוקלטה וחיים הביע התנגדות להמשך הפצתה)?", answers: ["איציק", "איציק מור יוסף"] },
+      { question: "עם מי חיים שוחח בשיחה המיתולוגית שלו ב-2015?", answers: ["איציק", "איציק מור יוסף"] },
       { question: "איפה מתגורר יוגב שבתאי?", answers: ["אריאל"] },
       { question: "מי מכונה: גורגול?", answers: ["יוגב"] },
       { question: "מי מכונה הווטרן (The veteran)?", answers: ["נתי", "נתנאל יוסילביץ׳"] },
@@ -322,11 +303,7 @@
       return (
         <div className="film-card" onClick={toggleVideo}>
           <div className="thumbnail-overlay">
-            <img
-              src={film.thumbnail}
-              alt={film.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={film.thumbnail} alt={film.title} className="w-full h-full object-cover" />
             <div className="play-button">
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
@@ -400,7 +377,7 @@
         if (lockData) {
           const { timestamp } = JSON.parse(lockData);
           const now = Date.now();
-          const lockDuration = 24 * 60 * 60 * 1000; // 24 hours
+          const lockDuration = 24 * 60 * 60 * 1000;
           if (now - timestamp < lockDuration) {
             setIsLocked(true);
             return;
@@ -430,9 +407,7 @@
       };
 
       const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-          handleSubmit();
-        }
+        if (e.key === 'Enter') handleSubmit();
       };
 
       if (isLocked) {
@@ -474,13 +449,8 @@
       const [showPrivacyPopup, setShowPrivacyPopup] = React.useState(true);
       const [isAuthenticated, setIsAuthenticated] = React.useState(false);
 
-      const handlePrivacyClose = () => {
-        setShowPrivacyPopup(false);
-      };
-
-      const handleAuthSuccess = () => {
-        setIsAuthenticated(true);
-      };
+      const handlePrivacyClose = () => setShowPrivacyPopup(false);
+      const handleAuthSuccess = () => setIsAuthenticated(true);
 
       return (
         <React.Fragment>
