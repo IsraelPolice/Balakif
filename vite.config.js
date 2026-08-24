@@ -8,7 +8,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: '/index.html',
-        spotify: '/spotify.html'
+        spotify: '/spotify.html',
+        elections: '/pages/elections.html'
       }
     }
   },

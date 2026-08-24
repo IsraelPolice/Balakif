@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Users, ShoppingBag, Target, User, Trophy, Award, Vote } from 'lucide-react'
+import { Users, ShoppingBag, Target, User, Trophy, Award } from 'lucide-react'
 import { useGame } from '../context/GameContext'
 import BottomNavigation from './BottomNavigation'
 
@@ -31,14 +31,6 @@ function MainMenu({ onNavigate }) {
       icon: Award,
       color: 'from-yellow-500 to-amber-600',
       stats: 'הצבעה פתוחה'
-    },
-    {
-      id: 'elections',
-      title: 'בחירות 2026',
-      description: 'הצביעו למלך החבר\'ה הטובים',
-      icon: Vote,
-      color: 'from-blue-500 to-blue-800',
-      stats: 'הבחירות של השנה'
     },
     {
       id: 'challenges',

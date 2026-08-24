@@ -2050,6 +2050,62 @@
     const Sections = () => (
       <section id="sections" className="py-12 sm:py-20 bg-gray-50 content-container">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Elections 2026 Banner */}
+          <a href="https://israelpolice.github.io/Balakif/pages/elections.html" className="block mb-12" style={{ textDecoration: 'none' }}>
+            <div style={{
+              position: 'relative',
+              background: 'linear-gradient(135deg, #0a0e1a 0%, #0f1e3d 50%, #0a0e1a 100%)',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              border: '3px solid #3b82f6',
+              boxShadow: '0 20px 80px rgba(59, 130, 246, 0.4)',
+              transition: 'all 0.5s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 30px 120px rgba(59, 130, 246, 0.6)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 20px 80px rgba(59, 130, 246, 0.4)'; }}
+            >
+              <div style={{ position: 'relative', zIndex: 1, padding: '3rem 2rem', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗳️</div>
+                <h3 style={{
+                  fontFamily: 'Playfair Display, serif',
+                  fontSize: 'clamp(2rem, 6vw, 4rem)',
+                  fontWeight: 900,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  margin: '0 0 0.5rem 0',
+                  background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 25%, #93c5fd 50%, #3b82f6 75%, #60a5fa 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}>בחירות 2026</h3>
+                <p style={{
+                  fontFamily: 'Playfair Display, serif',
+                  fontSize: 'clamp(1.25rem, 3vw, 2rem)',
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  color: '#93c5fd',
+                  textTransform: 'uppercase',
+                  margin: '0 0 1rem 0',
+                }}>הבן זונה של השנה</p>
+                <p style={{
+                  fontSize: 'clamp(1rem, 2.5vw, 1.5rem)',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  margin: '0 0 1.5rem 0',
+                }}>הצביעו עכשיו ובחרו את מלך החבר'ה הטובים!</p>
+                <div style={{
+                  display: 'inline-block',
+                  padding: '0.75rem 2.5rem',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  color: 'white',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  fontSize: '1.25rem',
+                  boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4)',
+                }}>לחץ כאן להצבעה</div>
+              </div>
+            </div>
+          </a>
           <h3 className="text-3xl font-bold text-gray-800 text-center mb-12">המדורים שלנו</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <div className="card">

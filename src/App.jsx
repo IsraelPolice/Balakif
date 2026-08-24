@@ -10,7 +10,6 @@ import Store from './components/Store'
 import Challenges from './components/Challenges'
 import Profile from './components/Profile'
 import AcademyAwards from './components/AcademyAwards'
-import Elections from './components/elections/Elections'
 import { GameProvider } from './context/GameContext'
 import { isMobile } from './utils/device'
 
@@ -27,11 +26,7 @@ function App() {
     setIsLoading(false)
   }, [])
 
-  const handleStartGame = (screen) => {
-    if (screen && screen !== 'menu') {
-      setCurrentScreen(screen)
-      return
-    }
+  const handleStartGame = () => {
     localStorage.setItem('hevre-ultimate-team-played', 'true')
     setCurrentScreen('menu')
   }
@@ -75,9 +70,6 @@ function App() {
             )}
             {currentScreen === 'awards' && (
               <AcademyAwards key="awards" onBack={() => setCurrentScreen('menu')} />
-            )}
-            {currentScreen === 'elections' && (
-              <Elections key="elections" onBack={() => setCurrentScreen('menu')} />
             )}
           </AnimatePresence>
         </div>
