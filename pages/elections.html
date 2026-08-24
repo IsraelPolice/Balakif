@@ -11,23 +11,31 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { font-family: 'Inter', sans-serif; }
-    body { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%); color: white; min-height: 100vh; margin: 0; }
-    .glass-effect { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    * { font-family: 'Heebo', sans-serif; }
+    body { background: linear-gradient(135deg, #0a0e1a 0%, #0f1c3a 30%, #0a1428 70%, #0a0e1a 100%); color: white; min-height: 100vh; margin: 0; overflow-x: hidden; }
+    .glass-effect { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-strong { background: rgba(255,255,255,0.07); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.12); }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.85; } }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    .anim-fade { animation: fadeIn 0.4s ease-out; }
-    .anim-slide { animation: slideUp 0.4s ease-out; }
-    .anim-scale { animation: scaleIn 0.3s ease-out; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(59,130,246,0.3); } 50% { box-shadow: 0 0 40px rgba(59,130,246,0.6); } }
+    @keyframes glowGold { 0%,100% { box-shadow: 0 0 20px rgba(250,204,21,0.3); } 50% { box-shadow: 0 0 40px rgba(250,204,21,0.5); } }
+    .anim-fade { animation: fadeIn 0.5s ease-out; }
+    .anim-slide { animation: slideUp 0.5s ease-out both; }
+    .anim-slide-r { animation: slideRight 0.4s ease-out both; }
+    .anim-scale { animation: scaleIn 0.35s ease-out; }
     .anim-pulse { animation: pulse 2s infinite; }
     .anim-spin { animation: spin 1s linear infinite; }
-    .anim-float { animation: float 3s ease-in-out infinite; }
+    .anim-float { animation: float 3.5s ease-in-out infinite; }
+    .anim-glow { animation: glow 3s ease-in-out infinite; }
+    .anim-glow-gold { animation: glowGold 3s ease-in-out infinite; }
     .stagger > *:nth-child(1) { animation-delay: 0.03s; }
     .stagger > *:nth-child(2) { animation-delay: 0.06s; }
     .stagger > *:nth-child(3) { animation-delay: 0.09s; }
@@ -48,13 +56,28 @@
     .stagger > *:nth-child(18) { animation-delay: 0.54s; }
     .stagger > *:nth-child(19) { animation-delay: 0.57s; }
     .stagger > *:nth-child(20) { animation-delay: 0.60s; }
-    .hover-scale { transition: transform 0.2s ease; }
-    .hover-scale:hover { transform: scale(1.02); }
+    .hover-scale { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-scale:hover { transform: scale(1.03); }
+    .hover-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
     .rank-btn { transition: all 0.15s ease; }
-    .rank-btn:hover:not(:disabled) { transform: scale(1.1); }
+    .rank-btn:hover:not(:disabled) { transform: scale(1.12); }
     .rank-btn:active:not(:disabled) { transform: scale(0.9); }
-    .rank-btn.active { transform: scale(1.1); }
-    .progress-bar { transition: width 0.5s ease; }
+    .rank-btn.active { transform: scale(1.12); }
+    .progress-bar { transition: width 0.6s ease; }
+    .shimmer-text {
+      background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd, #60a5fa, #3b82f6);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s linear infinite;
+    }
+    .hero-bg {
+      background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 50%, rgba(99,102,241,0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 20% 80%, rgba(14,165,233,0.06) 0%, transparent 50%);
+    }
     #error { display: none; color: #fc8181; text-align: center; padding: 2rem; }
   </style>
 </head>
@@ -92,6 +115,14 @@
         chart: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>,
         trending: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>,
         rotate: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 019-9 9.75 9.75 0 016.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>,
+        star: <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+        calendar: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>,
+        arrowLeft: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>,
+        home: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>,
+        clock: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>,
+        fire: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/></svg>,
+        sparkles: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3z"/></svg>,
+        list: <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>,
       };
       return icons[name] || null;
     };
@@ -119,21 +150,21 @@
       };
 
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4" dir="rtl">
-          <button onClick={onBack} className="absolute top-6 right-6 flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative" dir="rtl">
+          <button onClick={onBack} className="absolute top-6 right-6 flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors z-10">
             <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה</span>
           </button>
           <div className="w-full max-w-md anim-scale">
             <div className="text-center mb-8">
               <div className="inline-block mb-4 anim-float">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/30 mx-auto">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/30 mx-auto anim-glow">
                   <Icon name="vote" className="w-10 h-10 text-white" />
                 </div>
               </div>
-              <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">בחירות 2026</h1>
+              <h1 className="text-4xl font-black mb-2 shimmer-text">בחירות 2026</h1>
               <p className="text-gray-400 text-lg">החבר'ה הטובים</p>
             </div>
-            <form onSubmit={handleLogin} className="glass-effect rounded-2xl p-8 space-y-5">
+            <form onSubmit={handleLogin} className="glass-strong rounded-2xl p-8 space-y-5">
               <div>
                 <label className="block text-sm text-gray-300 mb-2">שם משתמש (מייל)</label>
                 <div className="relative">
@@ -254,9 +285,9 @@
           <div className="min-h-screen flex flex-col items-center justify-center p-4" dir="rtl">
             <div className="text-center max-w-md anim-scale">
               <div className="inline-block mb-6 anim-pulse"><Icon name="lock" className="w-20 h-20 text-blue-400 mx-auto" /></div>
-              <h2 className="text-3xl font-bold mb-4">הבחירות טרם נפתחו</h2>
+              <h2 className="text-3xl font-bold mb-4">ההצבעה טרם נפתחה</h2>
               <p className="text-gray-400 text-lg mb-8">האדמין צריך ללחוץ על "התחלת הבחירות" כדי שתוכלו להצביע.</p>
-              <button onClick={onBack} className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors hover-scale">חזרה</button>
+              <button onClick={onBack} className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors hover-scale">חזרה לעמוד הראשי</button>
             </div>
           </div>
         );
@@ -370,7 +401,7 @@
             <div className="text-center mb-8 anim-slide">
               <div className="inline-flex items-center gap-3 mb-2">
                 <Icon name="vote" className="w-8 h-8 text-blue-400" />
-                <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">בחירות 2026</h1>
+                <h1 className="text-4xl md:text-5xl font-black shimmer-text">בחירות 2026</h1>
               </div>
               <p className="text-gray-400">דרגו את המועמדים במקומות 1-5 (חובה) ו-6-10 (אופציונלי)</p>
             </div>
@@ -498,7 +529,7 @@
             <div className="text-center mb-8 anim-slide">
               <div className="inline-flex items-center gap-3 mb-2">
                 <Icon name="chart" className="w-8 h-8 text-blue-400" />
-                <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">דשבורד אדמין</h1>
+                <h1 className="text-4xl md:text-5xl font-black shimmer-text">דשבורד אדמין</h1>
               </div>
               <p className="text-gray-400">בחירות 2026 - החבר'ה הטובים</p>
             </div>
@@ -526,7 +557,7 @@
               <StatCard icon="users" label="בעלי זכות הצבעה" value={totalCount} color="from-blue-500 to-blue-700" />
               <StatCard icon="check" label="הצביעו" value={votedCount} color="from-green-500 to-green-700" />
               <StatCard icon="x" label="טרם הצביעו" value={totalCount - votedCount} color="from-orange-500 to-orange-700" />
-              <StatCard icon="trending" label="אחוז הצבעה" value={totalCount > 0 ? `${Math.round((votedCount / totalCount) * 100)}%` : '0%'} color="from-purple-500 to-purple-700" />
+              <StatCard icon="trending" label="אחוז הצבעה" value={totalCount > 0 ? `${Math.round((votedCount / totalCount) * 100)}%` : '0%'} color="from-cyan-500 to-cyan-700" />
             </div>
             <div className="glass-effect rounded-2xl p-4 md:p-6 mb-6 anim-slide">
               <div className="flex items-center gap-2 mb-4">
@@ -599,34 +630,277 @@
       );
     }
 
+    function LandingPage({ electionOpen, candidates, history, onLogin, onBack }) {
+      const [view, setView] = React.useState('home');
+
+      if (view === 'candidates') {
+        return (
+          <div className="min-h-screen p-4 md:p-8" dir="rtl">
+            <div className="max-w-5xl mx-auto">
+              <button onClick={() => setView('home')} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors mb-6">
+                <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה</span>
+              </button>
+              <div className="text-center mb-8 anim-slide">
+                <div className="inline-flex items-center gap-3 mb-2">
+                  <Icon name="list" className="w-8 h-8 text-blue-400" />
+                  <h1 className="text-4xl font-black shimmer-text">המועמדים</h1>
+                </div>
+                <p className="text-gray-400">20 מועמדים מתמודדים בבחירות 2026</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 stagger">
+                {candidates.map((c, i) => (
+                  <div key={c.id} className="anim-slide glass-effect rounded-2xl p-5 text-center hover-lift">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500/30 to-blue-700/30 border border-blue-500/30 flex items-center justify-center text-2xl font-black text-blue-300">
+                      {c.display_order}
+                    </div>
+                    <h3 className="font-bold text-lg">{c.name}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (view === 'history') {
+        return (
+          <div className="min-h-screen p-4 md:p-8" dir="rtl">
+            <div className="max-w-4xl mx-auto">
+              <button onClick={() => setView('home')} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors mb-6">
+                <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה</span>
+              </button>
+              <div className="text-center mb-8 anim-slide">
+                <div className="inline-flex items-center gap-3 mb-2">
+                  <Icon name="trophy" className="w-8 h-8 text-yellow-400" />
+                  <h1 className="text-4xl font-black bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">היכל התהילה</h1>
+                </div>
+                <p className="text-gray-400">הזוכים של השנים האחרונות</p>
+              </div>
+              <div className="space-y-3 stagger">
+                {[...history].reverse().map((h, i) => (
+                  <div key={h.id} className="anim-slide glass-effect rounded-2xl p-5 hover-lift">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center font-black text-gray-900 text-lg">
+                          {h.year}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Icon name="crown" className="w-5 h-5 text-yellow-400" />
+                            <span className="text-xl font-bold">{h.winner_name}</span>
+                          </div>
+                          <p className="text-sm text-gray-400">מקום ראשון · {h.winner_points} נקודות</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-4 flex-wrap mr-auto">
+                        <div className="text-center">
+                          <div className="flex items-center gap-1 text-gray-300">
+                            <span className="w-6 h-6 rounded-full bg-gray-300/20 flex items-center justify-center text-xs font-bold">2</span>
+                            {h.runner_up_name}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{h.runner_up_points} נקודות</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="flex items-center gap-1 text-gray-300">
+                            <span className="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-xs font-bold">3</span>
+                            {h.third_place_name}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{h.third_place_points} נקודות</p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-1 text-blue-300 text-sm">
+                          <Icon name="users" className="w-4 h-4" />
+                          {h.total_voters} מצביעים
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen hero-bg" dir="rtl">
+          <div className="max-w-5xl mx-auto px-4 py-6 md:py-10">
+            <button onClick={onBack} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors mb-8">
+              <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה לאתר</span>
+            </button>
+
+            <div className="text-center mb-10 anim-slide">
+              <div className="inline-block mb-4 anim-float">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/40 mx-auto anim-glow">
+                  <Icon name="vote" className="w-12 h-12 text-white" />
+                </div>
+              </div>
+              <h1 className="text-5xl md:text-7xl font-black mb-3 shimmer-text">בחירות 2026</h1>
+              <p className="text-xl text-gray-400 mb-6">החבר'ה הטובים</p>
+              <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold ${
+                electionOpen
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30 anim-pulse'
+                  : 'bg-gray-700/50 text-gray-400 border border-gray-600/30'
+              }`}>
+                <span className={`w-2.5 h-2.5 rounded-full ${electionOpen ? 'bg-green-400 anim-pulse' : 'bg-gray-500'}`}></span>
+                {electionOpen ? 'ההצבעה פתוחה עכשיו!' : 'ההצבעה טרם נפתחה'}
+              </div>
+            </div>
+
+            {electionOpen ? (
+              <div className="text-center mb-10 anim-scale">
+                <button onClick={onLogin}
+                  className="px-10 py-5 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-xl rounded-2xl shadow-lg shadow-blue-500/40 hover:shadow-blue-500/60 transition-all hover-scale flex items-center gap-3 mx-auto">
+                  <Icon name="vote" className="w-7 h-7" />
+                  לחצו כאן להצביע
+                </button>
+                <p className="text-gray-500 text-sm mt-4">נדרשת התחברות עם שם משתמש וסיסמה</p>
+              </div>
+            ) : (
+              <div className="text-center mb-10 anim-scale">
+                <div className="glass-effect rounded-2xl p-6 max-w-md mx-auto">
+                  <Icon name="lock" className="w-12 h-12 text-blue-400 mx-auto mb-3" />
+                  <p className="text-gray-300 text-lg font-semibold mb-2">ההצבעה תיפתח בקרוב</p>
+                  <p className="text-gray-500 text-sm">האדמין יפתח את ההצבעה כשהגיע הזמן. בינתיים - הכירו את המועמדים וההיסטוריה.</p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 stagger">
+              <button onClick={() => setView('candidates')}
+                className="anim-slide glass-effect rounded-2xl p-6 text-center hover-lift group">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-700/30 border border-blue-500/30 flex items-center justify-center">
+                  <Icon name="users" className="w-7 h-7 text-blue-400" />
+                </div>
+                <h2 className="text-xl font-bold mb-1">המועמדים</h2>
+                <p className="text-gray-400 text-sm">צפו בכל 20 המועמדים</p>
+              </button>
+              <button onClick={() => setView('history')}
+                className="anim-slide glass-effect rounded-2xl p-6 text-center hover-lift group">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-yellow-500/30 to-yellow-700/30 border border-yellow-500/30 flex items-center justify-center">
+                  <Icon name="trophy" className="w-7 h-7 text-yellow-400" />
+                </div>
+                <h2 className="text-xl font-bold mb-1">היכל התהילה</h2>
+                <p className="text-gray-400 text-sm">הזוכים של השנים האחרונות</p>
+              </button>
+            </div>
+
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Icon name="fire" className="w-6 h-6 text-orange-400" />
+                <h2 className="text-2xl font-bold">מועמדים מובילים</h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 stagger">
+                {candidates.slice(0, 5).map((c, i) => (
+                  <div key={c.id} className="anim-slide glass-effect rounded-xl p-4 text-center hover-lift">
+                    <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center font-black text-lg ${
+                      i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-gray-900' :
+                      i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900' :
+                      i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-gray-900' :
+                      'bg-gray-700 text-gray-300'
+                    }`}>
+                      {i < 3 ? <Icon name="crown" className="w-5 h-5" /> : c.display_order}
+                    </div>
+                    <p className="font-semibold text-sm truncate">{c.name}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center mt-4">
+                <button onClick={() => setView('candidates')} className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                  צפה בכל המועמדים ←
+                </button>
+              </div>
+            </div>
+
+            {history.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon name="trophy" className="w-6 h-6 text-yellow-400" />
+                  <h2 className="text-2xl font-bold">הזוכה האחרון</h2>
+                </div>
+                <div className="glass-effect rounded-2xl p-6 anim-slide">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center anim-glow-gold">
+                      <Icon name="crown" className="w-8 h-8 text-gray-900" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold">{history[history.length-1].winner_name}</h3>
+                      <p className="text-gray-400">זוכה {history[history.length-1].year} · {history[history.length-1].winner_points} נקודות · {history[history.length-1].total_voters} מצביעים</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center mt-4">
+                  <button onClick={() => setView('history')} className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                    צפה בהיכל התהילה ←
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="text-center text-gray-500 text-sm pt-8 border-t border-gray-800/50">
+              <p>בחירות 2026 · החבר'ה הטובים</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function Elections() {
       const [session, setSession] = React.useState(null);
       const [isAdmin, setIsAdmin] = React.useState(false);
       const [checkingSession, setCheckingSession] = React.useState(true);
+      const [candidates, setCandidates] = React.useState([]);
+      const [history, setHistory] = React.useState([]);
+      const [electionOpen, setElectionOpen] = React.useState(false);
+      const [showLogin, setShowLogin] = React.useState(false);
 
       React.useEffect(() => {
+        loadPublicData();
         supabase.auth.getSession().then(({ data: { session: s } }) => {
-          if (s) { setSession(s); setIsAdmin(s.user?.email?.toLowerCase() === ADMIN_EMAIL); }
+          if (s) {
+            setSession(s);
+            setIsAdmin(s.user?.email?.toLowerCase() === ADMIN_EMAIL);
+          }
           setCheckingSession(false);
         });
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, s) => {
           setSession(s);
           setIsAdmin(s?.user?.email?.toLowerCase() === ADMIN_EMAIL);
+          if (s) setShowLogin(false);
         });
         return () => { authListener.subscription.unsubscribe(); };
       }, []);
 
-      const handleLogout = async () => { await supabase.auth.signOut(); setSession(null); setIsAdmin(false); };
+      const loadPublicData = async () => {
+        try {
+          const { data: cData } = await supabase.from('election_candidates').select('*').order('display_order');
+          setCandidates(cData || []);
+          const { data: hData } = await supabase.from('election_history').select('*').order('year');
+          setHistory(hData || []);
+          const { data: sData } = await supabase.from('election_status').select('*').eq('id', 1).maybeSingle();
+          setElectionOpen(sData?.is_open || false);
+        } catch (err) { console.error('Error loading public data:', err); }
+      };
+
+      const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setSession(null); setIsAdmin(false); setShowLogin(false);
+      };
       const goBack = () => { window.location.href = 'https://israelpolice.github.io/Balakif/pages/main.html'; };
 
       if (checkingSession) {
         return <div className="min-h-screen flex items-center justify-center"><Icon name="loader" className="w-10 h-10 text-blue-400" /></div>;
       }
-      if (!session) {
-        return <ElectionsLogin onBack={goBack} onLoggedIn={(admin) => setIsAdmin(admin)} />;
+
+      if (showLogin && !session) {
+        return <ElectionsLogin onBack={() => setShowLogin(false)} onLoggedIn={(admin) => { setIsAdmin(admin); setShowLogin(false); }} />;
       }
-      if (isAdmin) return <ElectionsAdmin user={session.user} onBack={handleLogout} />;
-      return <ElectionsVote user={session.user} onBack={handleLogout} />;
+
+      if (session && isAdmin) return <ElectionsAdmin user={session.user} onBack={handleLogout} />;
+      if (session && !isAdmin) return <ElectionsVote user={session.user} onBack={handleLogout} />;
+
+      return <LandingPage electionOpen={electionOpen} candidates={candidates} history={history} onLogin={() => setShowLogin(true)} onBack={goBack} />;
     }
 
     try {
