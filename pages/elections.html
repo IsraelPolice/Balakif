@@ -225,11 +225,20 @@
       return icons[name] || null;
     };
 
+    const QUICK_USERS = [
+      { email: 'Admin@Hevre-Hatovim.com', label: 'אדמין', isAdmin: true },
+      { email: 'OrDahan26@Hevre-Hatovim.com', label: 'אור דהן' },
+      { email: 'Amitlas@Hevre-Hatovim.com', label: 'עמית לסרי' },
+      { email: 'Dviro2026@Hevre-Hatovim.com', label: 'דביר אוחנה' },
+      { email: 'YosefChandler71@Hevre-Hatovim.com', label: 'יוסף קחלר' },
+    ];
+
     function ElectionsLogin({ onBack, onLoggedIn }) {
       const [email, setEmail] = React.useState('');
       const [password, setPassword] = React.useState('');
       const [loading, setLoading] = React.useState(false);
       const [error, setError] = React.useState(null);
+      const [showQuick, setShowQuick] = React.useState(false);
 
       const handleLogin = async (e) => {
         e.preventDefault();
@@ -245,6 +254,12 @@
         } catch (err) {
           setError('שם משתמש או סיסמה שגויים');
         } finally { setLoading(false); }
+      };
+
+      const quickFill = (quickEmail) => {
+        setEmail(quickEmail);
+        setPassword('Hevre222026');
+        setShowQuick(false);
       };
 
       return (
@@ -285,7 +300,23 @@
                 {loading ? (<><Icon name="loader" className="w-5 h-5" />מתחבר...</>) : 'כניסה להצבעה'}
               </button>
             </form>
-            <p className="text-center text-gray-500 text-sm mt-6">הכניסה מותרת רק למשתמשים רשומים</p>
+            <div className="mt-4">
+              <button onClick={() => setShowQuick(!showQuick)} className="text-blue-400 hover:text-blue-300 text-sm transition-colors w-full text-center">
+                {showQuick ? 'סגור רשימה' : 'בחירה מהירה לבדיקה ↓'}
+              </button>
+              {showQuick && (
+                <div className="mt-3 glass-effect rounded-xl p-3 space-y-1.5 anim-fade">
+                  {QUICK_USERS.map((u) => (
+                    <button key={u.email} onClick={() => quickFill(u.email)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors text-right">
+                      <span className="text-sm text-gray-300">{u.label}</span>
+                      <span className={`text-xs ${u.isAdmin ? 'text-yellow-400 font-bold' : 'text-gray-500'}`}>{u.isAdmin ? 'אדמין' : 'מצביע'}</span>
+                    </button>
+                  ))}
+                  <p className="text-xs text-gray-600 text-center pt-1">הסיסמה מולאה אוטומטית</p>
+                </div>
+              )}
+            </div>
+            <p className="text-center text-gray-500 text-sm mt-4">הכניסה מותרת רק למשתמשים רשומים</p>
           </div>
         </div>
       );
@@ -527,9 +558,16 @@
           <div className="max-w-5xl mx-auto p-4 md:p-8">
             <div className="flex items-center justify-between mb-6">
               <button onClick={onBack} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors">
-                <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה</span>
+                <Icon name="chevronLeft" className="w-5 h-5" /><span>יציאה</span>
               </button>
-              <div className="text-left"><span className="text-sm text-gray-400">מחובר: </span><span className="text-sm text-blue-300">{user.email}</span></div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-sm font-bold text-white">
+                    {user.email.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-blue-300">{user.email}</span>
+                </div>
+              </div>
             </div>
             <div className="text-center mb-8 anim-slide">
               <div className="inline-flex items-center gap-3 mb-2">
@@ -697,6 +735,17 @@
 
       const votedCount = voterStatus.filter((v) => v.has_voted).length;
       const totalCount = voterStatus.length;
+      const stage1Voters = voterStatus.filter((v) => v.has_voted_stage1).length;
+      const stage2Voters = voterStatus.filter((v) => v.has_voted_stage2).length;
+
+      const stage1Results = results
+        .map((r) => ({ ...r, stagePoints: (r.rank1_votes * 12 + r.rank2_votes * 10 + r.rank3_votes * 8 + r.rank4_votes * 7 + r.rank5_votes * 6), stageVotes: r.rank1_votes + r.rank2_votes + r.rank3_votes + r.rank4_votes + r.rank5_votes }))
+        .filter((r) => r.stageVotes > 0)
+        .sort((a, b) => b.stagePoints - a.stagePoints);
+      const stage2Results = results
+        .map((r) => ({ ...r, stagePoints: (r.rank6_votes * 5 + r.rank7_votes * 4 + r.rank8_votes * 3 + r.rank9_votes * 2 + r.rank10_votes * 1), stageVotes: r.rank6_votes + r.rank7_votes + r.rank8_votes + r.rank9_votes + r.rank10_votes }))
+        .filter((r) => r.stageVotes > 0)
+        .sort((a, b) => b.stagePoints - a.stagePoints);
 
       if (loading) {
         return <div className="min-h-screen flex items-center justify-center"><Icon name="loader" className="w-10 h-10 text-blue-400" /></div>;
@@ -714,11 +763,20 @@
           <div className="max-w-6xl mx-auto p-4 md:p-8">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
               <button onClick={onBack} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors">
-                <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה</span>
+                <Icon name="chevronLeft" className="w-5 h-5" /><span>יציאה</span>
               </button>
-              <button onClick={() => loadData()} disabled={refreshing} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors disabled:opacity-50">
-                <Icon name="refresh" className={`w-4 h-4 ${refreshing ? 'anim-spin' : ''}`} />רענן
-              </button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-sm font-bold text-white">
+                    {user.email.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-yellow-300">{user.email}</span>
+                  <span className="text-xs text-yellow-500 font-bold">אדמין</span>
+                </div>
+                <button onClick={() => loadData()} disabled={refreshing} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm transition-colors disabled:opacity-50">
+                  <Icon name="refresh" className={`w-4 h-4 ${refreshing ? 'anim-spin' : ''}`} />רענן
+                </button>
+              </div>
             </div>
             <div className="text-center mb-8 anim-slide">
               <div className="inline-flex items-center gap-3 mb-2">
@@ -765,10 +823,109 @@
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 stagger">
               <StatCard icon="users" label="בעלי זכות הצבעה" value={totalCount} color="from-blue-500 to-blue-700" />
-              <StatCard icon="check" label="הצביעו" value={votedCount} color="from-green-500 to-green-700" />
+              <StatCard icon="check" label="הצביעו (סה״כ)" value={votedCount} color="from-green-500 to-green-700" />
               <StatCard icon="x" label="טרם הצביעו" value={totalCount - votedCount} color="from-orange-500 to-orange-700" />
               <StatCard icon="trending" label="אחוז הצבעה" value={totalCount > 0 ? `${Math.round((votedCount / totalCount) * 100)}%` : '0%'} color="from-cyan-500 to-cyan-700" />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 stagger">
+              <div className="glass-effect rounded-2xl p-5 anim-slide">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center"><Icon name="check" className="w-4 h-4 text-white" /></div>
+                    <h3 className="font-bold text-lg">שלב 1: מקומות 1-5</h3>
+                  </div>
+                  <span className="text-2xl font-black text-green-400">{stage1Voters}<span className="text-sm text-gray-500 font-normal">/{totalCount}</span></span>
+                </div>
+                <div className="w-full h-3 bg-gray-700/50 rounded-full overflow-hidden mb-2">
+                  <div className="progress-bar h-full rounded-full bg-gradient-to-r from-green-400 to-green-600" style={{ width: `${totalCount > 0 ? (stage1Voters / totalCount) * 100 : 0}%` }}></div>
+                </div>
+                <p className="text-xs text-gray-500">{totalCount > 0 ? Math.round((stage1Voters / totalCount) * 100) : 0}% מהמצביעים השלימו את שלב 1</p>
+              </div>
+              <div className="glass-effect rounded-2xl p-5 anim-slide">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center"><Icon name="check" className="w-4 h-4 text-white" /></div>
+                    <h3 className="font-bold text-lg">שלב 2: מקומות 6-10</h3>
+                  </div>
+                  <span className="text-2xl font-black text-blue-400">{stage2Voters}<span className="text-sm text-gray-500 font-normal">/{totalCount}</span></span>
+                </div>
+                <div className="w-full h-3 bg-gray-700/50 rounded-full overflow-hidden mb-2">
+                  <div className="progress-bar h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600" style={{ width: `${totalCount > 0 ? (stage2Voters / totalCount) * 100 : 0}%` }}></div>
+                </div>
+                <p className="text-xs text-gray-500">{totalCount > 0 ? Math.round((stage2Voters / totalCount) * 100) : 0}% מהמצביעים השלימו את שלב 2</p>
+              </div>
+            </div>
+
+            {stage1Results.length > 0 && (
+              <div className="glass-effect rounded-2xl p-4 md:p-6 mb-6 anim-slide">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center"><Icon name="chart" className="w-4 h-4 text-white" /></div>
+                  <h2 className="text-xl font-bold">התפלגות שלב 1 (מקומות 1-5)</h2>
+                </div>
+                <div className="space-y-2 stagger">
+                  {stage1Results.map((row, index) => {
+                    const maxPts = stage1Results[0]?.stagePoints || 1;
+                    const barW = maxPts > 0 ? (row.stagePoints / maxPts) * 100 : 0;
+                    return (
+                      <div key={row.candidate_id} className={`rounded-lg p-3 ${index < 3 ? 'bg-green-500/5 border border-green-500/20' : 'bg-gray-800/30'}`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${index < 3 ? 'bg-gradient-to-br from-green-400 to-green-600 text-white' : 'bg-gray-700 text-gray-400'}`}>{index + 1}</div>
+                          <span className="font-semibold flex-1 truncate">{row.candidate_name}</span>
+                          <span className="text-green-400 font-bold flex-shrink-0">{row.stagePoints} נקודות</span>
+                        </div>
+                        <div className="w-full h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                          <div className="progress-bar h-full rounded-full bg-gradient-to-r from-green-400 to-green-600" style={{ width: `${barW}%` }}></div>
+                        </div>
+                        <div className="flex gap-1 flex-wrap mt-2">
+                          {[1,2,3,4,5].map((rank) => {
+                            const votes = row[`rank${rank}_votes`] || 0;
+                            return votes > 0 ? (
+                              <span key={rank} className="px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-300 border border-green-500/30">מקום {rank}: {votes}</span>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {stage2Results.length > 0 && (
+              <div className="glass-effect rounded-2xl p-4 md:p-6 mb-6 anim-slide">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center"><Icon name="chart" className="w-4 h-4 text-white" /></div>
+                  <h2 className="text-xl font-bold">התפלגות שלב 2 (מקומות 6-10)</h2>
+                </div>
+                <div className="space-y-2 stagger">
+                  {stage2Results.map((row, index) => {
+                    const maxPts = stage2Results[0]?.stagePoints || 1;
+                    const barW = maxPts > 0 ? (row.stagePoints / maxPts) * 100 : 0;
+                    return (
+                      <div key={row.candidate_id} className={`rounded-lg p-3 ${index < 3 ? 'bg-blue-500/5 border border-blue-500/20' : 'bg-gray-800/30'}`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${index < 3 ? 'bg-gradient-to-br from-blue-400 to-blue-600 text-white' : 'bg-gray-700 text-gray-400'}`}>{index + 1}</div>
+                          <span className="font-semibold flex-1 truncate">{row.candidate_name}</span>
+                          <span className="text-blue-400 font-bold flex-shrink-0">{row.stagePoints} נקודות</span>
+                        </div>
+                        <div className="w-full h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                          <div className="progress-bar h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600" style={{ width: `${barW}%` }}></div>
+                        </div>
+                        <div className="flex gap-1 flex-wrap mt-2">
+                          {[6,7,8,9,10].map((rank) => {
+                            const votes = row[`rank${rank}_votes`] || 0;
+                            return votes > 0 ? (
+                              <span key={rank} className="px-1.5 py-0.5 rounded text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30">מקום {rank}: {votes}</span>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div className="glass-effect rounded-2xl p-4 md:p-6 mb-6 anim-slide">
               <div className="flex items-center gap-2 mb-4">
                 <Icon name="trophy" className="w-6 h-6 text-yellow-400" />
@@ -825,11 +982,14 @@
                   {voterStatus.map((voter, index) => (
                     <div key={voter.user_email} className={`anim-slide flex items-center justify-between rounded-lg px-4 py-2.5 ${voter.has_voted ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-800/30 border border-gray-700/30'}`}>
                       <span className="text-sm text-gray-300 truncate" dir="ltr">{voter.user_email}</span>
-                      {voter.has_voted ? (
-                        <span className="flex items-center gap-1 text-green-400 text-sm font-semibold flex-shrink-0"><Icon name="check" className="w-4 h-4" />הצביע</span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-gray-500 text-sm flex-shrink-0"><Icon name="x" className="w-4 h-4" />טרם הצביע</span>
-                      )}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md ${voter.has_voted_stage1 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700/50 text-gray-500'}`} title="שלב 1">
+                          <Icon name="check" className="w-3 h-3" />1
+                        </span>
+                        <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md ${voter.has_voted_stage2 ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-700/50 text-gray-500'}`} title="שלב 2">
+                          <Icon name="check" className="w-3 h-3" />2
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
