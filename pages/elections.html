@@ -96,6 +96,14 @@
     const ADMIN_EMAIL = 'admin@hevre-hatovim.com';
     const POINTS = { 1:12, 2:10, 3:8, 4:7, 5:6, 6:5, 7:4, 8:3, 9:2, 10:1 };
     const MEDAL_COLORS = ['from-yellow-400 to-yellow-600','from-gray-300 to-gray-500','from-orange-400 to-orange-600'];
+    const BALLOT_LETTERS = {
+      'עמית לסרי': 'עמל', 'יוסף קחלר': 'יוס', 'דביר אוחנה': 'דבא', 'אור דהן': 'אור',
+      'איציק מור יוסף': 'איצ', 'איתי אוחנה': 'אית', 'ג\'ורדן בוחבוט': 'ג\'ור', 'דור אביכזר': 'דור',
+      'חיים מרקס': 'חיי', 'יוגב שבתאי': 'יוג', 'יעקב שוורץ': 'יעק', 'מיכה גורלובסקי': 'מיכ',
+      'נתנאל יוסילביץ': 'נת', 'ליאב בן יעקב': 'ליא', 'אריאל עין גל': 'ארע', 'קורן בן משה': 'קור',
+      'קורן נאגר': 'קנא', 'אלי יגורוב': 'אלי', 'רפי אלגרבלי': 'רפא', 'אריאל שרביט': 'ארש',
+      'דביר ברקת': 'דב'
+    };
 
     const Icon = ({ name, className }) => {
       const icons = {
@@ -632,6 +640,43 @@
 
     function LandingPage({ electionOpen, candidates, history, onLogin, onBack }) {
       const [view, setView] = React.useState('home');
+      const [viewCandidateId, setViewCandidateId] = React.useState(null);
+
+      if (view === 'candidate') {
+        const c = candidates.find((x) => x.id === viewCandidateId);
+        if (!c) { setView('candidates'); return null; }
+        const letters = BALLOT_LETTERS[c.name] || c.name.substring(0, 3);
+        return (
+          <div className="min-h-screen p-4 md:p-8" dir="rtl">
+            <div className="max-w-2xl mx-auto">
+              <button onClick={() => setView('candidates')} className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors mb-6">
+                <Icon name="chevronLeft" className="w-5 h-5" /><span>חזרה לרשימת המועמדים</span>
+              </button>
+              <div className="text-center mb-8 anim-slide">
+                <h1 className="text-4xl font-black shimmer-text">{c.name}</h1>
+                <p className="text-gray-400 mt-2">מועמד מספר {c.display_order} · בחירות 2026</p>
+              </div>
+              <div className="flex justify-center mb-8 anim-scale">
+                <div className="bg-white rounded-lg shadow-2xl p-8" style={{ width: '320px', maxWidth: '90vw' }}>
+                  <div className="text-center">
+                    <div className="text-black text-6xl font-black tracking-wider mb-4" style={{ fontFamily: 'Arial, sans-serif' }}>
+                      {letters}
+                    </div>
+                    <div className="w-20 h-0.5 bg-black mx-auto mb-4"></div>
+                    <div className="text-black text-xl font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
+                      {c.name}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="glass-effect rounded-2xl p-6 text-center anim-slide">
+                <p className="text-gray-300 text-lg">פתק הבחירות של {c.name}</p>
+                <p className="text-gray-500 text-sm mt-2">ביום הבחירות, הצביעו עבור האותיות "{letters}" כדי לבחור את {c.name}</p>
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       if (view === 'candidates') {
         return (
@@ -645,16 +690,17 @@
                   <Icon name="list" className="w-8 h-8 text-blue-400" />
                   <h1 className="text-4xl font-black shimmer-text">המועמדים</h1>
                 </div>
-                <p className="text-gray-400">20 מועמדים מתמודדים בבחירות 2026</p>
+                <p className="text-gray-400">{candidates.length} מועמדים מתמודדים בבחירות 2026</p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 stagger">
                 {candidates.map((c, i) => (
-                  <div key={c.id} className="anim-slide glass-effect rounded-2xl p-5 text-center hover-lift">
+                  <button key={c.id} onClick={() => { setViewCandidateId(c.id); setView('candidate'); }} className="anim-slide glass-effect rounded-2xl p-5 text-center hover-lift cursor-pointer">
                     <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500/30 to-blue-700/30 border border-blue-500/30 flex items-center justify-center text-2xl font-black text-blue-300">
                       {c.display_order}
                     </div>
                     <h3 className="font-bold text-lg">{c.name}</h3>
-                  </div>
+                    <p className="text-blue-400 text-sm mt-1">{(BALLOT_LETTERS[c.name] || '').split('').join('\u00A0')}</p>
+                  </button>
                 ))}
               </div>
             </div>
@@ -774,7 +820,7 @@
                   <Icon name="users" className="w-7 h-7 text-blue-400" />
                 </div>
                 <h2 className="text-xl font-bold mb-1">המועמדים</h2>
-                <p className="text-gray-400 text-sm">צפו בכל 20 המועמדים</p>
+                <p className="text-gray-400 text-sm">צפו בכל {candidates.length} המועמדים</p>
               </button>
               <button onClick={() => setView('history')}
                 className="anim-slide glass-effect rounded-2xl p-6 text-center hover-lift group">
@@ -784,33 +830,6 @@
                 <h2 className="text-xl font-bold mb-1">היכל התהילה</h2>
                 <p className="text-gray-400 text-sm">הזוכים של השנים האחרונות</p>
               </button>
-            </div>
-
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Icon name="fire" className="w-6 h-6 text-orange-400" />
-                <h2 className="text-2xl font-bold">מועמדים מובילים</h2>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 stagger">
-                {candidates.slice(0, 5).map((c, i) => (
-                  <div key={c.id} className="anim-slide glass-effect rounded-xl p-4 text-center hover-lift">
-                    <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center font-black text-lg ${
-                      i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-gray-900' :
-                      i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900' :
-                      i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-gray-900' :
-                      'bg-gray-700 text-gray-300'
-                    }`}>
-                      {i < 3 ? <Icon name="crown" className="w-5 h-5" /> : c.display_order}
-                    </div>
-                    <p className="font-semibold text-sm truncate">{c.name}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="text-center mt-4">
-                <button onClick={() => setView('candidates')} className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
-                  צפה בכל המועמדים ←
-                </button>
-              </div>
             </div>
 
             {history.length > 0 && (
