@@ -11,7 +11,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Heebo', sans-serif; }
     body { background: linear-gradient(135deg, #0a0e1a 0%, #0f1c3a 30%, #0a1428 70%, #0a0e1a 100%); color: white; min-height: 100vh; margin: 0; overflow-x: hidden; }
@@ -79,6 +79,72 @@
                   radial-gradient(ellipse at 20% 80%, rgba(14,165,233,0.06) 0%, transparent 50%);
     }
     #error { display: none; color: #fc8181; text-align: center; padding: 2rem; }
+    .ballot-paper {
+      width: 280px;
+      height: 390px;
+      max-width: 90vw;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      position: relative;
+    }
+    .ballot-letters-heb {
+      font-family: 'Frank Ruhl Libre', serif;
+      font-size: 60px;
+      font-weight: 900;
+      line-height: 1.1;
+      color: #000;
+      letter-spacing: 2px;
+    }
+    .ballot-name-heb {
+      font-family: 'Frank Ruhl Libre', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #000;
+      line-height: 1.3;
+    }
+    .ballot-slogan-heb {
+      font-family: 'Frank Ruhl Libre', serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #000;
+      line-height: 1.3;
+    }
+    .ballot-divider {
+      width: 60%;
+      height: 1px;
+      background: #cbd5e1;
+      margin: 15px 0;
+    }
+    .ballot-letters-ar {
+      font-family: 'Amiri', serif;
+      font-size: 40px;
+      font-weight: 700;
+      color: #000;
+      letter-spacing: 4px;
+      direction: rtl;
+    }
+    .ballot-name-ar {
+      font-family: 'Amiri', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #000;
+      direction: rtl;
+    }
+    .ballot-slogan-ar {
+      font-family: 'Amiri', serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: #000;
+      direction: rtl;
+    }
   </style>
 </head>
 <body>
@@ -96,11 +162,37 @@
     const ADMIN_EMAIL = 'admin@hevre-hatovim.com';
     const POINTS = { 1:12, 2:10, 3:8, 4:7, 5:6, 6:5, 7:4, 8:3, 9:2, 10:1 };
     const MEDAL_COLORS = ['from-yellow-400 to-yellow-600','from-gray-300 to-gray-500','from-orange-400 to-orange-600'];
-    function getBallotLetters(name) {
-      const words = name.split(' ').filter((w) => w.length > 0);
-      const initials = words.map((w) => w[0]).join('');
-      if (initials.length <= 1) return initials;
-      return initials.slice(0, -1) + '\u05F4' + initials.slice(-1);
+    const BALLOT_DATA = [
+      { lettersHeb: 'עמל', lettersAr: 'ع م ل', nameAr: 'عميت لسري' },
+      { lettersHeb: 'יוס', lettersAr: 'ي و س', nameAr: 'يوسف كحلر' },
+      { lettersHeb: 'דבא', lettersAr: 'د ب أ', nameAr: 'دفير اوحانا' },
+      { lettersHeb: 'אור', lettersAr: 'أ و ر', nameAr: 'أور دهان' },
+      { lettersHeb: 'איצ', lettersAr: 'إ ي ص', nameAr: 'إيتسيك مور يوسف' },
+      { lettersHeb: 'אית', lettersAr: 'إ ي ت', nameAr: 'إيتاي اوحانا' },
+      { lettersHeb: 'ג׳ור', lettersAr: 'ج و ر', nameAr: 'جوردان بوحبوط' },
+      { lettersHeb: 'דור', lettersAr: 'د و ر', nameAr: 'دور أبيكزر' },
+      { lettersHeb: 'חיי', lettersAr: 'ح ي ي', nameAr: 'حاييم ماركس' },
+      { lettersHeb: 'יוג', lettersAr: 'ي و ج', nameAr: 'يوغيف شبتاي' },
+      { lettersHeb: 'יעק', lettersAr: 'ي ع ق', nameAr: 'يعقوب شوارتز' },
+      { lettersHeb: 'מיכ', lettersAr: 'م ي ك', nameAr: 'ميخا غورلوفسكي' },
+      { lettersHeb: 'נת', lettersAr: 'ن ت', nameAr: 'نتنائيل يوسيلفيتش' },
+      { lettersHeb: 'ליא', lettersAr: 'ل ي أ', nameAr: 'ليآف بن يعقوب' },
+      { lettersHeb: 'ארע', lettersAr: 'أ ر ع', nameAr: 'أريئيل عين غال' },
+      { lettersHeb: 'קור', lettersAr: 'ق و ر', nameAr: 'كورن بن موشيه' },
+      { lettersHeb: 'קנא', lettersAr: 'ق ن أ', nameAr: 'كورن ناغر' },
+      { lettersHeb: 'אלי', lettersAr: 'أ ل ي', nameAr: 'إيلي يغوروف' },
+      { lettersHeb: 'רפא', lettersAr: 'ر ف أ', nameAr: 'رافي الغربلي' },
+      { lettersHeb: 'ארש', lettersAr: 'أ ر ش', nameAr: 'أريئيل شربيط' },
+      { lettersHeb: 'דב', lettersAr: 'د ب', nameAr: 'دفير بركات' }
+    ];
+    function getBallotInfo(candidate) {
+      const idx = candidate.display_order - 1;
+      const data = BALLOT_DATA[idx] || { lettersHeb: '', lettersAr: '', nameAr: '' };
+      return {
+        lettersHeb: data.lettersHeb || candidate.name.split(' ').map((w) => w[0]).join(''),
+        lettersAr: data.lettersAr || '',
+        nameAr: data.nameAr || candidate.name
+      };
     }
 
     const Icon = ({ name, className }) => {
@@ -643,7 +735,7 @@
       if (view === 'candidate') {
         const c = candidates.find((x) => x.id === viewCandidateId);
         if (!c) { setView('candidates'); return null; }
-        const letters = getBallotLetters(c.name);
+        const ballot = getBallotInfo(c);
         return (
           <div className="min-h-screen p-4 md:p-8" dir="rtl">
             <div className="max-w-2xl mx-auto">
@@ -655,21 +747,23 @@
                 <p className="text-gray-400 mt-2">מועמד מספר {c.display_order} · בחירות 2026</p>
               </div>
               <div className="flex justify-center mb-8 anim-scale">
-                <div className="bg-white rounded-lg shadow-2xl p-8" style={{ width: '320px', maxWidth: '90vw' }}>
-                  <div className="text-center">
-                    <div className="text-black text-6xl font-black tracking-wider mb-4" style={{ fontFamily: 'Arial, sans-serif' }}>
-                      {letters}
-                    </div>
-                    <div className="w-20 h-0.5 bg-black mx-auto mb-4"></div>
-                    <div className="text-black text-xl font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
-                      {c.name}
-                    </div>
+                <div className="ballot-paper">
+                  <div className="ballot-letters-heb">{ballot.lettersHeb}</div>
+                  <div>
+                    <div className="ballot-name-heb">{c.name}</div>
+                    <div className="ballot-slogan-heb">בהנהגת {c.name}</div>
+                  </div>
+                  <div className="ballot-divider"></div>
+                  <div className="ballot-letters-ar">{ballot.lettersAr}</div>
+                  <div>
+                    <div className="ballot-name-ar">{ballot.nameAr}</div>
+                    <div className="ballot-slogan-ar">برئاسة {ballot.nameAr}</div>
                   </div>
                 </div>
               </div>
               <div className="glass-effect rounded-2xl p-6 text-center anim-slide">
                 <p className="text-gray-300 text-lg">פתק הבחירות של {c.name}</p>
-                <p className="text-gray-500 text-sm mt-2">ביום הבחירות, הצביעו עבור האותיות "{letters}" כדי לבחור את {c.name}</p>
+                <p className="text-gray-500 text-sm mt-2">ביום הבחירות, הצביעו עבור האותיות "{ballot.lettersHeb}" כדי לבחור את {c.name}</p>
               </div>
             </div>
           </div>
@@ -697,7 +791,7 @@
                       {c.display_order}
                     </div>
                     <h3 className="font-bold text-lg">{c.name}</h3>
-                    <p className="text-blue-400 text-sm mt-1">{getBallotLetters(c.name)}</p>
+                    <p className="text-blue-400 text-sm mt-1">{getBallotInfo(c).lettersHeb}</p>
                   </button>
                 ))}
               </div>
