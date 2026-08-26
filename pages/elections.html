@@ -1173,11 +1173,17 @@
               </div>
             ) : (
               <div className="text-center mb-10 anim-scale">
-                <div className="glass-effect rounded-2xl p-6 max-w-md mx-auto">
+                <div className="glass-effect rounded-2xl p-6 max-w-md mx-auto mb-4">
                   <Icon name="lock" className="w-12 h-12 text-blue-400 mx-auto mb-3" />
                   <p className="text-gray-300 text-lg font-semibold mb-2">ההצבעה סגורה כרגע</p>
                   <p className="text-gray-500 text-sm">האדמין יפתח את ההצבעה כשהגיע הזמן. בינתיים - הכירו את המועמדים וההיסטוריה.</p>
                 </div>
+                <button onClick={onLogin}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all hover-scale flex items-center gap-2 mx-auto">
+                  <Icon name="lock" className="w-6 h-6" />
+                  כניסת אדמין / משתמש
+                </button>
+                <p className="text-gray-500 text-sm mt-3">התחברות לפתיחת הצבעה או צפייה במועמדים</p>
               </div>
             )}
 
