@@ -385,7 +385,10 @@
       const currentStageSubmitted = isStage1 ? stage1Submitted : isStage2 ? stage2Submitted : isFull ? (stage1Submitted && stage2Submitted) : false;
 
       const assignedRanks = Object.values(rankings);
-      const stageRanksFilled = stageRanks.length > 0 && stageRanks.every((r) => assignedRanks.includes(r));
+      const requiredRanks = isFull ? [1,2,3,4,5] : stageRanks;
+      const optionalRanks = isFull ? [6,7,8,9,10] : [];
+      const requiredRanksFilled = requiredRanks.length > 0 && requiredRanks.every((r) => assignedRanks.includes(r));
+      const stageRanksFilled = isFull ? requiredRanksFilled : (stageRanks.length > 0 && stageRanks.every((r) => assignedRanks.includes(r)));
 
       const stage1CandidateIds = Object.entries(rankings).filter(([,r]) => r >= 1 && r <= 5).map(([id]) => id);
 
@@ -419,7 +422,7 @@
       };
 
       const handleSubmit = async () => {
-        if (!stageRanksFilled) { setMessage({ type: 'error', text: `חובה למלא את כל המקומות ${stageMin}-${stageMax}` }); return; }
+        if (!stageRanksFilled) { setMessage({ type: 'error', text: isFull ? 'חובה למלא לפחות את המקומות 1-5' : `חובה למלא את כל המקומות ${stageMin}-${stageMax}` }); return; }
         setSubmitting(true); setMessage(null);
         try {
           const rankingsArray = Object.entries(rankings)
@@ -429,7 +432,8 @@
           if (error) throw error;
           if (data.success === false) { setMessage({ type: 'error', text: data.error || 'שגיאה בשליחת ההצבעה' }); }
           else {
-            if (isStage1) setStage1Submitted(true);
+            if (isStage1 || isFull) setStage1Submitted(true);
+            if (isFull && optionalRanks.every((r) => assignedRanks.includes(r))) setStage2Submitted(true);
             if (isStage2) setStage2Submitted(true);
             setMessage({ type: 'success', text: `הצבעת ${stageLabel} נשלחה בהצלחה!` });
             const { data: resData } = await supabase.rpc('get_election_results');
@@ -579,7 +583,7 @@
                 <span className="w-2 h-2 rounded-full bg-blue-400 anim-pulse"></span>
                 {stageLabel}
               </div>
-              <p className="text-gray-400">{isStage1 ? 'בחרו 5 מועמדים ודרגו אותם במקומות 1-5' : isStage2 ? 'בחרו 5 מועמדים נוספים ודרגו אותם במקומות 6-10' : isFull ? 'דרגו את כל 10 המועמדים המובילים ממקום 1 עד 10' : ''}</p>
+              <p className="text-gray-400">{isStage1 ? 'בחרו 5 מועמדים ודרגו אותם במקומות 1-5' : isStage2 ? 'בחרו 5 מועמדים נוספים ודרגו אותם במקומות 6-10' : isFull ? 'דרגו את המועמדים במקומות 1-5 (חובה) ו-6-10 (אופציונלי)' : ''}</p>
             </div>
             {message && (
               <div className={`p-4 rounded-lg mb-6 text-center font-semibold anim-fade ${message.type === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>{message.text}</div>
@@ -613,7 +617,7 @@
                         {stageRanks.map((rank) => (
                           <RankButton key={rank} rank={rank} active={currentRank === rank}
                             disabled={(assignedRanks.includes(rank) && currentRank !== rank) || isLockedFromStage1 || currentStageSubmitted}
-                            onClick={() => assignRank(candidate.id, rank)} required />
+                            onClick={() => assignRank(candidate.id, rank)} required={isFull ? rank <= 5 : true} />
                         ))}
                       </div>
                     </div>
@@ -664,7 +668,14 @@
               </div>
               <div className="text-center mt-2">
                 <span className={`text-sm font-semibold ${stageRanksFilled ? 'text-green-400' : 'text-yellow-400'}`}>
-                  {stageRanksFilled ? 'כל המקומות מולאו - ניתן לשלוח!' : `מילאת ${stageRanks.filter((r) => assignedRanks.includes(r)).length}/${stageRanks.length} מקומות`}
+                  {isFull
+                    ? (requiredRanksFilled
+                        ? 'מקומות 1-5 מולאו - ניתן לשלוח! (6-10 אופציונלי)'
+                        : `מקומות חובה: ${requiredRanks.filter((r) => assignedRanks.includes(r)).length}/5 מולאו`)
+                    : (stageRanksFilled
+                      ? 'כל המקומות מולאו - ניתן לשלוח!'
+                      : `מילאת ${stageRanks.filter((r) => assignedRanks.includes(r)).length}/${stageRanks.length} מקומות`)
+                  }
                 </span>
               </div>
             </div>
