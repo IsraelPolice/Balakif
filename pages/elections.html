@@ -247,20 +247,11 @@
       return icons[name] || null;
     };
 
-    const QUICK_USERS = [
-      { email: 'Admin@Hevre-Hatovim.com', label: 'אדמין', isAdmin: true },
-      { email: 'OrDahan26@Hevre-Hatovim.com', label: 'אור דהן' },
-      { email: 'Amitlas@Hevre-Hatovim.com', label: 'עמית לסרי' },
-      { email: 'Dviro2026@Hevre-Hatovim.com', label: 'דביר אוחנה' },
-      { email: 'YosefChandler71@Hevre-Hatovim.com', label: 'יוסף קחלר' },
-    ];
-
     function ElectionsLogin({ onBack, onLoggedIn }) {
       const [email, setEmail] = React.useState('');
       const [password, setPassword] = React.useState('');
       const [loading, setLoading] = React.useState(false);
       const [error, setError] = React.useState(null);
-      const [showQuick, setShowQuick] = React.useState(false);
 
       const handleLogin = async (e) => {
         e.preventDefault();
@@ -276,12 +267,6 @@
         } catch (err) {
           setError('שם משתמש או סיסמה שגויים');
         } finally { setLoading(false); }
-      };
-
-      const quickFill = (quickEmail) => {
-        setEmail(quickEmail);
-        setPassword('Hevre222026');
-        setShowQuick(false);
       };
 
       return (
@@ -322,22 +307,6 @@
                 {loading ? (<><Icon name="loader" className="w-5 h-5" />מתחבר...</>) : 'כניסה להצבעה'}
               </button>
             </form>
-            <div className="mt-4">
-              <button onClick={() => setShowQuick(!showQuick)} className="text-blue-400 hover:text-blue-300 text-sm transition-colors w-full text-center">
-                {showQuick ? 'סגור רשימה' : 'בחירה מהירה לבדיקה ↓'}
-              </button>
-              {showQuick && (
-                <div className="mt-3 glass-effect rounded-xl p-3 space-y-1.5 anim-fade">
-                  {QUICK_USERS.map((u) => (
-                    <button key={u.email} onClick={() => quickFill(u.email)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors text-right">
-                      <span className="text-sm text-gray-300">{u.label}</span>
-                      <span className={`text-xs ${u.isAdmin ? 'text-yellow-400 font-bold' : 'text-gray-500'}`}>{u.isAdmin ? 'אדמין' : 'מצביע'}</span>
-                    </button>
-                  ))}
-                  <p className="text-xs text-gray-600 text-center pt-1">הסיסמה מולאה אוטומטית</p>
-                </div>
-              )}
-            </div>
             <p className="text-center text-gray-500 text-sm mt-4">הכניסה מותרת רק למשתמשים רשומים</p>
           </div>
         </div>
