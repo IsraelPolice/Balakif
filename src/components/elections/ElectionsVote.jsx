@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, Trophy, Check, Loader2, Lock, Vote, AlertCircle, RotateCcw } from 'lucide-react'
+import { ChevronLeft, Check, Loader2, Lock, Vote, AlertCircle, RotateCcw } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 
 const POINTS = {
@@ -16,7 +16,6 @@ export default function ElectionsVote({ user, onBack }) {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState(null)
-  const [showResults, setShowResults] = useState(false)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -163,7 +162,7 @@ export default function ElectionsVote({ user, onBack }) {
     )
   }
 
-  if (hasVoted && !showResults) {
+  if (hasVoted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 text-white flex flex-col items-center justify-center p-4" dir="rtl">
         <motion.div
@@ -202,25 +201,14 @@ export default function ElectionsVote({ user, onBack }) {
             </div>
           </div>
 
-          <div className="flex gap-3 justify-center">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowResults(true)}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors flex items-center gap-2"
-            >
-              <Trophy className="w-5 h-5" />
-              צפייה בתוצאות
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onBack}
-              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-semibold transition-colors"
-            >
-              יציאה
-            </motion.button>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onBack}
+            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-semibold transition-colors"
+          >
+            יציאה
+          </motion.button>
         </motion.div>
       </div>
     )
